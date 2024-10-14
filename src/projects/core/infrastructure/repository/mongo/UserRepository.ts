@@ -1,14 +1,17 @@
 import type { FilterQuery } from "mongoose";
 import type { MongoStored } from "./lib/model.type.js";
-import type { MongoDBConnection } from "./lib/Context.js";
+import type { ServicesType } from "../../../Container.js";
 import type { User, UserDBModel } from "../../../../../types/entities/user.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 
 export default class UserRepository implements IUserRepository {
-    constructor(private databaseConnection: MongoDBConnection) { }
+    #databaseConnection;
+    constructor(container: ServicesType) {
+        this.#databaseConnection = container.databaseConnection;
+    }
 
-    async create(user: User): Promise<User["id"] | null> {
-        const result = await this.databaseConnection.models.user.create(user);
+    async create(user: UserDBModel): Promise<User["id"] | null> {
+        const result = await this.#databaseConnection.models.user.create(user);
         return result ? result._id.toString() : null;
     }
 
@@ -23,7 +26,7 @@ export default class UserRepository implements IUserRepository {
         if (filter.tgId !== undefined)
             _filter.tgId = filter.tgId;
 
-        const result = await this.databaseConnection.models.user.findOne(_filter);
+        const result = await this.#databaseConnection.models.user.findOne(_filter);
 
         return result ? {
             id: result._id.toString(),

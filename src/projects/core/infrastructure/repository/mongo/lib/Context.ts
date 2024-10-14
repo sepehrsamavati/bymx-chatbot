@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { logger } from "../../../../helpers/logger.js";
 import { userModelDefinition } from "../models/User.js";
+import type { ServicesType } from "../../../../Container.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 
 export class MongoDBTransaction implements ITransaction {
@@ -11,8 +12,8 @@ export class MongoDBTransaction implements ITransaction {
         return this.#session;
     }
 
-    constructor(databaseConnection: MongoDBConnection) {
-        this.#connection = databaseConnection.con;
+    constructor(container: ServicesType) {
+        this.#connection = container.databaseConnection.con;
     }
 
     async start() {
@@ -82,8 +83,8 @@ export class MongoDBTransaction implements ITransaction {
 export abstract class Transactional {
     readonly transaction;
 
-    constructor(databaseTransaction: ITransaction) {
-        const transaction = databaseTransaction;
+    constructor(container: ServicesType) {
+        const transaction = container.databaseTransaction;
         if (transaction instanceof MongoDBTransaction) {
             this.transaction = transaction;
         } else {
@@ -95,12 +96,12 @@ export abstract class Transactional {
 export class MongoDBConnection {
     #mongoDbConnectionStringUri: string;
 
-    constructor(mongoDbConnectionStringUri: string) {
-        this.#mongoDbConnectionStringUri = mongoDbConnectionStringUri;
+    constructor(container: ServicesType) {
+        this.#mongoDbConnectionStringUri = container.mongoDbConnectionStringUri;
         mongoose.set('strictQuery', true);
     }
 
-    #_con?: mongoose.Connection;
+    #_con: mongoose.Connection | null = null;
     public get con() {
         return this.#_con as NonNullable<mongoose.Connection>;
     }
@@ -126,7 +127,7 @@ export class MongoDBConnection {
     }
 }
 
-export class MongooseModels {
+class MongooseModels {
     readonly models;
 
     constructor(private connection: mongoose.Connection) {

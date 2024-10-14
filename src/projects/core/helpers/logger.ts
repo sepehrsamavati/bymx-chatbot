@@ -36,3 +36,7 @@ if (!config.log.disable && (config.isDevelopment || config.alwaysConsoleLog)) {
 } else if (config.log.disable) {
     logger.silent = true;
 }
+
+export const errorLogger = (title: string, err: unknown) => {
+    logger.error(`${title}, ${err instanceof Error ? err.message : err}`);
+};

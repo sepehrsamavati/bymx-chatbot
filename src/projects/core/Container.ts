@@ -1,6 +1,8 @@
 import config from "./config.js";
 import { createContainer, asClass, asValue } from "awilix";
+import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
+import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 
 type Constants = {
@@ -12,7 +14,9 @@ type Connections = {
     databaseTransaction: RepoInterfaces.ITransaction;
 };
 
-type Repositories = {};
+type Repositories = {
+    userRepository: RepoInterfaces.IUserRepository;
+};
 
 type Applications = {};
 
@@ -22,7 +26,7 @@ export default class CoreServices {
 
     private readonly container = createContainer<ServicesType>({
         strict: true,
-        injectionMode: "CLASSIC"
+        injectionMode: "PROXY"
     });
 
     public get databaseConnection() {
@@ -46,10 +50,16 @@ export default class CoreServices {
 
             databaseConnection: asClass(MongoDBConnection, { lifetime: "SINGLETON", dispose: async ctx => await ctx.closeConnection() }),
             databaseTransaction: asClass(MongoDBTransaction, { lifetime: "SCOPED", dispose: async ctx => await ctx.end() }),
+
+            userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" })
         });
 
         if (autoSetup)
-            this.databaseConnection.connect();
+            this.databaseConnection
+                .connect()
+                .then(() => {
+                    this.#diReadyQueue.forEach(cb => cb());
+                });
     }
 
     createApplicationScope() {

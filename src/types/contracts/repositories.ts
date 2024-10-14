@@ -14,7 +14,7 @@ export interface ITransaction {
 
 export type IUserRepository = {
     /** Returns user ID on success and null on failure */
-    create(user: User): Promise<User['id'] | null>;
+    create(user: UserDBModel): Promise<User['id'] | null>;
 
     /** Returns user on success and null on failure (or non existence user) */
     getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null>;
