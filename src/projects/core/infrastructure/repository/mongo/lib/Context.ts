@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { logger } from "../../../../helpers/logger.js";
+import { userModelDefinition } from "../models/User.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 
 export class MongoDBTransaction implements ITransaction {
@@ -107,6 +108,7 @@ export class MongoDBConnection {
     async connect() {
         const connection = this.#_con = await mongoose.createConnection(this.#mongoDbConnectionStringUri).asPromise();
         logger.info("MongoDB connection established.");
+        this.#mongooseModels = new MongooseModels(connection);
         return connection;
     }
 
@@ -114,5 +116,22 @@ export class MongoDBConnection {
         await this.con?.close(false);
         logger.info("MongoDB connection closed.");
         return;
+    }
+
+
+    #mongooseModels?: MongooseModels;
+
+    get models() {
+        return this.#mongooseModels?.models as NonNullable<MongooseModels['models']>;
+    }
+}
+
+export class MongooseModels {
+    readonly models;
+
+    constructor(private connection: mongoose.Connection) {
+        this.models = Object.freeze({
+            user: userModelDefinition.createModel(this.connection)
+        });
     }
 }
