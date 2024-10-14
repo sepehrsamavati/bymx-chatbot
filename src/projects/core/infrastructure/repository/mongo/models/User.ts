@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
-import type { MongooseModelDefinition } from "../lib/model.type.js";
 import { UserTier } from "../../../../../../types/enums/userTier.js";
 import { UserType } from "../../../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../../../types/enums/userStatus.js";
 import type { UserDBModel } from "../../../../../../types/entities/user.js";
+import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
-export const userModelDefinition: MongooseModelDefinition<"users", "User", UserDBModel> = Object.freeze({
+export const userModelDefinition: MongooseModelDefinition<"users", "User", MongoStored<UserDBModel>> = Object.freeze({
 	model: "User",
 	collection: "users",
 	createModel: con => con.models[userModelDefinition.model] || con.model(userModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<UserDBModel>({
+const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 	insertDate: {
 		type: Date,
 		required: true
@@ -25,6 +25,14 @@ const schema = new mongoose.Schema<UserDBModel>({
 		type: Number,
 		required: true,
 		unique: true
+	},
+	firstName: {
+		type: String,
+		required: false
+	},
+	lastName: {
+		type: String,
+		required: false
 	},
 	username: {
 		type: String,

@@ -1,8 +1,9 @@
 import mongoose, { type ObjectId, type Model } from "mongoose";
+import type { Beautifier } from "../../../../../../types/beautifier";
+import type { StoredEntity } from "../../../../../../types/contracts/entities";
 
-type Beautifier<Obj> = {
-    [K in keyof Obj]: Obj[K];
-};
+export type MongoStored<T> = Omit<T, 'id'>;
+export type MongoStoredWithId<T> = Omit<T, 'id'> & { _id: ObjectId; };
 
 export type MongooseModelDefinition<CName extends string, MName extends string, DbModel> = Readonly<{
     readonly collection: CName;
@@ -10,15 +11,7 @@ export type MongooseModelDefinition<CName extends string, MName extends string, 
     readonly createModel: (mongooseInstance: mongoose.Connection) => Model<DbModel>;
 }>;
 
-export type DatabaseModel<ObjectModel> = Beautifier<
-    {
-        insertDate: Date;
-        isDeleted: boolean;
-    }
-    & Beautifier<ObjectModel>
->;
-
-export type DatabaseSearchModel<ObjectModel> = DatabaseModel<ObjectModel> & {
+export type DatabaseSearchModel<ObjectModel> = StoredEntity<ObjectModel> & {
     _id: string;
 };
 

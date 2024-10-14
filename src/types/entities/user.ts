@@ -1,7 +1,7 @@
 import type { UserTier } from "../enums/userTier";
 import type { UserType } from "../enums/userTypes";
 import type { UserStatus } from "../enums/userStatus";
-import type { DatabaseModel } from "../../projects/core/infrastructure/repository/mongo/lib/model.type";
+import type { StoredEntity } from "../contracts/entities";
 
 export type User = {
     id: string;
@@ -14,4 +14,4 @@ export type User = {
     username?: string;
 }
 
-export type UserDBModel = DatabaseModel<User>;
+export type UserDBModel = StoredEntity<User>;
