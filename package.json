@@ -15,6 +15,7 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "awilix": "^12.0.2",
     "dotenv": "^16.4.5",
     "mongoose": "^8.7.1",
     "winston": "^3.15.0"
