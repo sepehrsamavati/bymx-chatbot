@@ -19,6 +19,6 @@ export type IUserRepository = {
     /** Returns user on success and null on failure (or non existence user) */
     getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null>;
 
-    /** Similar to `getBy` but updates `username` and increases `usage` */
-    getAndUpdate(...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
+    /** Similar to `getBy` but updates `username`, `lastActivity` and increases `usage` */
+    getAndUpdate(username: UserDBModel['username'], ...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
 }

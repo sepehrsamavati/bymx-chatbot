@@ -1,9 +1,9 @@
-import mongoose, { type ObjectId, type Model } from "mongoose";
+import mongoose, { type Types, type ObjectId, type Model } from "mongoose";
 import type { Beautifier } from "../../../../../../types/beautifier";
 import type { StoredEntity } from "../../../../../../types/contracts/entities";
 
 export type MongoStored<T> = Omit<T, 'id'>;
-export type MongoStoredWithId<T> = Omit<T, 'id'> & { _id: ObjectId; };
+export type MongoStoredWithId<T> = Omit<T, 'id'> & { _id: Types.ObjectId; };
 
 export type MongooseModelDefinition<CName extends string, MName extends string, DbModel> = Readonly<{
     readonly collection: CName;
