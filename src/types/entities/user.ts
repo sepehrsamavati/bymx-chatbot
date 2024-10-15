@@ -6,6 +6,8 @@ import type { StoredEntity } from "../contracts/entities";
 export type User = {
     id: string;
     tgId: number;
+    usage: number;
+    lastActivity: number;
     status: UserStatus;
     type: UserType;
     tier: UserTier;

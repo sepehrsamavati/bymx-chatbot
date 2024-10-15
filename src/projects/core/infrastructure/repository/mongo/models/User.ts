@@ -26,6 +26,15 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		required: true,
 		unique: true
 	},
+	usage: {
+		type: Number,
+		required: true,
+		default: 0
+	},
+	lastActivity: {
+		type: Number,
+		required: true,
+	},
 	firstName: {
 		type: String,
 		required: false
