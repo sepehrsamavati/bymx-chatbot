@@ -11,6 +11,7 @@ export type User = {
     status: UserStatus;
     type: UserType;
     tier: UserTier;
+    mode: number;
     firstName: string;
     lastName?: string;
     username?: string;

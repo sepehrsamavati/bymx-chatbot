@@ -1,6 +1,6 @@
-import type { FilterQuery, Document, FlattenMaps } from "mongoose";
-import type { MongoStored, MongoStoredWithId } from "./lib/model.type.js";
+import type { FilterQuery, FlattenMaps } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
+import type { MongoStored, MongoStoredWithId } from "./lib/model.type.js";
 import type { User, UserDBModel } from "../../../../../types/entities/user.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 
@@ -37,6 +37,7 @@ export default class UserRepository implements IUserRepository {
             username: result.username,
             status: result.status,
             usage: result.usage,
+            mode: result.mode,
             lastActivity: result.lastActivity,
             tgId: result.tgId,
             type: result.type,

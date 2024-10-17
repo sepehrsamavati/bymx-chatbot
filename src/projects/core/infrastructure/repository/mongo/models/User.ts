@@ -4,6 +4,7 @@ import { UserType } from "../../../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../../../types/enums/userStatus.js";
 import type { UserDBModel } from "../../../../../../types/entities/user.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
+import { UserMode, userModeValues } from "../../../../../../types/enums/userMode.js";
 
 export const userModelDefinition: MongooseModelDefinition<"users", "User", MongoStored<UserDBModel>> = Object.freeze({
 	model: "User",
@@ -30,6 +31,12 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		type: Number,
 		required: true,
 		default: 0
+	},
+	mode: {
+		type: Number,
+		required: true,
+		default: UserMode.General.Normal,
+		enum: userModeValues
 	},
 	lastActivity: {
 		type: Number,
