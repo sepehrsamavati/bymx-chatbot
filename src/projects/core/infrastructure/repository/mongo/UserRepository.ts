@@ -1,8 +1,8 @@
 import type { FilterQuery, FlattenMaps } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { MongoStored, MongoStoredWithId } from "./lib/model.type.js";
-import type { User, UserDBModel } from "../../../../../types/entities/user.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
+import type { User, UserDBModel, CreateUserModel } from "../../../../../types/entities/user.js";
 
 export default class UserRepository implements IUserRepository {
     #databaseConnection;
@@ -10,7 +10,7 @@ export default class UserRepository implements IUserRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(user: UserDBModel): Promise<User["id"] | null> {
+    async create(user: CreateUserModel): Promise<User["id"] | null> {
         const result = await this.#databaseConnection.models.user.create(user);
         return result ? result._id.toString() : null;
     }

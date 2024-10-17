@@ -1,4 +1,4 @@
-import type { User, UserDBModel } from "../entities/user";
+import type { User, UserDBModel, CreateUserModel } from "../entities/user";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -14,7 +14,7 @@ export interface ITransaction {
 
 export type IUserRepository = {
     /** Returns user ID on success and null on failure */
-    create(user: UserDBModel): Promise<User['id'] | null>;
+    create(user: CreateUserModel): Promise<User['id'] | null>;
 
     /** Returns user on success and null on failure (or non existence user) */
     getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null>;

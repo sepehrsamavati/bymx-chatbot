@@ -6,6 +6,7 @@ import type { StoredEntity } from "../contracts/entities";
 export type User = {
     id: string;
     tgId: number;
+    /** Number of times user entity got retrieved from DB */
     usage: number;
     lastActivity: number;
     status: UserStatus;
@@ -18,3 +19,5 @@ export type User = {
 }
 
 export type UserDBModel = StoredEntity<User>;
+
+export type CreateUserModel = Omit<UserDBModel, 'id'>;
