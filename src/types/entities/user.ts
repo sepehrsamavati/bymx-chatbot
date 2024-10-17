@@ -21,3 +21,4 @@ export type User = {
 export type UserDBModel = StoredEntity<User>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
+export type UpdateUserModel = Partial<Pick<UserDBModel, 'username' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'tier' | 'type'>>;

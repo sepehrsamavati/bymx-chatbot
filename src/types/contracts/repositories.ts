@@ -1,4 +1,4 @@
-import type { User, UserDBModel, CreateUserModel } from "../entities/user";
+import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -20,5 +20,8 @@ export type IUserRepository = {
     getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null>;
 
     /** Similar to `getBy` but updates `username`, `lastActivity` and increases `usage` */
-    getAndUpdate(username: UserDBModel['username'], ...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
+    getAndUpdate(update: UpdateUserModel, ...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
+
+    /** Update user partially */
+    update(id: UserDBModel['id'], update: UpdateUserModel): Promise<{ ok: boolean; } | null>;
 }

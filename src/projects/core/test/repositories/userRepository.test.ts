@@ -64,7 +64,7 @@ test('User repository', async helpers => {
     const username = "test_user";
 
     await helpers.test('Get and update', async update => {
-        const result = await services.repositories.userRepository.getAndUpdate(username, { tgId: userTgId });
+        const result = await services.repositories.userRepository.getAndUpdate({ username }, { tgId: userTgId });
         const user = result as User;
         assert.notStrictEqual(result, null);
         assert.strictEqual(user.username, undefined);
