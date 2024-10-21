@@ -1,3 +1,5 @@
+import { TelegramUpdateType } from "./enums/telegramUpdateTypes";
+
 export type ChatID = number;
 
 export type MessageID = number;
@@ -112,4 +114,8 @@ export type TelegramUpdateObject = {
     message?: TelegramMessage;
     my_chat_member?: ChatMemberUpdated;
     channel_post?: TelegramMessage;
+}
+
+export type IUpdateHandler = {
+    type: TelegramUpdateType;
 }
