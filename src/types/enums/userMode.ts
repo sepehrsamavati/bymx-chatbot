@@ -32,3 +32,5 @@ Object.entries(Enums).forEach(([name, _enum]) => appendToModes(_enum, name));
 export const UserMode = Enums;
 
 export const userModeValues = allModes;
+
+export type UserModeType = typeof userModeValues[number];

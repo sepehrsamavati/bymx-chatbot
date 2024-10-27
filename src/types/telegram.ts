@@ -1,4 +1,7 @@
-import { TelegramUpdateType } from "./enums/telegramUpdateTypes";
+import type { User } from "./entities/user";
+import type { UserModeType } from "./enums/userMode";
+import type CoreServices from "../projects/core/Container";
+import type { HandlerType, TelegramUpdateType } from "./enums/telegramUpdateHandler";
 
 export type ChatID = number;
 
@@ -13,7 +16,7 @@ export type Chat = {
     is_forum?: true;
 }
 
-type User = {
+type TelegramUser = {
     id: ChatID;
     is_bot: boolean;
     first_name: string;
@@ -32,7 +35,7 @@ export type TelegramMessage = {
     text?: string;
     date: number;
     chat: Chat;
-    from: User;
+    from: TelegramUser;
     message_id: MessageID;
     entities?: {
         offset: number;
@@ -44,21 +47,21 @@ export type TelegramMessage = {
         user_id: ChatID;
         phone_number: string;
     };
-    forward_from?: User;
+    forward_from?: TelegramUser;
     forward_from_chat?: Chat;
     reply_to_message?: TelegramMessage;
 };
 
 type ChatMemberOwner = {
     status: "creator";
-    user: User;
+    user: TelegramUser;
     is_anonymous: boolean;
     custom_title?: string;
 };
 
 type ChatMemberAdministrator = {
     status: "administrator";
-    user: User;
+    user: TelegramUser;
     can_be_edited: boolean;
     is_anonymous: boolean;
     can_manage_chat: boolean;
@@ -67,12 +70,12 @@ type ChatMemberAdministrator = {
 
 type ChatMemberMember = {
     status: "member";
-    user: User;
+    user: TelegramUser;
 };
 
 type ChatMemberRestricted = {
     status: "restricted";
-    user: User;
+    user: TelegramUser;
     is_member: boolean;
     can_send_messages: boolean;
     until_date: number;
@@ -80,12 +83,12 @@ type ChatMemberRestricted = {
 
 type ChatMemberLeft = {
     status: "left";
-    user: User;
+    user: TelegramUser;
 };
 
 type ChatMemberBanned = {
     status: "kicked";
-    user: User;
+    user: TelegramUser;
     until_date: number;
 };
 
@@ -93,7 +96,7 @@ type ChatMember = ChatMemberOwner | ChatMemberAdministrator | ChatMemberMember |
 
 type ChatMemberUpdated = {
     chat: Chat;
-    from: User;
+    from: TelegramUser;
     date: number;
     old_chat_member: ChatMember;
     new_chat_member: ChatMember;
@@ -103,19 +106,27 @@ export type TelegramUpdateObject = {
     callback_query?: {
         id: string;
         data: string;
-        from: User;
+        from: TelegramUser;
         message: TelegramMessage;
     }
     inline_query?: {
         id: string;
         query: string;
-        from: User;
+        from: TelegramUser;
     }
     message?: TelegramMessage;
     my_chat_member?: ChatMemberUpdated;
     channel_post?: TelegramMessage;
 }
 
+type RequestContext = {
+    services: CoreServices['applications'];
+    user: User;
+}
+
 export type IUpdateHandler = {
-    type: TelegramUpdateType;
+    updateType: TelegramUpdateType | TelegramUpdateType[];
+    handlerType: HandlerType;
+    handler: (context: RequestContext) => Promise<void>;
+    mode: UserModeType | UserModeType[];
 }
