@@ -1,7 +1,7 @@
 import type { User } from "./entities/user";
 import type { UserModeType } from "./enums/userMode";
 import type CoreServices from "../projects/core/Container";
-import type { HandlerType, TelegramUpdateType } from "./enums/telegramUpdateHandler";
+import type { TelegramUpdateType } from "./enums/telegramUpdateHandler";
 
 export type ChatID = number;
 
@@ -119,22 +119,50 @@ export type TelegramUpdateObject = {
     channel_post?: TelegramMessage;
 }
 
+type TelegramResponse = {};
+
+
+
+
+
 type RequestContext = {
     services: CoreServices['applications'];
     user: User;
     readonly callStack: IUpdateHandler[];
 }
 
-type ResponseContext = {
+type TelegramCall = {}
+
+type ResponseContextBase = {
     /** Call Telegram method */
     call?: never;
     /** Should call next handler or not */
     shouldContinue?: boolean;
 }
 
+type ResponseContextActions = (
+    {
+        /** Call Telegram method */
+        call: TelegramCall;
+    }
+    // | {
+    //     /** Multiple Telegram methods (executed concurrently) */
+    //     concurrentCalls: TelegramCall[];
+    // } | {
+    //     /** Multiple ordered Telegram methods (executed in order) */
+    //     orderedCalls: (next: (call: TelegramCall | null) => Promise<TelegramResponse | null>) => Promise<unknown>;
+    // }
+);
+
+type ResponseContext = (
+    {
+        /** No action */
+        call?: null;
+    }
+    | ResponseContextActions) & ResponseContextBase;
+
 export type IUpdateHandler = {
     updateType: TelegramUpdateType | TelegramUpdateType[];
-    handlerType: HandlerType;
     handler: (context: RequestContext) => Promise<ResponseContext | null>;
     mode: UserModeType | UserModeType[];
 }

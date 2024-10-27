@@ -15,14 +15,3 @@ export enum TelegramUpdateType {
     InlineQuery = 50,
     CallbackQuery = 51,
 }
-
-export enum HandlerType {
-    /** Create and setup (DI scope, user auth, i18n, ...) */
-    Initializer = 1,
-    /** Custom middlewares after DI is ready and user is authenticated */
-    Middleware = 5,
-    /** Main tasks of the application */
-    Operation = 20,
-    /** Dispose DI, custom behavior after the task is done (log, ...) */
-    Disposer = 30,
-}
