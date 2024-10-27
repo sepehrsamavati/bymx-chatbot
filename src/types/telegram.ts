@@ -122,11 +122,19 @@ export type TelegramUpdateObject = {
 type RequestContext = {
     services: CoreServices['applications'];
     user: User;
+    readonly callStack: IUpdateHandler[];
+}
+
+type ResponseContext = {
+    /** Call Telegram method */
+    call?: never;
+    /** Should call next handler or not */
+    shouldContinue?: boolean;
 }
 
 export type IUpdateHandler = {
     updateType: TelegramUpdateType | TelegramUpdateType[];
     handlerType: HandlerType;
-    handler: (context: RequestContext) => Promise<void>;
+    handler: (context: RequestContext) => Promise<ResponseContext | null>;
     mode: UserModeType | UserModeType[];
 }
