@@ -21,6 +21,7 @@ test('User repository', async helpers => {
         isDeleted: false,
         lastActivity: Date.now(),
         mode: UserMode.General.Normal,
+        lang: "en",
         status: UserStatus.OK,
         tgId: userTgId,
         tier: UserTier.Free,
