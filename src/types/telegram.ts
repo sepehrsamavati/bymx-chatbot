@@ -1,6 +1,7 @@
 import type { User } from "./entities/user";
 import type { UserModeType } from "./enums/userMode";
 import type CoreServices from "../projects/core/Container";
+import type { TelegramMethods } from "./enums/telegramMethods";
 import type { TelegramUpdateType } from "./enums/telegramUpdateHandler";
 
 export type ChatID = number;
@@ -103,6 +104,7 @@ type ChatMemberUpdated = {
 };
 
 export type TelegramUpdateObject = {
+    update_id: number;
     callback_query?: {
         id: string;
         data: string;
@@ -119,9 +121,18 @@ export type TelegramUpdateObject = {
     channel_post?: TelegramMessage;
 }
 
-type TelegramResponse = {};
+type TelegramResponseBase<T> = {
+    ok: boolean;
+    result: T | null;
+}
 
+type TelegramResponseMap = {
+    [TelegramMethods.SendText]: TelegramResponseBase<TelegramMessage>;
+    [TelegramMethods.SendMessage]: TelegramResponseBase<TelegramMessage>;
+    [TelegramMethods.GetUpdates]: TelegramResponseBase<TelegramUpdateObject[]>;
+}
 
+export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;
 
 
 
@@ -163,6 +174,6 @@ type ResponseContext = (
 
 export type IUpdateHandler = {
     updateType: TelegramUpdateType | TelegramUpdateType[];
-    handler: (context: RequestContext) => Promise<ResponseContext | null>;
-    mode: UserModeType | UserModeType[];
+    handler: (context: RequestContext, update: TelegramUpdateObject) => Promise<ResponseContext | null>;
+    mode?: UserModeType | UserModeType[];
 }
