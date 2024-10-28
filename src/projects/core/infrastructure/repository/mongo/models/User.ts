@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { langCodes } from "../../../../i18n/UIText.js";
 import { UserTier } from "../../../../../../types/enums/userTier.js";
 import { UserType } from "../../../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../../../types/enums/userStatus.js";
@@ -54,6 +55,11 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		type: String,
 		required: false,
 		index: true
+	},
+	lang: {
+		type: String,
+		enum: langCodes,
+		required: true
 	},
 	status: {
 		type: Number,
