@@ -1,48 +1,25 @@
 import tgCall from "./helpers/call.js";
-import { TelegramMethods } from "../../types/enums/telegramMethods.js";
-import type { IUpdateHandler, TelegramUpdateObject } from "../../types/telegram.js";
 import { logger } from "../core/helpers/logger.js";
+import { UpdateHandler } from "./UpdateHandler.js";
+import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 
-const handlers: IUpdateHandler[] = [];
-
-class UpdateProvider {
+export class UpdateProvider {
     #nextUpdateId = 0;
+    #handler = new UpdateHandler();
 
     constructor() {
         this.#startBot();
     }
 
-    async handle(update: TelegramUpdateObject) {
-
-        // DI start
-
-        for (const handlerCtx of handlers) {
-            const responseCtx = await handlerCtx.handler({} as any, update);
-
-            if (!responseCtx)
-                continue; // skip current handler
-
-            if (responseCtx.call) {
-                // do telegram call
-            }
-
-            if (!responseCtx.shouldContinue)
-                break; // stop calling handlers
-        }
-
-        // DI end
-
-    }
-
     async #startBot() {
         const bot = await tgCall(TelegramMethods.GetMe, null);
 
-        if (!bot) {
+        if (!bot?.ok) {
             console.log("Telegram connection issue!");
             return;
         }
 
-        const botUsername = (bot as any).username as string;
+        const botUsername = bot.result.username as string;
 
         logger.info(`Bot started @${botUsername}`);
 
@@ -61,9 +38,9 @@ class UpdateProvider {
 
             if (updates.length > 0) {
 
-                updates.forEach(update => this.handle(update));
+                updates.forEach(update => this.#handler.handle(update));
 
-                const lastUpdate = updates.at(-1);
+                const lastUpdate = updates.at(updates.length - 1);
                 if (lastUpdate)
                     this.#nextUpdateId = lastUpdate.update_id + 1;
             }

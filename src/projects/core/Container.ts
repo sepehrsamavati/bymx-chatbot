@@ -1,5 +1,6 @@
 import config from "./config.js";
 import { createContainer, asClass, asValue } from "awilix";
+import UserApplication from "./application/UserApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
@@ -18,7 +19,9 @@ type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
 };
 
-type Applications = {};
+type Applications = {
+    userApplication: UserApplication;
+};
 
 export type ServicesType = Constants & Connections & Repositories & Applications;
 
@@ -50,6 +53,8 @@ export default class CoreServices {
 
             databaseConnection: asClass(MongoDBConnection, { lifetime: "SINGLETON", dispose: async ctx => await ctx.closeConnection() }),
             databaseTransaction: asClass(MongoDBTransaction, { lifetime: "SCOPED", dispose: async ctx => await ctx.end() }),
+
+            userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" })
         });

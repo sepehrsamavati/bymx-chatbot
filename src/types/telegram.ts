@@ -24,7 +24,11 @@ type TelegramUser = {
     last_name?: string;
     username?: string;
     language_code?: string;
-    is_premium?: string;
+    is_premium?: true;
+    can_join_groups?: boolean;
+    supports_inline_queries?: boolean;
+    can_connect_to_business?: boolean;
+    has_main_web_app?: boolean;
 };
 
 type MessageEntityType = 'url' | 'spoiler'
@@ -121,14 +125,18 @@ export type TelegramUpdateObject = {
     channel_post?: TelegramMessage;
 }
 
-type TelegramResponseBase<T> = {
-    ok: boolean;
-    result: T | null;
+type TelegramResponseBase<T, OK = boolean> = OK extends true ? {
+    ok: true;
+    result: T;
+} : {
+    ok: false;
+    result: null;
 }
 
 type TelegramResponseMap = {
     [TelegramMethods.SendText]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.SendMessage]: TelegramResponseBase<TelegramMessage>;
+    [TelegramMethods.GetMe]: TelegramResponseBase<TelegramUser>;
     [TelegramMethods.GetUpdates]: TelegramResponseBase<TelegramUpdateObject[]>;
 }
 
@@ -142,11 +150,11 @@ type RequestContext = {
     readonly callStack: IUpdateHandler[];
 }
 
-type TelegramCall = {}
+type TelegramCall = {
+    text: string;
+}
 
 type ResponseContextBase = {
-    /** Call Telegram method */
-    call?: never;
     /** Should call next handler or not */
     shouldContinue?: boolean;
 }

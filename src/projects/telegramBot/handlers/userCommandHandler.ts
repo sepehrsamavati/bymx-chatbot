@@ -10,6 +10,10 @@ export const userCommandHandler: IUpdateHandler = {
         if (!text.startsWith('/'))
             return null;
 
-        return null;
+        return {
+            call: {
+                text: "Welcome"
+            }
+        };
     }
 }
