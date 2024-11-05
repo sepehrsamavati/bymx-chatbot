@@ -6,8 +6,12 @@ const keys = [
     "hello"
 ] as const;
 
+export type UITextKey = typeof keys[number];
+
+export type UITextOptionalKey = UITextKey | (string & {});
+
 export type UITextLanguage = {
-    [Key in typeof keys[number]]: string;
+    [Key in UITextKey]: string;
 };
 
 type UITextObject = {
