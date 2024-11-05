@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { langCodes } from "../../../../i18n/UIText.js";
-import { UserTier } from "../../../../../../types/enums/userTier.js";
 import { UserType } from "../../../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../../../types/enums/userStatus.js";
 import type { UserDBModel } from "../../../../../../types/entities/user.js";
@@ -71,11 +70,5 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		enum: UserType,
 		required: true,
 		default: UserType.Normal
-	},
-	tier: {
-		type: Number,
-		enum: UserTier,
-		required: true,
-		default: UserTier.Free
 	}
 }, { versionKey: false, collection: userModelDefinition.collection });

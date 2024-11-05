@@ -1,6 +1,5 @@
 import type { ServicesType } from "../Container.js";
 import { UserMode } from "../../../types/enums/userMode.js";
-import { UserTier } from "../../../types/enums/userTier.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { UpsertUserModel } from "../../../types/entities/user.js";
@@ -28,7 +27,6 @@ export default class UserApplication {
                 mode: UserMode.General.Normal,
                 status: UserStatus.EULA,
                 type: UserType.Normal,
-                tier: UserTier.Free,
             });
 
             if (!userId)

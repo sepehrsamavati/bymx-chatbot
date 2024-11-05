@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from 'node:assert';
 import CoreServices from "../../Container.js";
 import { UserMode } from "../../../../types/enums/userMode.js";
-import { UserTier } from "../../../../types/enums/userTier.js";
 import { UserType } from "../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../types/enums/userStatus.js";
 import type { CreateUserModel, User } from "../../../../types/entities/user.js";
@@ -24,7 +23,6 @@ test('User repository', async helpers => {
         lang: "en",
         status: UserStatus.OK,
         tgId: userTgId,
-        tier: UserTier.Free,
         type: UserType.Normal,
         usage: 0
     };

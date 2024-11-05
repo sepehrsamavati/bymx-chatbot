@@ -49,9 +49,6 @@ export default class UserRepository implements IUserRepository {
         if (update.mode !== undefined)
             _update.mode = update.mode;
 
-        if (update.tier !== undefined)
-            _update.tier = update.tier;
-
         if (update.type !== undefined)
             _update.type = update.type;
 
@@ -71,7 +68,6 @@ export default class UserRepository implements IUserRepository {
             lastActivity: result.lastActivity,
             tgId: result.tgId,
             type: result.type,
-            tier: result.tier,
         } : null;
     }
 
