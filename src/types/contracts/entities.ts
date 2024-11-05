@@ -7,3 +7,7 @@ export type StoredEntity<ObjectModel> = Beautifier<
     }
     & Beautifier<ObjectModel>
 >;
+
+export type FlattenToIDs<T, Keys extends keyof T> = {
+    [K in keyof T]: K extends Keys ? T[K] extends object ? string : T[K] : T[K];
+};
