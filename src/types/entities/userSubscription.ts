@@ -5,6 +5,7 @@ import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 export type UserSubscription = {
     user: User;
     plan: OpenAIPlan;
+    expiry: Date;
 }
 
 export type StoredUserSubscription = StoredEntity<UserSubscription>;
