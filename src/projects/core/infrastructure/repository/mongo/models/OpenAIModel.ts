@@ -3,9 +3,9 @@ import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js"
 import { OpenAIModelType } from "../../../../../../types/enums/openAIModelType.js";
 import type { OpenAIModelDBModel } from "../../../../../../types/entities/openAIModel.js";
 
-export const openAIModelModelDefinition: MongooseModelDefinition<"openAiModels", "OpenAIModel", MongoStored<OpenAIModelDBModel>> = Object.freeze({
+export const openAIModelModelDefinition: MongooseModelDefinition<"openAIModels", "OpenAIModel", MongoStored<OpenAIModelDBModel>> = Object.freeze({
     model: "OpenAIModel",
-    collection: "openAiModels",
+    collection: "openAIModels",
     createModel: con => con.models[openAIModelModelDefinition.model] || con.model(openAIModelModelDefinition.model, schema)
 });
 
