@@ -26,6 +26,9 @@ export default class UserRepository implements IUserRepository {
         if (filter.tgId !== undefined)
             _filter.tgId = filter.tgId;
 
+        if (filter.username !== undefined)
+            _filter.username = filter.username;
+
         return _filter;
     }
 
@@ -52,6 +55,9 @@ export default class UserRepository implements IUserRepository {
         if (update.type !== undefined)
             _update.type = update.type;
 
+        if (update.selectedOaiModel !== undefined)
+            _update.selectedOaiModel = update.selectedOaiModel;
+
         return _update;
     }
 
@@ -68,6 +74,7 @@ export default class UserRepository implements IUserRepository {
             lastActivity: result.lastActivity,
             tgId: result.tgId,
             type: result.type,
+            selectedOaiModel: result.selectedOaiModel
         } : null;
     }
 
