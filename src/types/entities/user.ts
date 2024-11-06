@@ -1,6 +1,7 @@
 import type { OpenAIModel } from "./openAIModel";
 import type { UserType } from "../enums/userTypes";
 import type { UserStatus } from "../enums/userStatus";
+import type { UserModeType } from "../enums/userMode";
 import type { StoredEntity } from "../contracts/entities";
 import type { LangCode } from "../../projects/core/i18n/UIText";
 
@@ -13,7 +14,7 @@ export type User = {
     status: UserStatus;
     lang: LangCode;
     type: UserType;
-    mode: number;
+    mode: UserModeType;
     firstName: string;
     /** Selected Open AI model ID */
     selectedOaiModel?: OpenAIModel['id'];

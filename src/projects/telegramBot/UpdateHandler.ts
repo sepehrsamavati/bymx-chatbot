@@ -2,11 +2,25 @@ import tgCall from "./helpers/call.js";
 import CoreServices from "../core/Container.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
+import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
+import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, TelegramUpdateObject } from "../../types/telegram.js";
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler
 ];
+
+const handlerTypeFilter: {
+    [Key in TelegramUpdateType]: IUpdateHandler[];
+} = {} as typeof handlerTypeFilter;
+
+Object
+    .keys(TelegramUpdateType)
+    .filter(v => typeof v === "number")
+    .forEach((v: TelegramUpdateType) => {
+        // compute one time and cache
+        handlerTypeFilter[v] = handlers.filter(h => isCompatibleType(h, v));
+    });
 
 export class UpdateHandler {
     #services = new CoreServices();
@@ -14,7 +28,21 @@ export class UpdateHandler {
     async handle(update: TelegramUpdateObject) {
         const container = this.#services.createApplicationScope();
 
-        const userId = update.message?.from.id;
+        const chatType = update.message?.chat.type
+            ?? update.callback_query?.message?.chat.type
+            ?? update.my_chat_member?.chat.type
+            ?? update.channel_post?.chat.type
+            ?? null;
+
+        if (chatType !== "private")
+            return;
+
+        const userId = update.message?.from.id
+            ?? update.callback_query?.message?.from?.id
+            ?? update.inline_query?.from?.id
+            ?? update.my_chat_member?.from?.id
+            ?? update.channel_post?.from?.id
+            ?? null;
 
         if (!userId)
             return;
@@ -28,12 +56,30 @@ export class UpdateHandler {
         if (!user)
             return;
 
+        let _handlers: IUpdateHandler[] = [];
+
+        // consider message type
+        if (update.message) {
+            if (update.message.text) {
+                _handlers = handlerTypeFilter[TelegramUpdateType.TextMessage];
+            } else {
+                _handlers = handlerTypeFilter[TelegramUpdateType.Message];
+            }
+        }
+
+        // consider user modes
+        _handlers = _handlers.filter(h => isCompatibleUserMode(h, user.mode));
+
+        let callStack: IUpdateHandler[] = [];
+
         for (const handlerCtx of handlers) {
             const responseCtx = await handlerCtx.handler({
                 user: user,
-                callStack: [],
+                callStack: callStack,
                 services: container.applications
             }, update);
+
+            callStack.push(handlerCtx);
 
             if (!responseCtx)
                 continue; // skip current handler
