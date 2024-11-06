@@ -1,0 +1,45 @@
+import type { UITextOptionalKey } from "../../i18n/UIText.js";
+
+type IOperationResult = {
+    ok: boolean;
+    message: UITextOptionalKey;
+}
+
+type IOperationResultWithData<T> = {
+    ok: boolean;
+    message: UITextOptionalKey;
+    data: T;
+}
+
+
+export class OperationResult implements IOperationResult {
+    public ok = false;
+    public message = "";
+
+    public succeeded(message?: UITextOptionalKey) {
+        this.ok = true;
+        if (message)
+            this.message = message;
+        else if (this.message === "")
+            this.message = "operationSuccessful";
+        return this;
+    }
+
+    public failed(message?: UITextOptionalKey) {
+        this.ok = false;
+        if (message)
+            this.message = message;
+        else if (this.message === "")
+            this.message = "operationFailed";
+        return this;
+    }
+}
+
+export class OperationResultWithData<T> extends OperationResult implements IOperationResultWithData<T> {
+    public data!: T;
+
+    public setData(data: T) {
+        this.data = data;
+        return this;
+    }
+}

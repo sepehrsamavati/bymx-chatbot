@@ -1,8 +1,9 @@
 import type { ServicesType } from "../Container.js";
-import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
-import type { UpsertUserModel } from "../../../types/entities/user.js";
+import { OperationResult } from "../common/dto/OperationResult.js";
+import type { UpsertUserModel, User } from "../../../types/entities/user.js";
+import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 
 export default class UserApplication {
     #userRepository;
@@ -36,5 +37,18 @@ export default class UserApplication {
 
             return _user;
         }
+    }
+
+    async setUserMode(userId: User['id'], mode: UserModeType) {
+        const result = new OperationResult();
+
+        const updateResult = await this.#userRepository.update(userId, {
+            mode: mode
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
     }
 }
