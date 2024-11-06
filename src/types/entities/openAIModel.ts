@@ -10,7 +10,7 @@ export type OpenAIModel = {
     /** Model type (text, audio, ...) */
     type: OpenAIModelType;
     /** Price per million tokens */
-    pricePMT: number;
+    pricePmt: number;
 }
 
-export type StoredOpenAIModel = StoredEntity<OpenAIModel>;
+export type OpenAIModelDBModel = StoredEntity<OpenAIModel>;

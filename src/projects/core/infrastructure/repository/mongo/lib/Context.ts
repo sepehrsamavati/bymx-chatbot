@@ -3,6 +3,7 @@ import { logger } from "../../../../helpers/logger.js";
 import { userModelDefinition } from "../models/User.js";
 import type { ServicesType } from "../../../../Container.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
+import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
 
 export class MongoDBTransaction implements ITransaction {
     #session: mongoose.ClientSession | null = null;
@@ -132,7 +133,8 @@ class MongooseModels {
 
     constructor(private connection: mongoose.Connection) {
         this.models = Object.freeze({
-            user: userModelDefinition.createModel(this.connection)
+            user: userModelDefinition.createModel(this.connection),
+            openAIModel: openAIModelModelDefinition.createModel(this.connection)
         });
     }
 }
