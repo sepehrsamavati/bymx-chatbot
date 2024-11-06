@@ -33,9 +33,7 @@ export default class UserRepository implements IUserRepository {
     }
 
     #getUpdate(update: UpdateUserModel) {
-        const _update: UpdateQuery<UserDBModel> = {
-            isDeleted: update.isDeleted ?? false
-        };
+        const _update: UpdateQuery<UserDBModel> = {};
 
         if (update.username !== undefined)
             _update.username = update.username;

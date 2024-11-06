@@ -1,20 +1,15 @@
+import { randomHexString, randomNumber } from "./random.js";
 import { UserMode } from "../../../../types/enums/userMode.js";
 import { UserType } from "../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../types/enums/userStatus.js";
 import type { CreateUserModel } from "../../../../types/entities/user.js";
 
-class SampleUser {
-    userId = "";
+export class SampleUser {
+    createdUserId = "";
 
-    get userTgId() {
-        return 123456;
-    }
-
-    get username() {
-        return "test_user";
-    }
-
-    #createPayload: CreateUserModel = {
+    readonly userTgId = randomNumber(6);
+    readonly username = "test_" + randomHexString();
+    readonly createUserPayload: CreateUserModel = {
         firstName: "UserFirstName",
         insertDate: new Date(),
         isDeleted: false,
@@ -26,10 +21,4 @@ class SampleUser {
         type: UserType.Normal,
         usage: 0
     };
-
-    get createUserPayload() {
-        return this.#createPayload;
-    }
 }
-
-export const sampleUser = new SampleUser();
