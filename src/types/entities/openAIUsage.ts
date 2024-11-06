@@ -1,6 +1,6 @@
 import type { User } from "./user"
 import type { OpenAIModel } from "./openAIModel";
-import type { FlattenToIDs } from "../contracts/entities";
+import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 
 export type OpenAIUsage = {
     user: User;
@@ -9,4 +9,6 @@ export type OpenAIUsage = {
     points: number;
 }
 
-export type CreateOpenAIUsage = FlattenToIDs<OpenAIUsage, 'user' | 'model'>; 
+export type OpenAIUsageDBModel = StoredEntity<OpenAIUsage>;
+
+export type CreateOpenAIUsage = Pick<FlattenToIDs<OpenAIUsage, 'user' | 'model'>, 'user' | 'model' | 'cost' | 'points'>; 
