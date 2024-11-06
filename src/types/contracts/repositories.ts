@@ -1,4 +1,5 @@
-import { OpenAIModel } from "../entities/openAIModel";
+import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
+import type { OpenAIModel } from "../entities/openAIModel";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
 
 export interface ITransaction {
@@ -30,4 +31,9 @@ export type IUserRepository = {
 export type IOpenAIModelRepository = {
     getAll(): Promise<OpenAIModel[] | null>;
     exists(id: OpenAIModel['id']): Promise<boolean | null>;
+}
+
+export type IOpenAIPlanRepository = {
+    getById(id: OpenAIPlan['id']): Promise<OpenAIPlan | null>;
+    getMany(filter: Pick<Partial<OpenAIPlanDBModel>, 'available'>): Promise<OpenAIPlan[] | null>;
 }
