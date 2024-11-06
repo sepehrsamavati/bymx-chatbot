@@ -1,3 +1,4 @@
+import { OpenAIModel } from "../entities/openAIModel";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
 
 export interface ITransaction {
@@ -24,4 +25,9 @@ export type IUserRepository = {
 
     /** Update user partially */
     update(id: UserDBModel['id'], update: UpdateUserModel): Promise<{ ok: boolean; } | null>;
+}
+
+export type IOpenAIModelRepository = {
+    getAll(): Promise<OpenAIModel[] | null>;
+    exists(id: OpenAIModel['id']): Promise<boolean | null>;
 }

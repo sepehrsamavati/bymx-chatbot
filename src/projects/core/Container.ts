@@ -4,6 +4,7 @@ import UserApplication from "./application/UserApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 
 type Constants = {
@@ -17,6 +18,7 @@ type Connections = {
 
 type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
+    openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
 };
 
 type Applications = {
@@ -56,7 +58,8 @@ export default class CoreServices {
 
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
 
-            userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" })
+            userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
+            openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)
