@@ -4,6 +4,7 @@ import { userModelDefinition } from "../models/User.js";
 import type { ServicesType } from "../../../../Container.js";
 import { openAIPlanModelDefinition } from "../models/OpenAIPlan.js";
 import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
+import { openAIUsageModelDefinition } from "../models/OpenAIUsage.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 
 export class MongoDBTransaction implements ITransaction {
@@ -137,6 +138,7 @@ class MongooseModels {
             user: userModelDefinition.createModel(this.connection),
             openAIModel: openAIModelModelDefinition.createModel(this.connection),
             openAIPlan: openAIPlanModelDefinition.createModel(this.connection),
+            openAIUsage: openAIUsageModelDefinition.createModel(this.connection),
         });
     }
 }

@@ -6,6 +6,7 @@ import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
+import { OpenAIUsageRepository } from "./infrastructure/repository/mongo/OpenAIUsageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 
 type Constants = {
@@ -21,6 +22,7 @@ type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
     openAIPlanRepository: RepoInterfaces.IOpenAIPlanRepository;
+    openAIUsageRepository: RepoInterfaces.IOpenAIUsageRepository;
 };
 
 type Applications = {
@@ -63,6 +65,7 @@ export default class CoreServices {
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
             openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),
+            openAIUsageRepository: asClass(errorCatcher(OpenAIUsageRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)
