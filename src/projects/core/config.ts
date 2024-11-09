@@ -8,6 +8,9 @@ const config = {
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
+    openAI: {
+        apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? ""
+    },
     log: {
         disable: process.argv.includes("--silent-logger"),
         maxLogSize: 10 * 1024 * 1024,
@@ -25,6 +28,11 @@ configError(
 configError(
     "Telegram bot API token not defined",
     !config.telegramBotToken
+);
+
+configError(
+    "Open AI API token not defined",
+    !config.openAI.apiToken
 );
 
 export default config;
