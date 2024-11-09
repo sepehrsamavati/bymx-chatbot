@@ -16,7 +16,8 @@ const handlerTypeFilter: {
 
 Object
     .keys(TelegramUpdateType)
-    .filter(v => typeof v === "number")
+    .map(v => Number.parseInt(v))
+    .filter(v => !Number.isNaN(v))
     .forEach((v: TelegramUpdateType) => {
         // compute one time and cache
         handlerTypeFilter[v] = handlers.filter(h => isCompatibleType(h, v));
