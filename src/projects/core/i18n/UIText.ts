@@ -1,9 +1,12 @@
-export const langCodes = ["en", "fa"] as const;
+import faData from "./languages/fa.json" assert { type: 'json' };
+
+export const langCodes = ["fa"] as const;
 
 export type LangCode = typeof langCodes[number];
 
 const keys = [
-    "hello"
+    "_tgStart",
+    "_tgHelp",
 ] as const;
 
 export type UITextKey = typeof keys[number];
@@ -18,14 +21,8 @@ type UITextObject = {
     [Key in LangCode]: UITextLanguage;
 };
 
-const UIText = {} as UITextObject;
+const UIText: UITextObject = {
+    fa: faData,
+};
 
-for (const langCode of langCodes) {
-    const data = {} as UITextLanguage;
-
-    for (const key of keys) {
-        data[key] = "";
-    }
-
-    UIText[langCode] = data;
-}
+export default UIText;
