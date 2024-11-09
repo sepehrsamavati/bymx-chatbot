@@ -4,7 +4,8 @@ import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
-import type { IUpdateHandler, TelegramUpdateObject } from "../../types/telegram.js";
+import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
+import UIText from "../core/i18n/UIText.js";
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler
@@ -38,19 +39,22 @@ export class UpdateHandler {
         if (chatType !== "private")
             return;
 
-        const userId = update.message?.from.id
-            ?? update.callback_query?.message?.from?.id
-            ?? update.inline_query?.from?.id
-            ?? update.my_chat_member?.from?.id
-            ?? update.channel_post?.from?.id
+        const fromTgUser = update.message?.from
+            ?? update.callback_query?.message?.from
+            ?? update.inline_query?.from
+            ?? update.my_chat_member?.from
+            ?? update.channel_post?.from
             ?? null;
+
+        const userId = fromTgUser?.id ?? null;
 
         if (!userId)
             return;
 
         const user = await container.applications.userApplication.upsert({
             tgId: userId,
-            firstName: "",
+            firstName: fromTgUser?.first_name ?? "",
+            lastName: fromTgUser?.last_name,
             lang: "fa",
         });
 
@@ -73,12 +77,15 @@ export class UpdateHandler {
 
         let callStack: IUpdateHandler[] = [];
 
+        const requestContext: RequestContext = {
+            user: user,
+            uiText: UIText.fa,
+            callStack: callStack,
+            services: container.applications,
+        };
+
         for (const handlerCtx of handlers) {
-            const responseCtx = await handlerCtx.handler({
-                user: user,
-                callStack: callStack,
-                services: container.applications
-            }, update);
+            const responseCtx = await handlerCtx.handler(requestContext, update);
 
             callStack.push(handlerCtx);
 

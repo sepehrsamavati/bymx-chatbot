@@ -15,7 +15,7 @@ export class SampleUser {
         isDeleted: false,
         lastActivity: Date.now(),
         mode: UserMode.General.Normal,
-        lang: "en",
+        lang: "fa",
         status: UserStatus.OK,
         tgId: this.userTgId,
         type: UserType.Normal,

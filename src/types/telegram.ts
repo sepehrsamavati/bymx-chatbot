@@ -2,6 +2,7 @@ import type { User } from "./entities/user";
 import type { UserModeType } from "./enums/userMode";
 import type CoreServices from "../projects/core/Container";
 import type { TelegramMethods } from "./enums/telegramMethods";
+import type { UITextLanguage } from "../projects/core/i18n/UIText";
 import type { TelegramUpdateType } from "./enums/telegramUpdateHandler";
 
 export type ChatID = number;
@@ -144,9 +145,10 @@ export type TelegramResponse<Method extends TelegramMethods> = Method extends ke
 
 
 
-type RequestContext = {
+export type RequestContext = {
     services: CoreServices['applications'];
     user: User;
+    uiText: UITextLanguage;
     readonly callStack: IUpdateHandler[];
 }
 
