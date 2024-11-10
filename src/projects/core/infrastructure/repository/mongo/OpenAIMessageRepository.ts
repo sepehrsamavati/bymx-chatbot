@@ -1,30 +1,33 @@
 import mongoose from "mongoose";
 import type { ServicesType } from "../../../Container.js";
-import { OpenAIUsageDBModel } from "../../../../../types/entities/openAIUsage.js";
-import type { IOpenAIUsageRepository } from "../../../../../types/contracts/repositories.js";
+import type { OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
+import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
 
-export class OpenAIUsageRepository implements IOpenAIUsageRepository {
+export class OpenAIMessageRepository implements IOpenAIMessageRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(usage: OpenAIUsageDBModel): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models.openAIUsage.create({
-            cost: usage.cost,
-            insertDate: usage.insertDate,
-            isDeleted: usage.isDeleted,
-            model: usage.model.id,
-            points: usage.points,
-            user: usage.user.id
+    async create(message: OpenAIMessageDBModel): Promise<boolean | null> {
+        const res = await this.#databaseConnection.models.openAIMessage.create({
+            cost: message.cost,
+            insertDate: message.insertDate,
+            isDeleted: message.isDeleted,
+            chat: message.chat.id,
+            points: message.points,
+            output: message.output,
+            prompt: message.prompt,
+            saved: message.saved,
+            fileId: message.fileId
         });
         return Boolean(res?._id);
     }
 
-    async userPointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
+    async getUserPointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
         type AggregationResult = { _id: null; sum: number; }[] | undefined;
         const res = (
-            await this.#databaseConnection.models.openAIUsage
+            await this.#databaseConnection.models.openAIMessage
                 .aggregate([
                     {
                         $match: {

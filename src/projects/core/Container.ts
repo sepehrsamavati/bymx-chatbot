@@ -4,9 +4,10 @@ import UserApplication from "./application/UserApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
-import { OpenAIUsageRepository } from "./infrastructure/repository/mongo/OpenAIUsageRepository.js";
+import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 
 type Constants = {
@@ -20,9 +21,10 @@ type Connections = {
 
 type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
-    openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
     openAIPlanRepository: RepoInterfaces.IOpenAIPlanRepository;
-    openAIUsageRepository: RepoInterfaces.IOpenAIUsageRepository;
+    openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
+    openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
+    openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
 };
 
 type Applications = {
@@ -64,8 +66,9 @@ export default class CoreServices {
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
+            openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
             openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),
-            openAIUsageRepository: asClass(errorCatcher(OpenAIUsageRepository), { lifetime: "SCOPED" }),
+            openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)

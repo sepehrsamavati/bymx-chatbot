@@ -1,7 +1,8 @@
-import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIModel } from "../entities/openAIModel";
+import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
+import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
-import { CreateOpenAIUsage, OpenAIUsageDBModel } from "../entities/openAIUsage";
+import { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -39,7 +40,12 @@ export type IOpenAIPlanRepository = {
     getMany(filter: Pick<Partial<OpenAIPlanDBModel>, 'available'>): Promise<OpenAIPlan[] | null>;
 }
 
-export type IOpenAIUsageRepository = {
-    create(usage: OpenAIUsageDBModel): Promise<boolean | null>;
-    userPointUsage(user: User['id'], fromDate: Date, toDate: Date): Promise<number | null>;
+export type IOpenAIChatRepository = {
+    create(chat: OpenAIChatDBModel): Promise<boolean | null>;
+    getUserChatById(userId: User['id'], chatId: OpenAIChat['id']): Promise<OpenAIChat | null>;
+}
+
+export type IOpenAIMessageRepository = {
+    create(message: OpenAIMessageDBModel): Promise<boolean | null>;
+    getUserPointUsage(user: User['id'], fromDate: Date, toDate: Date): Promise<number | null>;
 }

@@ -3,8 +3,9 @@ import { logger } from "../../../../helpers/logger.js";
 import { userModelDefinition } from "../models/User.js";
 import type { ServicesType } from "../../../../Container.js";
 import { openAIPlanModelDefinition } from "../models/OpenAIPlan.js";
+import { openAIChatModelDefinition } from "../models/OpenAIChat.js";
 import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
-import { openAIUsageModelDefinition } from "../models/OpenAIUsage.js";
+import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 
 export class MongoDBTransaction implements ITransaction {
@@ -138,7 +139,8 @@ class MongooseModels {
             user: userModelDefinition.createModel(this.connection),
             openAIModel: openAIModelModelDefinition.createModel(this.connection),
             openAIPlan: openAIPlanModelDefinition.createModel(this.connection),
-            openAIUsage: openAIUsageModelDefinition.createModel(this.connection),
+            openAIChat: openAIChatModelDefinition.createModel(this.connection),
+            openAIMessage: openAIMessageModelDefinition.createModel(this.connection),
         });
     }
 }
