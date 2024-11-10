@@ -1,7 +1,10 @@
 import config from "./config.js";
 import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
+import OpenAIApplication from "./application/OpenAIApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
+import OpenAIService from "./infrastructure/services/OpenAIService.js";
+import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
@@ -29,9 +32,14 @@ type Repositories = {
 
 type Applications = {
     userApplication: UserApplication;
+    openAIApplication: OpenAIApplication;
 };
 
-export type ServicesType = Constants & Connections & Repositories & Applications;
+type Services = {
+    openAI: ServiceInterfaces.IOpenAIService;
+};
+
+export type ServicesType = Constants & Connections & Repositories & Applications & Services;
 
 export default class CoreServices {
 
@@ -63,6 +71,9 @@ export default class CoreServices {
             databaseTransaction: asClass(MongoDBTransaction, { lifetime: "SCOPED", dispose: async ctx => await ctx.end() }),
 
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
+            openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
+
+            openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),

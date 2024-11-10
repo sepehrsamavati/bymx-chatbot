@@ -1,8 +1,8 @@
 import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
+import type { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
-import { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
