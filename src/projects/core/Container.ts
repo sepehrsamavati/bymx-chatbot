@@ -4,6 +4,7 @@ import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
+import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
@@ -35,6 +36,7 @@ type Repositories = {
 type Applications = {
     userApplication: UserApplication;
     openAIApplication: OpenAIApplication;
+    openAIPlanApplication: OpenAIPlanApplication;
 };
 
 type Services = {
@@ -75,6 +77,7 @@ export default class CoreServices {
 
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
+            openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
 

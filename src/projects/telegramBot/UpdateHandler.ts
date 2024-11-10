@@ -2,6 +2,7 @@ import tgCall from "./helpers/call.js";
 import UIText from "../core/i18n/UIText.js";
 import CoreServices from "../core/Container.js";
 import { promptHandler } from "./handlers/promptHandler.js";
+import { planListHandler } from "./handlers/planListHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
@@ -10,7 +11,7 @@ import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../..
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
-
+    planListHandler,
     promptHandler
 ];
 

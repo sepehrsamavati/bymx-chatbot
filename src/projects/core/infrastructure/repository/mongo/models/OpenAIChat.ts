@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { userModelDefinition } from "./User.js";
+import type { userModelDefinition } from "./User.js";
 import { openAIModelModelDefinition } from "./OpenAIModel.js";
 import type { OpenAIChatDBModel } from "../../../../../../types/entities/openAIChat.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
@@ -24,7 +24,7 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
     },
     user: {
         type: mongoose.Types.ObjectId,
-        ref: userModelDefinition.model,
+        ref: "User" satisfies typeof userModelDefinition['model'],
         required: true
     },
     model: {

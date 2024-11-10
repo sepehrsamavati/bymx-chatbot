@@ -78,6 +78,6 @@ export default class UserApplication {
             isDeleted: false
         });
 
-        return res ? result.succeeded() : result.failed("failedToPurchase");
+        return res ? result.succeeded() : result.failed();
     }
 }

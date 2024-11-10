@@ -33,7 +33,8 @@ export type IUserRepository = {
 
 export type IUserSubscriptionRepository = {
     create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null>;
-    getActives(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription[] | null>;
+    getActive(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription | null>;
+    getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription[] | null>;
 }
 
 export type IOpenAIModelRepository = {

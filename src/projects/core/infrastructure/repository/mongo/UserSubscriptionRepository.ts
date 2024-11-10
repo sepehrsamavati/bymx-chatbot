@@ -22,7 +22,11 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         return Boolean(res?._id);
     }
 
-    async getActives(userId: string, expiryNotBefore: Date): Promise<UserSubscription[] | null> {
+    async getActive(userId: string, expiryNotBefore: Date): Promise<UserSubscription | null> {
+        return null;
+    }
+
+    async getAllActives(userId: string, expiryNotBefore: Date): Promise<UserSubscription[] | null> {
         const res = await this.#databaseConnection.models.userSubscription.find({
             isDeleted: false,
             user: userId,

@@ -7,13 +7,13 @@ export const userCommandHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        if (!text.startsWith('/'))
-            return null;
+        if (text.toLowerCase() === '/start')
+            return {
+                call: {
+                    text: "Welcome"
+                }
+            };
 
-        return {
-            call: {
-                text: "Welcome"
-            }
-        };
+        return null;
     }
 }
