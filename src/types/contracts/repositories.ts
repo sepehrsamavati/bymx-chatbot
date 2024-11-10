@@ -3,6 +3,7 @@ import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
+import { UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -28,6 +29,11 @@ export type IUserRepository = {
 
     /** Update user partially */
     update(id: UserDBModel['id'], update: UpdateUserModel): Promise<{ ok: boolean; } | null>;
+}
+
+export type IUserSubscriptionRepository = {
+    create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null>;
+    getActives(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription[] | null>;
 }
 
 export type IOpenAIModelRepository = {

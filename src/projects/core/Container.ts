@@ -12,6 +12,7 @@ import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPl
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
+import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
 
 type Constants = {
     mongoDbConnectionStringUri: string;
@@ -24,6 +25,7 @@ type Connections = {
 
 type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
+    userSubscriptionRepository: RepoInterfaces.IUserSubscriptionRepository;
     openAIPlanRepository: RepoInterfaces.IOpenAIPlanRepository;
     openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
@@ -54,6 +56,7 @@ export default class CoreServices {
 
     public readonly applications: Applications = this.container.cradle;
     public readonly repositories: Repositories = this.container.cradle;
+    public readonly services: Services = this.container.cradle;
 
     #diReadyQueue = new Set<() => void>();
 
@@ -76,6 +79,7 @@ export default class CoreServices {
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
+            userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
             openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
             openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),

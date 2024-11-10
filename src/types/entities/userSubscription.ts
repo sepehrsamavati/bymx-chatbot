@@ -8,6 +8,6 @@ export type UserSubscription = {
     expiry: Date;
 }
 
-export type StoredUserSubscription = StoredEntity<UserSubscription>;
+export type UserSubscriptionDBModel = StoredEntity<UserSubscription>;
 
-export type CreateUserSubscription = FlattenToIDs<StoredUserSubscription, 'user' | 'plan'>; 
+export type CreateUserSubscription = FlattenToIDs<UserSubscriptionDBModel, 'user' | 'plan'>; 

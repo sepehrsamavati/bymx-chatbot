@@ -7,9 +7,13 @@ import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 
 export default class UserApplication {
     #userRepository;
+    #openAIPlanRepository;
+    #userSubscriptionRepository;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
+        this.#openAIPlanRepository = container.openAIPlanRepository;
+        this.#userSubscriptionRepository = container.userSubscriptionRepository;
     }
 
     async upsert(user: UpsertUserModel) {
@@ -50,5 +54,30 @@ export default class UserApplication {
             result.succeeded();
 
         return result;
+    }
+
+    async purchasePlan(user: User, planId: string) {
+        const result = new OperationResult();
+
+        const plan = await this.#openAIPlanRepository.getById(planId);
+
+        if (!plan)
+            return result.failed("planNotExist");
+
+        if (!plan.available)
+            return result.failed("planNotAvailable");
+
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + plan.days);
+
+        const res = await this.#userSubscriptionRepository.create({
+            user: user,
+            plan: plan,
+            expiry: expiry,
+            insertDate: new Date(),
+            isDeleted: false
+        });
+
+        return res ? result.succeeded() : result.failed("failedToPurchase");
     }
 }

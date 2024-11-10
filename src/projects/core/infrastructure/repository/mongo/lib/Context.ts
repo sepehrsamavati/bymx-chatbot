@@ -7,6 +7,7 @@ import { openAIChatModelDefinition } from "../models/OpenAIChat.js";
 import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
 import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
+import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
 
 export class MongoDBTransaction implements ITransaction {
     #session: mongoose.ClientSession | null = null;
@@ -137,6 +138,7 @@ class MongooseModels {
     constructor(private connection: mongoose.Connection) {
         this.models = Object.freeze({
             user: userModelDefinition.createModel(this.connection),
+            userSubscription: userSubscriptionModelDefinition.createModel(this.connection),
             openAIModel: openAIModelModelDefinition.createModel(this.connection),
             openAIPlan: openAIPlanModelDefinition.createModel(this.connection),
             openAIChat: openAIChatModelDefinition.createModel(this.connection),
