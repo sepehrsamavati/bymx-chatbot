@@ -64,7 +64,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
                 tgId: user.tgId,
                 type: user.type,
                 usage: user.usage,
-                selectedOaiModel: user.selectedOaiModel,
+                selectedChat: user.selectedChat,
             }
         };
     }

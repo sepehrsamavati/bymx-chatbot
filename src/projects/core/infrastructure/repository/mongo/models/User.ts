@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { langCodes } from "../../../../i18n/UIText.js";
-import { openAIModelModelDefinition } from "./OpenAIModel.js";
+import { openAIChatModelDefinition } from "./OpenAIChat.js";
 import { UserType } from "../../../../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../../../../types/enums/userStatus.js";
 import type { UserDBModel } from "../../../../../../types/entities/user.js";
@@ -72,9 +72,9 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		required: true,
 		default: UserType.Normal
 	},
-	selectedOaiModel: {
+	selectedChat: {
 		type: mongoose.Types.ObjectId,
-		ref: openAIModelModelDefinition.model,
+		ref: openAIChatModelDefinition.model,
 		required: false
 	},
 }, { versionKey: false, collection: userModelDefinition.collection });

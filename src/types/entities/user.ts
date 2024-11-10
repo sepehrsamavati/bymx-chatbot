@@ -1,4 +1,4 @@
-import type { OpenAIModel } from "./openAIModel";
+import type { OpenAIChat } from "./openAIChat";
 import type { UserType } from "../enums/userTypes";
 import type { UserStatus } from "../enums/userStatus";
 import type { UserModeType } from "../enums/userMode";
@@ -16,8 +16,8 @@ export type User = {
     type: UserType;
     mode: UserModeType;
     firstName: string;
-    /** Selected Open AI model ID */
-    selectedOaiModel?: OpenAIModel['id'];
+    /** Selected Open AI chat */
+    selectedChat?: OpenAIChat;
     lastName?: string;
     username?: string;
 }
@@ -25,5 +25,5 @@ export type User = {
 export type UserDBModel = StoredEntity<User>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
-export type UpdateUserModel = Partial<Pick<UserDBModel, 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedOaiModel'>>;
+export type UpdateUserModel = Partial<Pick<UserDBModel, 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
 export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName'>;

@@ -1,6 +1,6 @@
 import type { ServicesType } from "../../../Container.js";
 import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
-import type { MongoStored, MongoStoredWithId } from "./lib/model.type.js";
+import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../../../../../types/entities/user.js";
 
@@ -53,14 +53,18 @@ export default class UserRepository implements IUserRepository {
         if (update.type !== undefined)
             _update.type = update.type;
 
-        if (update.selectedOaiModel !== undefined)
-            _update.selectedOaiModel = update.selectedOaiModel;
+        if (update.selectedChat !== undefined)
+            _update.selectedChat = update.selectedChat.id;
 
         return _update;
     }
 
     #storedToView(result?: FlattenMaps<MongoStoredWithId<UserDBModel>> | null): User | null {
-        return result ? {
+
+        if (!result)
+            return null;
+
+        const user: User = {
             id: result._id.toString(),
             firstName: result.firstName,
             lastName: result.lastName,
@@ -72,13 +76,21 @@ export default class UserRepository implements IUserRepository {
             lastActivity: result.lastActivity,
             tgId: result.tgId,
             type: result.type,
-            selectedOaiModel: result.selectedOaiModel
-        } : null;
+        };
+
+        const selectedChat = result.selectedChat as PopulatedProperty<User['selectedChat']>;
+        if (selectedChat) {
+            debugger;
+        }
+
+        return user;
     }
 
     async getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null> {
         const _filter = this.#getFilter(filter);
-        const result = await this.#databaseConnection.models.user.findOne(_filter).lean().exec();
+        const result = await this.#databaseConnection.models.user.findOne(_filter)
+            .populate('selectedChat' satisfies keyof User)
+            .lean().exec();
         return this.#storedToView(result);
     }
 
@@ -92,7 +104,9 @@ export default class UserRepository implements IUserRepository {
         };
 
         const result = await this.#databaseConnection.models.user
-            .findOneAndUpdate(_filter, _update).lean().exec();
+            .findOneAndUpdate(_filter, _update)
+            .populate('selectedChat' satisfies keyof User)
+            .lean().exec();
 
         return this.#storedToView(result);
     }
