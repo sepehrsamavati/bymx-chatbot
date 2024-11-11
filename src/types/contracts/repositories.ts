@@ -57,4 +57,5 @@ export type IOpenAIChatRepository = {
 export type IOpenAIMessageRepository = {
     create(message: OpenAIMessageDBModel): Promise<boolean | null>;
     getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
+    getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
 }

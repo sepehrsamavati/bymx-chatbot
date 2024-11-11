@@ -16,19 +16,38 @@ export default class OpenAIApplication {
     async textMessage(user: User, message: string) {
         // const result = new OperationResult();
 
+        var start = new Date();
+        start.setUTCHours(0, 0, 0, 0);
+
+        var end = new Date();
+        end.setUTCHours(23, 59, 59, 999);
+
+        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(user.id, start, end);
+
+        if (freePointUsage === null)
+            return;
+
+        if (freePointUsage < 200) {
+            const res = await this.#openAI.simpleMessage(message, user.id);
+
+            return `Free usage: ${freePointUsage}\n\n${res}`;
+        }
+
         const subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
         if (!subscription)
             return;
 
-        const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(user.id);
+        const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
 
-        if(currentPlanUsage === null)
+        if (currentPlanUsage === null)
             return;
 
         // await this.#openAIMessageRepository.create
 
-        return await this.#openAI.simpleMessage(message, user.id);
+        const res = await this.#openAI.simpleMessage(message, user.id);
+
+        return `Plan usage: ${currentPlanUsage}\n\n${res}`;
 
         // return result;
     }

@@ -4,7 +4,7 @@ import { OpenAIPlan } from "./openAIPlan";
 
 export type OpenAIMessage = {
     chat: OpenAIChat;
-    plan: OpenAIPlan;
+    plan?: OpenAIPlan;
     prompt: string;
     output: string;
     /** User saved */
