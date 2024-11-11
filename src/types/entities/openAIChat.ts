@@ -4,10 +4,11 @@ import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 
 export type OpenAIChat = {
     id: string;
+    title: string;
     user: User;
     model: OpenAIModel;
 }
 
 export type OpenAIChatDBModel = StoredEntity<OpenAIChat>;
 
-export type CreateOpenAIChat = Pick<FlattenToIDs<OpenAIChat, 'user' | 'model'>, 'user' | 'model'>; 
+export type CreateOpenAIChat = Pick<FlattenToIDs<OpenAIChat, 'user' | 'model'>, 'title' | 'user' | 'model'>; 

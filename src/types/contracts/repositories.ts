@@ -1,3 +1,4 @@
+import type { CaptionOnly } from "./entities";
 import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
@@ -49,7 +50,8 @@ export type IOpenAIPlanRepository = {
 
 export type IOpenAIChatRepository = {
     create(chat: OpenAIChatDBModel): Promise<boolean | null>;
-    getUserChatById(userId: User['id'], chatId: OpenAIChat['id']): Promise<OpenAIChat | null>;
+    getUserChatById(userId: User['id'], chatId: OpenAIChat['id']): Promise<Omit<OpenAIChat, 'user'> | null>;
+    getUserChats(userId: string): Promise<CaptionOnly[] | null>;
 }
 
 export type IOpenAIMessageRepository = {

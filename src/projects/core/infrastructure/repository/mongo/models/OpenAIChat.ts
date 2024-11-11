@@ -22,6 +22,10 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
         required: true,
         default: false
     },
+    title: {
+        type: String,
+        required: true
+    },
     user: {
         type: mongoose.Types.ObjectId,
         ref: "User" satisfies typeof userModelDefinition['model'],

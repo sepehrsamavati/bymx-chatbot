@@ -30,8 +30,3 @@ export type GridViewModel<ObjectModel> = Beautifier<
     }
     & Beautifier<ObjectModel>
 >;
-
-export type CaptionOnly = {
-    _id: ObjectId;
-    caption: string;
-}
