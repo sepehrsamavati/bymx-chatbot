@@ -36,4 +36,9 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
         ref: openAIModelModelDefinition.model,
         required: true
     },
+    isHidden: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
 }, { versionKey: false, collection: openAIChatModelDefinition.collection });

@@ -2,8 +2,8 @@ import type { CaptionOnly } from "./entities";
 import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
-import type { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
+import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat } from "../entities/openAIChat";
 import type { UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 
 export interface ITransaction {
@@ -50,7 +50,7 @@ export type IOpenAIPlanRepository = {
 
 export type IOpenAIChatRepository = {
     create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null>;
-    getUserChatById(userId: User['id'], chatId: OpenAIChat['id']): Promise<Omit<OpenAIChat, 'user'> | null>;
+    getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
     getUserChats(userId: string): Promise<CaptionOnly[] | null>;
 }

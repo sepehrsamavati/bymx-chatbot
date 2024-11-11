@@ -1,14 +1,39 @@
+import type { FilterQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
-import type { PopulatedProperty } from "./lib/model.type.js";
+import type { MongoStored, PopulatedProperty } from "./lib/model.type.js";
 import type { CaptionOnly } from "../../../../../types/contracts/entities.js";
 import type { OpenAIModelDBModel } from "../../../../../types/entities/openAIModel.js";
 import type { IOpenAIChatRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIChat, OpenAIChatDBModel } from "../../../../../types/entities/openAIChat.js";
+import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat } from "../../../../../types/entities/openAIChat.js";
 
 export class OpenAIChatRepository implements IOpenAIChatRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
+    }
+
+    #getFilter(filter: SearchOpenAIChat) {
+        const _filter: FilterQuery<MongoStored<OpenAIChatDBModel>> = {};
+
+        if (filter.id !== undefined)
+            _filter._id = filter.id;
+
+        if (filter.title !== undefined)
+            _filter.title = filter.title;
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        if (filter.isHidden !== undefined)
+            _filter.isHidden = filter.isHidden;
+
+        if (filter.model !== undefined)
+            _filter.model = filter.model;
+
+        if (filter.user !== undefined)
+            _filter.user = filter.user;
+
+        return _filter;
     }
 
     async create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null> {
@@ -18,16 +43,13 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             model: chat.model.id,
             user: chat.user.id,
             title: chat.title,
+            isHidden: chat.isHidden
         });
         return res?._id.toString() || null;
     }
 
-    async getUserChatById(userId: string, chatId: string): Promise<Omit<OpenAIChat, 'user'> | null> {
-        const res = await this.#databaseConnection.models.openAIChat.findOne({
-            isDeleted: false,
-            user: userId,
-            _id: chatId
-        })
+    async getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null> {
+        const res = await this.#databaseConnection.models.openAIChat.findOne(this.#getFilter(filter))
             .populate<{
                 model: PopulatedProperty<OpenAIModelDBModel>;
             }>([
@@ -44,6 +66,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         return {
             id: res._id.toString(),
             title: res.title,
+            isHidden: res.isHidden,
             model: {
                 id: model._id.toString(),
                 name: model.name,
@@ -57,6 +80,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
     async getUserChats(userId: string): Promise<CaptionOnly[] | null> {
         const res = await this.#databaseConnection.models.openAIChat.find({
             isDeleted: false,
+            isHidden: false,
             user: userId,
         })
             .lean();

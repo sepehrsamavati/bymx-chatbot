@@ -1,11 +1,11 @@
 import type { ServicesType } from "../../../Container.js";
-import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
-import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
-import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
-import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../../../../../types/entities/user.js";
-import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
-import { OpenAIChat } from "../../../../../types/entities/openAIChat.js";
 import { openAIModelModelDefinition } from "./models/OpenAIModel.js";
+import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
+import { OpenAIChat } from "../../../../../types/entities/openAIChat.js";
+import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
+import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
+import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
+import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../../../../../types/entities/user.js";
 
 export default class UserRepository implements IUserRepository {
     #databaseConnection;
@@ -95,6 +95,7 @@ export default class UserRepository implements IUserRepository {
                     type: chatModel.type
                 },
                 title: selectedChat.title,
+                isHidden: selectedChat.isHidden,
                 user: user
             };
         }

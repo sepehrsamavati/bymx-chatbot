@@ -36,30 +36,38 @@ export default class OpenAIApplication {
                 return; // select chat
 
             const defaultModel = await this.#openAIModelCache.getDefault();
+
+            const openAIChat = {
+                title: "Default",
+                user: user,
+                model: defaultModel,
+                isHidden: true
+            } satisfies Partial<OpenAIChat>;
+
             const defaultChatId = await this.#openAIChatRepository.create({
                 insertDate: new Date(),
                 isDeleted: false,
                 title: "Default",
                 user: user,
                 model: defaultModel,
+                isHidden: true
             });
 
             if (defaultChatId === null)
                 return; // error
 
-            const openAIChat: OpenAIChat = {
-                id: defaultChatId,
-                title: "Default",
-                user: user,
-                model: defaultModel,
-            };
-
             const updateResult = await this.#userRepository.update(user.id, {
-                selectedChat: openAIChat
+                selectedChat: {
+                    ...openAIChat,
+                    id: defaultChatId
+                }
             });
 
             if (updateResult?.ok) {
-                selectedChat = user.selectedChat = openAIChat;
+                selectedChat = user.selectedChat = {
+                    ...openAIChat,
+                    id: defaultChatId
+                };
             } else {
                 return; // error
             }
@@ -94,7 +102,7 @@ export default class OpenAIApplication {
                     output: res,
                     prompt: message,
                     points: userPointCost,
-                    saved: false,
+                    saved: !selectedChat.isHidden,
                     // plan: subscription.plan
                 });
             }
