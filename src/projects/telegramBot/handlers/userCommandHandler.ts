@@ -18,7 +18,7 @@ export const userCommandHandler: IUpdateHandler = {
                 };
 
             case "/chats": {
-                const chats = await context.services.openAIPlanApplication.getAllAvailable();
+                const chats = await context.services.openAIChatApplication.getVisibleChats(context.user.id);
 
                 if (!chats)
                     return null;
@@ -31,7 +31,11 @@ export const userCommandHandler: IUpdateHandler = {
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: "➕", callback_data: "newChat" }],
-                                ...chats.map(chat => [{ text: chat.title, callback_data: `selectChat${chat.id}` }])
+                                ...chats.map(chat => [
+                                    context.user.selectedChat?.id === chat.id
+                                        ? { text: `✅ ${chat.caption} `, callback_data: "nonce" }
+                                        : { text: chat.caption, callback_data: `selectChat${chat.id}` }
+                                ])
                             ]
                         }
                     }

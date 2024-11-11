@@ -3,6 +3,7 @@ import UIText from "../core/i18n/UIText.js";
 import CoreServices from "../core/Container.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { planListHandler } from "./handlers/planListHandler.js";
+import { selectChatHandler } from "./handlers/selectChatHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
@@ -14,6 +15,7 @@ const handlers: IUpdateHandler[] = [
     userCommandHandler,
     planListHandler,
     createNewChatHandler,
+    selectChatHandler,
     promptHandler
 ];
 

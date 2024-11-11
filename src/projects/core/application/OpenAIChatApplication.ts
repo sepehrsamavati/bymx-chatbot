@@ -20,6 +20,16 @@ export default class OpenAIChatApplication {
         return createdChatId;
     }
 
+    async getUserChatById(userId: string, chatId: string) {
+        const createdChatId = await this.#openAIChatRepository.getChat({
+            isDeleted: false,
+            isHidden: false,
+            id: chatId,
+            user: userId
+        });
+        return createdChatId;
+    }
+
     async getVisibleChats(userId: string) {
         const chats = await this.#openAIChatRepository.getChats({
             user: userId,
