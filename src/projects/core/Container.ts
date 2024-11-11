@@ -5,9 +5,11 @@ import OpenAIApplication from "./application/OpenAIApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
+import OpenAIChatApplication from "./application/OpenAIChatApplication.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
+import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
@@ -38,6 +40,8 @@ type Applications = {
     userApplication: UserApplication;
     openAIApplication: OpenAIApplication;
     openAIPlanApplication: OpenAIPlanApplication;
+    openAIChatApplication: OpenAIChatApplication;
+    openAIModelApplication: OpenAIModelApplication;
 };
 
 type Services = {
@@ -80,6 +84,8 @@ export default class CoreServices {
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
             openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
+            openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
+            openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),

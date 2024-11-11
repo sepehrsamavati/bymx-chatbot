@@ -40,6 +40,7 @@ export type IUserSubscriptionRepository = {
 
 export type IOpenAIModelRepository = {
     getAll(): Promise<OpenAIModel[] | null>;
+    getById(id: OpenAIModel['id']): Promise<OpenAIModel | null>;
     exists(id: OpenAIModel['id']): Promise<boolean | null>;
 }
 
@@ -52,7 +53,7 @@ export type IOpenAIChatRepository = {
     create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null>;
     getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
-    getUserChats(userId: string): Promise<CaptionOnly[] | null>;
+    getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null>;
 }
 
 export type IOpenAIMessageRepository = {

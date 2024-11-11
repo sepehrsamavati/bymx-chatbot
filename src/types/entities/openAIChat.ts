@@ -12,5 +12,5 @@ export type OpenAIChat = {
 
 export type OpenAIChatDBModel = StoredEntity<OpenAIChat>;
 
-export type CreateOpenAIChat = Pick<FlattenToIDs<OpenAIChat, 'user' | 'model'>, 'title' | 'isHidden' | 'user' | 'model'>; 
+export type CreateOpenAIChat = Pick<OpenAIChat, 'title' | 'isHidden' | 'user' | 'model'>; 
 export type SearchOpenAIChat = Partial<FlattenToIDs<OpenAIChatDBModel, 'user' | 'model'>>; 

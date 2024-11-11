@@ -24,6 +24,19 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
         return res;
     }
 
+    async getById(id: string): Promise<OpenAIModel | null> {
+        const res = await this.#databaseConnection.models.openAIModel
+            .findOne({ _id: id, isDeleted: false })
+            .lean();;
+        return res ? {
+            id: res._id.toString(),
+            name: res.name,
+            pricePmt: res.pricePmt,
+            title: res.title,
+            type: res.type
+        } : null;
+    }
+
     async exists(id: OpenAIModel["id"]): Promise<boolean | null> {
         const res = (
             await this.#databaseConnection.models.openAIModel

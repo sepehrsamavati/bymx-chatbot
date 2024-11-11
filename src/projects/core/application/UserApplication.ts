@@ -7,11 +7,13 @@ import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 
 export default class UserApplication {
     #userRepository;
+    #openAIChatRepository;
     #openAIPlanRepository;
     #userSubscriptionRepository;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
+        this.#openAIChatRepository = container.openAIChatRepository;
         this.#openAIPlanRepository = container.openAIPlanRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
     }
@@ -41,6 +43,29 @@ export default class UserApplication {
 
             return _user;
         }
+    }
+
+    async setUserSelectedChatById(user: User, chatId: string) {
+        const result = new OperationResult();
+
+        const chat = await this.#openAIChatRepository.getChat({
+            id: chatId
+        });
+
+        if (!chat)
+            return result.failed();
+
+        const updateResult = await this.#userRepository.update(user.id, {
+            selectedChat: {
+                ...chat,
+                user: user
+            }
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
     }
 
     async setUserMode(userId: User['id'], mode: UserModeType) {

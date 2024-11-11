@@ -77,12 +77,8 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         };
     }
 
-    async getUserChats(userId: string): Promise<CaptionOnly[] | null> {
-        const res = await this.#databaseConnection.models.openAIChat.find({
-            isDeleted: false,
-            isHidden: false,
-            user: userId,
-        })
+    async getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null> {
+        const res = await this.#databaseConnection.models.openAIChat.find(this.#getFilter(filter))
             .lean();
 
         if (!res)

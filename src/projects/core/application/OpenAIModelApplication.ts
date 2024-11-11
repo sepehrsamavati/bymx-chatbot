@@ -7,6 +7,10 @@ export default class OpenAIModelApplication {
         this.#openAIModelRepository = container.openAIModelRepository;
     }
 
+    async getById(modelId: string) {
+        return await this.#openAIModelRepository.getById(modelId);
+    }
+
     async getAll() {
         return await this.#openAIModelRepository.getAll();
     }

@@ -5,6 +5,7 @@ import { promptHandler } from "./handlers/promptHandler.js";
 import { planListHandler } from "./handlers/planListHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
+import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
@@ -12,6 +13,7 @@ import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../..
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
     planListHandler,
+    createNewChatHandler,
     promptHandler
 ];
 
@@ -44,7 +46,7 @@ export class UpdateHandler {
             return;
 
         const fromTgUser = update.message?.from
-            ?? update.callback_query?.message?.from
+            ?? update.callback_query?.message.chat
             ?? update.inline_query?.from
             ?? update.my_chat_member?.from
             ?? update.channel_post?.from
@@ -74,6 +76,8 @@ export class UpdateHandler {
             } else {
                 _handlers = handlerTypeFilter[TelegramUpdateType.Message];
             }
+        } else if (update.callback_query) {
+            _handlers = handlerTypeFilter[TelegramUpdateType.CallbackQuery];
         }
 
         // consider user modes
@@ -88,7 +92,7 @@ export class UpdateHandler {
             services: container.applications,
         };
 
-        for (const handlerCtx of handlers) {
+        for (const handlerCtx of _handlers) {
             const responseCtx = await handlerCtx.handler(requestContext, update);
 
             callStack.push(handlerCtx);
