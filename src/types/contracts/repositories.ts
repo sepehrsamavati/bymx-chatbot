@@ -3,7 +3,7 @@ import type { OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIChat, OpenAIChatDBModel } from "../entities/openAIChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
-import { UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
+import type { UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -33,8 +33,8 @@ export type IUserRepository = {
 
 export type IUserSubscriptionRepository = {
     create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null>;
-    getActive(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription | null>;
-    getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<UserSubscription[] | null>;
+    getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
+    getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
 }
 
 export type IOpenAIModelRepository = {
@@ -54,5 +54,5 @@ export type IOpenAIChatRepository = {
 
 export type IOpenAIMessageRepository = {
     create(message: OpenAIMessageDBModel): Promise<boolean | null>;
-    getUserPointUsage(user: User['id'], fromDate: Date, toDate: Date): Promise<number | null>;
+    getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
 }
