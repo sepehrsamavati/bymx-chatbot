@@ -3,6 +3,8 @@ import type { User } from "../../../types/entities/user.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
+import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
+import { UserSubscription } from "../../../types/entities/userSubscription.js";
 
 export default class OpenAIApplication {
     #openAI;
@@ -98,52 +100,63 @@ export default class OpenAIApplication {
         if (freePointUsage === null)
             return;
 
-        if (freePointUsage.remaining > 0) {
-            const res = await this.#openAI.simpleMessage(message, selectedChat.model.name, user.id);
+        let historyMessages: OpenAIMessage[] = [];
 
-            if (res) {
-                const tokenCount = res.totalTokens ?? (
-                    message + " " + res.output
-                ).split(' ').length;
+        if (user.memoryAmount && user.saveMessages) {
+            const _historyMessages = await this.#openAIMessageRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
 
-                const { cost, userPointCost } = modelCostCalculator({
-                    model: selectedChat.model,
-                    profitPercentage: 20,
-                    tokenCount: tokenCount
-                });
+            if (_historyMessages === null)
+                return;
 
-                await this.#openAIMessageRepository.create({
-                    chat: selectedChat,
-                    cost: cost,
-                    insertDate: new Date(),
-                    isDeleted: false,
-                    output: res.output,
-                    prompt: message,
-                    points: userPointCost,
-                    saved: !selectedChat.isHidden && user.saveMessages,
-                    // plan: subscription.plan
-                });
-            }
-
-            return res?.output;
+            historyMessages = _historyMessages;
         }
 
-        const subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
+        let subscription: Omit<UserSubscription, 'user'> | null = null;
 
-        if (!subscription)
-            return;
+        if (freePointUsage.remaining <= 0) {
+            subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
-        const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
+            if (!subscription)
+                return;
 
-        if (currentPlanUsage === null)
-            return;
 
-        // await this.#openAIMessageRepository.create
+            const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
 
-        const res = await this.#openAI.simpleMessage(message, selectedChat.model.name, user.id);
+            if (currentPlanUsage === null)
+                return;
 
-        return `Plan usage: ${currentPlanUsage}\n\n${res?.output}`;
+            if (currentPlanUsage > subscription.plan.points)
+                return;
+        }
 
-        // return result;
+        const res = await this.#openAI.multiTextMessage(message, historyMessages, selectedChat.model.name, user.id);
+
+        if (res) {
+            const tokenCount = res.totalTokens ?? (
+                message + " " + res.output
+            ).split(' ').length;
+
+            const { cost, userPointCost } = modelCostCalculator({
+                model: selectedChat.model,
+                profitPercentage: 20,
+                tokenCount: tokenCount
+            });
+
+            await this.#openAIMessageRepository.create({
+                chat: selectedChat,
+                cost: cost,
+                insertDate: new Date(),
+                isDeleted: false,
+                prompt: message,
+                output: res.output,
+                points: userPointCost,
+                saved: !selectedChat.isHidden && user.saveMessages,
+                plan: subscription ? subscription.plan : undefined
+            });
+
+            return res.output;
+        }
+
+        return;
     }
 }

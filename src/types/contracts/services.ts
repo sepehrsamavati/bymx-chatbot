@@ -1,7 +1,8 @@
 import type { OpenAIModel } from "../entities/openAIModel.js";
+import type { OpenAIMessage } from "../entities/openAIMessage.js";
 
 export type IOpenAIService = {
-    simpleMessage(input: string, modelName: string, userId?: string): Promise<{ output: string; totalTokens?: number; } | null>;
+    multiTextMessage(input: string, messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>, modelName: string, userId?: string): Promise<{ output: string; totalTokens?: number; } | null>;
 }
 
 export type IOpenAIModelCache = {

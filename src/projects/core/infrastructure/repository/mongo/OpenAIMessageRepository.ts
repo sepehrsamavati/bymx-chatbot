@@ -1,8 +1,11 @@
 import mongoose from "mongoose";
 import type { ServicesType } from "../../../Container.js";
-import type { OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
-import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
+import type { PopulatedProperty } from "./lib/model.type.js";
 import { openAIChatModelDefinition } from "./models/OpenAIChat.js";
+import type { OpenAIPlanDBModel } from "../../../../../types/entities/openAIPlan.js";
+import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
+import type { OpenAIMessage, OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
+import { OpenAIChatDBModel } from "../../../../../types/entities/openAIChat.js";
 
 export class OpenAIMessageRepository implements IOpenAIMessageRepository {
     #databaseConnection;
@@ -111,5 +114,53 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         const _userPointUsage = res[0].sum;
 
         return _userPointUsage;
+    }
+
+    async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null> {
+        const res = await this.#databaseConnection.models.openAIMessage
+            .find({
+                isDeleted: false,
+                isHidden: false,
+                saved: true,
+                chat: chatId
+            })
+            .sort({ insertDate: 1 })
+            .limit(count)
+            .populate<{
+                chat: PopulatedProperty<OpenAIChatDBModel>;
+                plan: PopulatedProperty<OpenAIPlanDBModel>;
+            }>([
+                "chat",
+                "plan"
+            ] satisfies Array<keyof OpenAIMessage>)
+            .lean()
+            .exec();
+
+        if (!res)
+            return null;
+
+        return res.map(item => ({
+            cost: item.cost,
+            prompt: item.prompt,
+            output: item.output,
+            points: item.points,
+            saved: item.saved,
+            fileId: item.fileId,
+            chat: {
+                id: item.chat._id.toString(),
+                title: item.chat.title,
+                isHidden: item.chat.isHidden,
+                model: item.chat.model,
+                user: item.chat.user,
+            },
+            plan: item.plan ? {
+                id: item.plan._id.toString(),
+                available: item.plan.available,
+                days: item.plan.days,
+                points: item.plan.points,
+                price: item.plan.price,
+                title: item.plan.title,
+            } : undefined
+        }));
     }
 }
