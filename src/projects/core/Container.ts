@@ -7,6 +7,7 @@ import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
+import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
@@ -41,6 +42,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
+    openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
 };
 
 export type ServicesType = Constants & Connections & Repositories & Applications & Services;
@@ -80,6 +82,7 @@ export default class CoreServices {
             openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
+            openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),

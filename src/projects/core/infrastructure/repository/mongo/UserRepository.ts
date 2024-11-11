@@ -3,6 +3,9 @@ import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
 import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../../../../../types/entities/user.js";
+import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
+import { OpenAIChat } from "../../../../../types/entities/openAIChat.js";
+import { openAIModelModelDefinition } from "./models/OpenAIModel.js";
 
 export default class UserRepository implements IUserRepository {
     #databaseConnection;
@@ -78,9 +81,22 @@ export default class UserRepository implements IUserRepository {
             type: result.type,
         };
 
-        const selectedChat = result.selectedChat as PopulatedProperty<User['selectedChat']>;
-        if (selectedChat) {
-            debugger;
+        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>>;
+
+        if (selectedChat && user.id === selectedChat.user.toString()) {
+            const chatModel = selectedChat.model as PopulatedProperty<OpenAIChat['model']>;
+            user.selectedChat = {
+                id: selectedChat._id.toString(),
+                model: {
+                    id: chatModel._id.toString(),
+                    name: chatModel.name,
+                    pricePmt: chatModel.pricePmt,
+                    title: chatModel.title,
+                    type: chatModel.type
+                },
+                title: selectedChat.title,
+                user: user
+            };
         }
 
         return user;
@@ -105,7 +121,17 @@ export default class UserRepository implements IUserRepository {
 
         const result = await this.#databaseConnection.models.user
             .findOneAndUpdate(_filter, _update)
-            .populate('selectedChat' satisfies keyof User)
+            .populate(
+                {
+                    path: 'selectedChat' satisfies keyof User,
+                    populate: [
+                        {
+                            path: 'model',
+                            model: openAIModelModelDefinition.model
+                        }
+                    ]
+                },
+            )
             .lean().exec();
 
         return this.#storedToView(result);

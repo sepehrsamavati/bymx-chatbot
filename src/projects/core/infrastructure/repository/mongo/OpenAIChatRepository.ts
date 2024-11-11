@@ -11,15 +11,15 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(chat: OpenAIChatDBModel): Promise<boolean | null> {
+    async create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null> {
         const res = await this.#databaseConnection.models.openAIChat.create({
             insertDate: chat.insertDate,
             isDeleted: chat.isDeleted,
             model: chat.model.id,
             user: chat.user.id,
-            title: chat.title
+            title: chat.title,
         });
-        return Boolean(res?._id);
+        return res?._id.toString() || null;
     }
 
     async getUserChatById(userId: string, chatId: string): Promise<Omit<OpenAIChat, 'user'> | null> {
@@ -65,5 +65,13 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             return null;
 
         return res.map(item => ({ id: item._id.toString(), caption: item.title }));
+    }
+
+    async exists(userId: string): Promise<boolean | null> {
+        const res = await this.#databaseConnection.models.openAIChat.exists({
+            user: userId,
+            isDeleted: false
+        });
+        return Boolean(res?._id);
     }
 }

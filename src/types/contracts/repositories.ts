@@ -49,8 +49,9 @@ export type IOpenAIPlanRepository = {
 }
 
 export type IOpenAIChatRepository = {
-    create(chat: OpenAIChatDBModel): Promise<boolean | null>;
+    create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null>;
     getUserChatById(userId: User['id'], chatId: OpenAIChat['id']): Promise<Omit<OpenAIChat, 'user'> | null>;
+    exists(userId: string): Promise<boolean | null>;
     getUserChats(userId: string): Promise<CaptionOnly[] | null>;
 }
 

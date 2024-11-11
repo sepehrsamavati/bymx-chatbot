@@ -2,7 +2,7 @@ import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 
 const pointsPerDollar = 1_000;
 
-const modelCostCalculator = (opts: {
+export const modelCostCalculator = (opts: {
     tokenCount: number;
     model: OpenAIModel;
     /** 0-100 range */

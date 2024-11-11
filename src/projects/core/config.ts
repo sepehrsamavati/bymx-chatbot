@@ -9,7 +9,8 @@ const config = {
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
     openAI: {
-        apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? ""
+        apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
+        defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? ""
     },
     log: {
         disable: process.argv.includes("--silent-logger"),
