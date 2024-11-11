@@ -40,7 +40,10 @@ export default class OpenAIService implements IOpenAIService {
             if (result?.content?.length && result?.role === "assistant") {
                 const output = result.content;
 
-                return output;
+                return {
+                    output,
+                    totalTokens: chatCompletion.usage?.total_tokens
+                };
             }
 
             logger.warn(`Invalid response for input: ${input}`);

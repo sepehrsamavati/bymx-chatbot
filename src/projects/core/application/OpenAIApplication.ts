@@ -88,10 +88,14 @@ export default class OpenAIApplication {
             const res = await this.#openAI.simpleMessage(message, user.id);
 
             if (res) {
+                const tokenCount = res.totalTokens ?? (
+                    message + " " + res.output
+                ).split(' ').length;
+
                 const { cost, userPointCost } = modelCostCalculator({
                     model: selectedChat.model,
                     profitPercentage: 20,
-                    tokenCount: 400
+                    tokenCount: tokenCount
                 });
 
                 await this.#openAIMessageRepository.create({
@@ -99,7 +103,7 @@ export default class OpenAIApplication {
                     cost: cost,
                     insertDate: new Date(),
                     isDeleted: false,
-                    output: res,
+                    output: res.output,
                     prompt: message,
                     points: userPointCost,
                     saved: !selectedChat.isHidden,
@@ -107,7 +111,7 @@ export default class OpenAIApplication {
                 });
             }
 
-            return `Free usage: ${freePointUsage}\n\n${res}`;
+            return res?.output;
         }
 
         const subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
@@ -124,7 +128,7 @@ export default class OpenAIApplication {
 
         const res = await this.#openAI.simpleMessage(message, user.id);
 
-        return `Plan usage: ${currentPlanUsage}\n\n${res}`;
+        return `Plan usage: ${currentPlanUsage}\n\n${res?.output}`;
 
         // return result;
     }
