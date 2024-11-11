@@ -17,6 +17,21 @@ export const userCommandHandler: IUpdateHandler = {
                     }
                 };
 
+            case "/status": {
+                const freePointUsage = await context.services.openAIApplication.getFreePointStatus(context.user.id);
+
+                if (!freePointUsage)
+                    return null;
+
+                return {
+                    call: {
+                        text: `Daily free points: ${freePointUsage.remaining}/${freePointUsage.total}`
+                            + `\nSave messages: ${context.user.saveMessages ? '✅' : '❌'}`
+                            + `\nMemory amount: ${context.user.memoryAmount}`
+                    }
+                };
+            }
+
             case "/chats": {
                 const chats = await context.services.openAIChatApplication.getVisibleChats(context.user.id);
 

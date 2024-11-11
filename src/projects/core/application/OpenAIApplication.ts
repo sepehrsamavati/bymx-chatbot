@@ -21,6 +21,26 @@ export default class OpenAIApplication {
         this.#openAIModelCache = container.openAIModelCache;
     }
 
+    async getFreePointStatus(userId: string) {
+        const start = new Date();
+        start.setUTCHours(0, 0, 0, 0);
+
+        const end = new Date();
+        end.setUTCHours(23, 59, 59, 999);
+
+        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
+
+
+        if (freePointUsage === null)
+            return null;
+
+        return {
+            used: freePointUsage,
+            remaining: freePointUsage < 200 ? 200 - freePointUsage : 0,
+            total: 200
+        };
+    }
+
     async textMessage(user: User, message: string) {
         // const result = new OperationResult();
 
@@ -73,18 +93,12 @@ export default class OpenAIApplication {
             }
         }
 
-        const start = new Date();
-        start.setUTCHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-
-        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(user.id, start, end);
+        const freePointUsage = await this.getFreePointStatus(user.id);
 
         if (freePointUsage === null)
             return;
 
-        if (freePointUsage < 200) {
+        if (freePointUsage.remaining > 0) {
             const res = await this.#openAI.simpleMessage(message, selectedChat.model.name, user.id);
 
             if (res) {
@@ -106,7 +120,7 @@ export default class OpenAIApplication {
                     output: res.output,
                     prompt: message,
                     points: userPointCost,
-                    saved: !selectedChat.isHidden,
+                    saved: !selectedChat.isHidden && user.saveMessages,
                     // plan: subscription.plan
                 });
             }
