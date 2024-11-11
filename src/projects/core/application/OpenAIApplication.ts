@@ -16,12 +16,17 @@ export default class OpenAIApplication {
     async textMessage(user: User, message: string) {
         // const result = new OperationResult();
 
-        // const subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
+        const subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
-        // if(!subscription)
-        //     return;
+        if (!subscription)
+            return;
 
-        // const usage = this.#openAIMessageRepository.getUserPointUsage(user.id,);
+        const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(user.id);
+
+        if(currentPlanUsage === null)
+            return;
+
+        // await this.#openAIMessageRepository.create
 
         return await this.#openAI.simpleMessage(message, user.id);
 

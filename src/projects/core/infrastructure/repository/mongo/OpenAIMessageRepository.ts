@@ -15,6 +15,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             insertDate: message.insertDate,
             isDeleted: message.isDeleted,
             chat: message.chat.id,
+            plan: message.plan.id,
             points: message.points,
             output: message.output,
             prompt: message.prompt,
@@ -24,7 +25,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         return Boolean(res?._id);
     }
 
-    async getUserPointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
+    async getPlanPointUsage(planId: string): Promise<number | null> {
         type AggregationResult = { _id: null; sum: number; }[] | undefined;
         const res = (
             await this.#databaseConnection.models.openAIMessage
@@ -32,11 +33,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
                     {
                         $match: {
                             isDeleted: false,
-                            user: new mongoose.Types.ObjectId(userId),
-                            insertDate: {
-                                $gte: fromDate,
-                                $lte: toDate
-                            }
+                            plan: new mongoose.Types.ObjectId(planId)
                         }
                     },
                     {
