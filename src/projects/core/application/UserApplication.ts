@@ -34,6 +34,8 @@ export default class UserApplication {
                 mode: UserMode.General.Normal,
                 status: UserStatus.EULA,
                 type: UserType.Normal,
+                memoryAmount: 3,
+                saveMessages: false,
             });
 
             if (!userId)

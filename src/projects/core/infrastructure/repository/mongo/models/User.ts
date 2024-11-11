@@ -33,6 +33,17 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		required: true,
 		default: 0
 	},
+	memoryAmount: {
+		type: Number,
+		required: true,
+		default: 0,
+		max: 100
+	},
+	saveMessages: {
+		type: Boolean,
+		required: true,
+		default: false
+	},
 	mode: {
 		type: Number,
 		required: true,

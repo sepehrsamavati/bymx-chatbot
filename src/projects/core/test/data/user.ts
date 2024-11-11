@@ -19,6 +19,8 @@ export class SampleUser {
         status: UserStatus.OK,
         tgId: this.userTgId,
         type: UserType.Normal,
-        usage: 0
+        usage: 0,
+        memoryAmount: 3,
+        saveMessages: false
     };
 }

@@ -56,6 +56,12 @@ export default class UserRepository implements IUserRepository {
         if (update.type !== undefined)
             _update.type = update.type;
 
+        if (update.saveMessages !== undefined)
+            _update.saveMessages = update.saveMessages;
+
+        if (update.memoryAmount !== undefined)
+            _update.memoryAmount = update.memoryAmount;
+
         if (update.selectedChat !== undefined)
             _update.selectedChat = update.selectedChat.id;
 
@@ -79,6 +85,8 @@ export default class UserRepository implements IUserRepository {
             lastActivity: result.lastActivity,
             tgId: result.tgId,
             type: result.type,
+            saveMessages: result.saveMessages,
+            memoryAmount: result.memoryAmount
         };
 
         const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>>;
