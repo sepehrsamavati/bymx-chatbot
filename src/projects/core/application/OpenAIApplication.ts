@@ -85,7 +85,7 @@ export default class OpenAIApplication {
             return;
 
         if (freePointUsage < 200) {
-            const res = await this.#openAI.simpleMessage(message, user.id);
+            const res = await this.#openAI.simpleMessage(message, selectedChat.model.name, user.id);
 
             if (res) {
                 const tokenCount = res.totalTokens ?? (
@@ -126,7 +126,7 @@ export default class OpenAIApplication {
 
         // await this.#openAIMessageRepository.create
 
-        const res = await this.#openAI.simpleMessage(message, user.id);
+        const res = await this.#openAI.simpleMessage(message, selectedChat.model.name, user.id);
 
         return `Plan usage: ${currentPlanUsage}\n\n${res?.output}`;
 

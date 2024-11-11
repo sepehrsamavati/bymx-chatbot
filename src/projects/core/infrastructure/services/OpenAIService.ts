@@ -5,8 +5,7 @@ import type { IOpenAIService } from "../../../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
-const baseChatCompletionConfig: Partial<IChatCompletionConfig> & Pick<IChatCompletionConfig, 'model'> = {
-    model: 'gpt-3.5-turbo',
+const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {
     max_completion_tokens: 300,
     user: undefined,
     top_p: 0.2
@@ -18,13 +17,14 @@ export default class OpenAIService implements IOpenAIService {
         apiKey: config.openAI.apiToken
     });
 
-    async simpleMessage(input: string, userId?: string) {
+    async simpleMessage(input: string, model: string, userId?: string) {
 
         try {
             const messages: IChatCompletionConfig['messages'] = [{ role: 'user', content: input }];
 
             const chatCompletion = await this.#client.chat.completions.create({
                 ...baseChatCompletionConfig,
+                model: model,
                 user: userId,
                 messages
             });
