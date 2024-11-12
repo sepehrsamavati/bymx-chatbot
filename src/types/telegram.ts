@@ -139,6 +139,7 @@ type TelegramResponseMap = {
     [TelegramMethods.SendMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.GetMe]: TelegramResponseBase<TelegramUser>;
     [TelegramMethods.GetUpdates]: TelegramResponseBase<TelegramUpdateObject[]>;
+    [TelegramMethods.DeleteMessage]: TelegramResponseBase<null>;
 }
 
 export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;
@@ -146,7 +147,7 @@ export type TelegramResponse<Method extends TelegramMethods> = Method extends ke
 
 
 export type RequestContext = {
-    services: CoreServices['applications'];
+    services: CoreServices['provider'];
     user: User;
     uiText: UITextLanguage;
     readonly callStack: IUpdateHandler[];

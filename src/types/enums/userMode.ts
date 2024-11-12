@@ -6,8 +6,13 @@ const General = Object.freeze({
     EnterPhoneNumber: 2
 });
 
+const ChatManagement = Object.freeze({
+    ChangeTitle: 20
+});
+
 const Enums = Object.freeze({
-    General
+    General,
+    ChatManagement
 });
 
 type UnifiedEnums = typeof Enums[keyof typeof Enums];

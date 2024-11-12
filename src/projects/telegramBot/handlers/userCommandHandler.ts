@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
@@ -11,6 +12,8 @@ export const userCommandHandler: IUpdateHandler = {
 
         switch (text.toLowerCase()) {
             case "/start":
+                if (context.user.mode !== UserMode.General.Normal)
+                    await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {

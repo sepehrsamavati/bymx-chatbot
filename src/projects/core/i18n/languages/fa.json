@@ -13,5 +13,13 @@
     "newChat": "چت جدید",
     "noSavedChats": "شما چت ذخیره شده‌ای ندارید!",
     "selectModel": "یک مدل را انتخاب کنید",
-    "chatCreatedSuccessfully": "چت با موفقیت ساخته شد، الان میتونی پیامت رو بفرستی"
+    "chatCreatedSuccessfully": "چت با موفقیت ساخته شد، الان میتونی پیامت رو بفرستی",
+    "changeTitle": "تغییر عنوان",
+    "titleTooLong": "عنوان بیش از حد طولانی است",
+    "noTitle": "بدون عنوان",
+    "title": "عنوان",
+    "model": "مدل",
+    "sendNewTitle": "عنوان جدید را ارسال کنید:",
+    "changeTitleFailed": "تغییر عنوان با خطا مواجه شد!",
+    "titleChangedSuccessfully": "عنوان با موفقیت تغییر پیدا کرد"
 }

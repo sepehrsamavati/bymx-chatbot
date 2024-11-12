@@ -62,7 +62,7 @@ export default class OpenAIApplication {
             const defaultModel = await this.#openAIModelCache.getDefault();
 
             const openAIChat = {
-                title: "Default",
+                title: "",
                 user: user,
                 model: defaultModel,
                 isHidden: true
@@ -71,7 +71,7 @@ export default class OpenAIApplication {
             const defaultChatId = await this.#openAIChatRepository.create({
                 insertDate: new Date(),
                 isDeleted: false,
-                title: "Default",
+                title: "",
                 user: user,
                 model: defaultModel,
                 isHidden: true

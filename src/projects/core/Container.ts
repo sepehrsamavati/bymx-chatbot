@@ -3,6 +3,7 @@ import type { User } from "../../types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
+import CacheStorage from "./infrastructure/services/CacheStorage.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
@@ -50,6 +51,8 @@ type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
     openAIMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
+    /** User selected chat to manage (rename, ...) */
+    userSelectedChat: ServiceInterfaces.ICacheStorage<string>;
 };
 
 export type ServicesType = Constants & Connections & Repositories & Applications & Services;
@@ -67,7 +70,7 @@ export default class CoreServices {
 
     public readonly applications: Applications = this.container.cradle;
     public readonly repositories: Repositories = this.container.cradle;
-    public readonly services: Services = this.container.cradle;
+    public readonly provider: Applications & Pick<Services, 'userSelectedChat'> = this.container.cradle;
 
     #diReadyQueue = new Set<() => void>();
 
@@ -93,6 +96,7 @@ export default class CoreServices {
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
             openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            userSelectedChat: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
@@ -113,7 +117,7 @@ export default class CoreServices {
     createApplicationScope() {
         const scope = this.container.createScope();
         return {
-            applications: scope.cradle as Applications,
+            applications: scope.cradle as typeof this.provider,
             dispose: scope.dispose
         } as const;
     }

@@ -24,7 +24,9 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
     },
     title: {
         type: String,
-        required: true
+        required: function () { // required but allow empty string
+            return typeof this.title === "string" ? false : true
+        }
     },
     user: {
         type: mongoose.Types.ObjectId,

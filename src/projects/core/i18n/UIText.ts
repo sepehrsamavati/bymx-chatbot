@@ -21,6 +21,14 @@ const keys = [
     "noSavedChats",
     "selectModel",
     "chatCreatedSuccessfully",
+    "changeTitle",
+    "titleTooLong",
+    "noTitle",
+    "title",
+    "model",
+    "sendNewTitle",
+    "changeTitleFailed",
+    "titleChangedSuccessfully",
 ] as const;
 
 export type UITextKey = typeof keys[number];

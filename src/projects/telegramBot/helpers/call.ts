@@ -37,11 +37,7 @@ export default async function tgCall<Method extends TelegramMethods>(method: Met
             })
             .catch(error => {
                 resolve(null);
-                if (error.response && error.response.data) {
-                    console.error(error.response.data);
-                } else {
-                    console.error(error.message ?? error);
-                }
+                console.error(error);
             });
     });
 }

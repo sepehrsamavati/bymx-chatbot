@@ -3,7 +3,7 @@ import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIMessage, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
-import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat } from "../entities/openAIChat";
+import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 
 export interface ITransaction {
@@ -52,6 +52,7 @@ export type IOpenAIPlanRepository = {
 
 export type IOpenAIChatRepository = {
     create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null>;
+    updateById(update: UpdateOpenAIChat): Promise<boolean | null>;
     getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
     getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null>;

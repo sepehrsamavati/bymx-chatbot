@@ -14,3 +14,10 @@ export type IActionLockCache<T> = {
     lock(key: T): void;
     unlock(key: T): void;
 }
+
+export type ICacheStorage<T> = {
+    get(key: string): T | null;
+    set(key: string, value: T): void;
+    unset(key: string): boolean;
+    exists(key: string): boolean;
+}

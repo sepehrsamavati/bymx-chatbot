@@ -1,10 +1,11 @@
-import type { FilterQuery } from "mongoose";
+import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
+import type { UserDBModel } from "../../../../../types/entities/user.js";
 import type { MongoStored, PopulatedProperty } from "./lib/model.type.js";
 import type { CaptionOnly } from "../../../../../types/contracts/entities.js";
 import type { OpenAIModelDBModel } from "../../../../../types/entities/openAIModel.js";
 import type { IOpenAIChatRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat } from "../../../../../types/entities/openAIChat.js";
+import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../../../../../types/entities/openAIChat.js";
 
 export class OpenAIChatRepository implements IOpenAIChatRepository {
     #databaseConnection;
@@ -46,6 +47,25 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             isHidden: chat.isHidden
         });
         return res?._id.toString() || null;
+    }
+
+    async updateById(update: UpdateOpenAIChat): Promise<boolean | null> {
+        const _update: UpdateQuery<UserDBModel> = {};
+
+        if (update.isDeleted !== undefined)
+            _update.isDeleted = update.isDeleted;
+
+        if (update.isHidden !== undefined)
+            _update.isHidden = update.isHidden;
+
+        if (update.title !== undefined)
+            _update.title = update.title;
+
+        const res = await this.#databaseConnection.models.openAIChat.updateOne({
+            _id: update.id
+        }, _update);
+
+        return res.modifiedCount === 1;
     }
 
     async getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null> {

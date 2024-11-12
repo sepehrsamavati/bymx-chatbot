@@ -67,8 +67,8 @@ export const panelHandler: IUpdateHandler = {
                                 [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }, { text: `➕ ${context.uiText.newChat}`, callback_data: "newChat" }],
                                 ...chats.map(chat => [
                                     context.user.selectedChat?.id === chat.id
-                                        ? { text: `✅ ${chat.caption} `, callback_data: "nonce" }
-                                        : { text: chat.caption, callback_data: `selectChat${chat.id}` }
+                                        ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat${chat.id}` }
+                                        : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat${chat.id}` }
                                 ])
                             ]
                         }

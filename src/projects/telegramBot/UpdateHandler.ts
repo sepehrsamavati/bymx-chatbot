@@ -11,10 +11,12 @@ import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
+import { chatManageHandler } from "./handlers/chatManageHandler.js";
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
     panelHandler,
+    chatManageHandler,
     planListHandler,
     createNewChatHandler,
     selectChatHandler,

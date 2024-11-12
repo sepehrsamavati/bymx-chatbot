@@ -31,7 +31,7 @@ export const isCompatibleType = (handler: IUpdateHandler, type: TelegramUpdateTy
 };
 
 export const isCompatibleUserMode = (handler: IUpdateHandler, mode: UserModeType | UserModeType[]) => {
-    if (!handler.mode)
+    if (typeof handler.mode !== "number")
         return true;
 
     const handlerModes = Array.isArray(handler.mode) ? handler.mode : [handler.mode];

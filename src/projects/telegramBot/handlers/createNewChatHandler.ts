@@ -40,7 +40,7 @@ export const createNewChatHandler: IUpdateHandler = {
                 return null;
 
             const chatId = await context.services.openAIChatApplication.create({
-                title: "foo",
+                title: "",
                 isHidden: false,
                 model: model,
                 user: context.user

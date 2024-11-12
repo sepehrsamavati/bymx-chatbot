@@ -1,5 +1,6 @@
-import { CreateOpenAIChat } from "../../../types/entities/openAIChat.js";
 import type { ServicesType } from "../Container.js";
+import { OperationResult } from "../common/dto/OperationResult.js";
+import { CreateOpenAIChat } from "../../../types/entities/openAIChat.js";
 
 export default class OpenAIChatApplication {
     #openAIChatRepository;
@@ -18,6 +19,20 @@ export default class OpenAIChatApplication {
             user: chat.user
         });
         return createdChatId;
+    }
+
+    async setTitle(chatId: string, title: string) {
+        const result = new OperationResult().failed();
+
+        const updated = await this.#openAIChatRepository.updateById({
+            id: chatId,
+            title: title
+        });
+
+        if (updated === true)
+            result.succeeded();
+
+        return result;
     }
 
     async getUserChatById(userId: string, chatId: string) {
