@@ -80,6 +80,9 @@ export const panelHandler: IUpdateHandler = {
 
         switch (text) {
             case "/panel":
+                if (context.user.mode !== UserMode.General.Normal)
+                    await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
+
                 const _panel = await getPanel(context);
 
                 if (!_panel)
