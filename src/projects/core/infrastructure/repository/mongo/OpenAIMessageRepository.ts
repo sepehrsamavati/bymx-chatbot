@@ -95,6 +95,9 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
                         }
                     },
                     {
+                        $unwind: "$_chat"
+                    },
+                    {
                         $group: {
                             _id: null,
                             sum: {

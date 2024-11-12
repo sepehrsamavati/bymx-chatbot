@@ -154,7 +154,7 @@ export default class OpenAIApplication {
                 prompt: message,
                 output: res.output,
                 points: userPointCost,
-                saved: !selectedChat.isHidden && user.saveMessages,
+                saved: user.saveMessages,
                 plan: subscription ? subscription.plan : undefined
             });
 
