@@ -25,7 +25,8 @@ export const promptHandler: IUpdateHandler = {
             {
                 chat_id: update.message?.chat.id,
                 reply_to_message_id: update.message?.message_id,
-                text: res.ok ? res.data : res.message
+                text: res.ok ? res.data : res.message,
+                parse_mode: "Markdown"
             }
         );
 
