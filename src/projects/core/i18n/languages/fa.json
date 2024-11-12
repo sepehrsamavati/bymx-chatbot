@@ -23,5 +23,8 @@
     "changeTitleFailed": "تغییر عنوان با خطا مواجه شد!",
     "titleChangedSuccessfully": "عنوان با موفقیت تغییر پیدا کرد",
     "activateSaveMessages": "فعال‌سازی ذخیره پیام",
-    "deactivateSaveMessages": "غیر فعال‌سازی ذخیره پیام"
+    "deactivateSaveMessages": "غیر فعال‌سازی ذخیره پیام",
+    "lowCost": "کم هزینه",
+    "affordable": "مقرون به صرفه",
+    "costly": "پر هزینه"
 }

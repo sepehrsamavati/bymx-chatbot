@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import { getModelListPanel } from "../helpers/messages.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
@@ -10,9 +11,9 @@ export const createNewChatHandler: IUpdateHandler = {
         const queryData = update.callback_query?.data as string;
 
         if (queryData === "newChat") {
-            const models = await context.services.openAIModelApplication.getAll();
+            const modelList = await getModelListPanel(context)
 
-            if (!models)
+            if (!modelList)
                 return null;
 
             await tgCall(
@@ -20,13 +21,7 @@ export const createNewChatHandler: IUpdateHandler = {
                 {
                     chat_id: update.callback_query?.message.chat.id,
                     message_id: update.callback_query?.message.message_id,
-                    text: context.uiText.selectModel,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }],
-                            ...models.map(model => [{ text: model.title, callback_data: `selectChatModel${model.id}` }])
-                        ]
-                    }
+                    ...modelList
                 }
             );
 

@@ -31,6 +31,9 @@ const keys = [
     "titleChangedSuccessfully",
     "activateSaveMessages",
     "deactivateSaveMessages",
+    "lowCost",
+    "affordable",
+    "costly",
 ] as const;
 
 export type UITextKey = typeof keys[number];
