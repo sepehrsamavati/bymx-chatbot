@@ -1,3 +1,4 @@
+import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
@@ -142,7 +143,7 @@ export default class OpenAIApplication {
 
             const { cost, userPointCost } = modelCostCalculator({
                 model: selectedChat.model,
-                profitPercentage: 20,
+                profitPercentage: config.openAI.feePercentage,
                 tokenCount: tokenCount
             });
 

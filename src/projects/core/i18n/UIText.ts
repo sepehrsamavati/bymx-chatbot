@@ -34,6 +34,13 @@ const keys = [
     "lowCost",
     "affordable",
     "costly",
+    "models",
+    "help",
+    "modelsAndCosts",
+    "termsOfService",
+    "modelUsageHelper",
+    "modelUsageMemoryWarningHelper",
+    "approximateMessageCount",
 ] as const;
 
 export type UITextKey = typeof keys[number];

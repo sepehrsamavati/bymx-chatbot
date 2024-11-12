@@ -1,9 +1,9 @@
 import tgCall from "../helpers/call.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
-import { getChatListPanel, getPanel, modelTitleGenerator } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { getChatListPanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     updateType: [
@@ -51,9 +51,9 @@ export const panelHandler: IUpdateHandler = {
                 return { shouldContinue: false };
             };
             case "modelsUsage": {
-                const models = await context.services.openAIModelApplication.getAll();
+                const modelUsageList = await getModelUsageListPanel(context);
 
-                if (!models)
+                if (!modelUsageList)
                     return null;
 
                 await tgCall(
@@ -61,13 +61,7 @@ export const panelHandler: IUpdateHandler = {
                     {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id,
-                        text: `🤖\n\n`
-                            + models.sort((a, b) => a.pricePmt - b.pricePmt).map(model => `${modelTitleGenerator(context, model)}\nNrm msgs (raw expense): ${Math.round((1e6 / model.pricePmt) / 1e3).toLocaleString()}`).join('\n\n'),
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }],
-                            ]
-                        }
+                        ...modelUsageList
                     }
                 );
 
@@ -117,6 +111,25 @@ export const panelHandler: IUpdateHandler = {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
                         ..._panel
+                    }
+                );
+
+                return { shouldContinue: false };
+            case "/models":
+                if (context.user.mode !== UserMode.General.Normal)
+                    await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
+
+                const modelUsageList = await getModelUsageListPanel(context);
+
+                if (!modelUsageList)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        ...modelUsageList
                     }
                 );
 

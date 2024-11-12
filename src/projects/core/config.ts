@@ -10,7 +10,8 @@ const config = {
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
-        defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? ""
+        defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
+        feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0")
     },
     log: {
         disable: process.argv.includes("--silent-logger"),
@@ -34,6 +35,11 @@ configError(
 configError(
     "Open AI API token not defined",
     !config.openAI.apiToken
+);
+
+configError(
+    "Fee percentage not is invalid (0-100 range)",
+    Number.isNaN(config.openAI.feePercentage)
 );
 
 export default config;
