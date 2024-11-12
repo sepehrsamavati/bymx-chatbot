@@ -1,6 +1,7 @@
 import tgCall from "./helpers/call.js";
 import UIText from "../core/i18n/UIText.js";
 import CoreServices from "../core/Container.js";
+import { panelHandler } from "./handlers/panelHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { planListHandler } from "./handlers/planListHandler.js";
 import { selectChatHandler } from "./handlers/selectChatHandler.js";
@@ -13,6 +14,7 @@ import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../..
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
+    panelHandler,
     planListHandler,
     createNewChatHandler,
     selectChatHandler,

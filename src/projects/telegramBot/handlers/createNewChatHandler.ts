@@ -16,12 +16,14 @@ export const createNewChatHandler: IUpdateHandler = {
                 return null;
 
             await tgCall(
-                TelegramMethods.SendMessage,
+                TelegramMethods.EditMessageText,
                 {
                     chat_id: update.callback_query?.message.chat.id,
-                    text: "💬",
+                    message_id: update.callback_query?.message.message_id,
+                    text: context.uiText.selectModel,
                     reply_markup: {
                         inline_keyboard: [
+                            [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }],
                             ...models.map(model => [{ text: model.title, callback_data: `selectChatModel${model.id}` }])
                         ]
                     }
@@ -48,11 +50,21 @@ export const createNewChatHandler: IUpdateHandler = {
 
                 await context.services.userApplication.setUserSelectedChatById(context.user, chatId);
 
-                return {
-                    call: {
-                        text: "✅"
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        text: `✅ ${context.uiText.chatCreatedSuccessfully}`,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }],
+                            ]
+                        }
                     }
-                };
+                );
+
+                return { shouldContinue: false };
             }
         }
 

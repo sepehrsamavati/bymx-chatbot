@@ -1,4 +1,17 @@
 {
-    "_tgStart": "",
-    "_tgHelp": ""
+    "_tgStart": "سلام، اسم من بٍی مکسه\n\nچطور می‌تونم کمکتون کنم؟",
+    "_tgHelp": "",
+    "panel": "پنل",
+    "chats": "چت‌ها",
+    "dailyFreePoints": "امتیاز رایگان روزانه",
+    "saveAndUseHistory": "ذخیره پیام‌ها",
+    "memoryAmount": "حافظه: %s1 پیام",
+    "enabled": "فعال",
+    "disabled": "غیر فعال",
+    "return": "بازگشت",
+    "savedChats": "چت‌های ذخیره شده:",
+    "newChat": "چت جدید",
+    "noSavedChats": "شما چت ذخیره شده‌ای ندارید!",
+    "selectModel": "یک مدل را انتخاب کنید",
+    "chatCreatedSuccessfully": "چت با موفقیت ساخته شد، الان میتونی پیامت رو بفرستی"
 }

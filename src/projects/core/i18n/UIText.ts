@@ -7,6 +7,20 @@ export type LangCode = typeof langCodes[number];
 const keys = [
     "_tgStart",
     "_tgHelp",
+
+    "panel",
+    "chats",
+    "dailyFreePoints",
+    "saveAndUseHistory",
+    "memoryAmount",
+    "enabled",
+    "disabled",
+    "return",
+    "savedChats",
+    "newChat",
+    "noSavedChats",
+    "selectModel",
+    "chatCreatedSuccessfully",
 ] as const;
 
 export type UITextKey = typeof keys[number];

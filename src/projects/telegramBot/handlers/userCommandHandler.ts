@@ -11,55 +11,19 @@ export const userCommandHandler: IUpdateHandler = {
 
         switch (text.toLowerCase()) {
             case "/start":
-                return {
-                    call: {
-                        text: "Welcome"
-                    }
-                };
-
-            case "/status": {
-                const freePointUsage = await context.services.openAIApplication.getFreePointStatus(context.user.id);
-
-                if (!freePointUsage)
-                    return null;
-
-                return {
-                    call: {
-                        text: `Daily free points: ${freePointUsage.remaining}/${freePointUsage.total}`
-                            + `\nSave messages: ${context.user.saveMessages ? '✅' : '❌'}`
-                            + `\nMemory amount: ${context.user.memoryAmount}`
-                    }
-                };
-            }
-
-            case "/chats": {
-                const chats = await context.services.openAIChatApplication.getVisibleChats(context.user.id);
-
-                if (!chats)
-                    return null;
-
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.message?.chat.id,
-                        text: "💬",
+                        text: context.uiText._tgStart,
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: "➕", callback_data: "newChat" }],
-                                ...chats.map(chat => [
-                                    context.user.selectedChat?.id === chat.id
-                                        ? { text: `✅ ${chat.caption} `, callback_data: "nonce" }
-                                        : { text: chat.caption, callback_data: `selectChat${chat.id}` }
-                                ])
+                                [{ text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]
                             ]
                         }
                     }
                 );
-
-                return {
-                    shouldContinue: false
-                };
-            }
+                return { shouldContinue: false };
         }
 
         return null;

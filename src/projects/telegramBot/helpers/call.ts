@@ -27,8 +27,11 @@ export default async function tgCall<Method extends TelegramMethods>(method: Met
         })
             .then(async (res) => {
                 const data = await res.json();
-                if (data && typeof data["ok"] === "boolean")
+                if (data && typeof data["ok"] === "boolean") {
+                    if (config.isDevelopment && !data.ok)
+                        console.error(data);
                     resolve(data);
+                }
                 else
                     resolve(null);
             })
