@@ -21,5 +21,7 @@
     "model": "مدل",
     "sendNewTitle": "عنوان جدید را ارسال کنید:",
     "changeTitleFailed": "تغییر عنوان با خطا مواجه شد!",
-    "titleChangedSuccessfully": "عنوان با موفقیت تغییر پیدا کرد"
+    "titleChangedSuccessfully": "عنوان با موفقیت تغییر پیدا کرد",
+    "activateSaveMessages": "فعال‌سازی ذخیره پیام",
+    "deactivateSaveMessages": "غیر فعال‌سازی ذخیره پیام"
 }

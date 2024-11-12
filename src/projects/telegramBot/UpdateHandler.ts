@@ -4,14 +4,13 @@ import CoreServices from "../core/Container.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { planListHandler } from "./handlers/planListHandler.js";
-import { selectChatHandler } from "./handlers/selectChatHandler.js";
+import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
-import { chatManageHandler } from "./handlers/chatManageHandler.js";
 
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
@@ -19,7 +18,6 @@ const handlers: IUpdateHandler[] = [
     chatManageHandler,
     planListHandler,
     createNewChatHandler,
-    selectChatHandler,
     promptHandler
 ];
 

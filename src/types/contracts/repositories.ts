@@ -33,7 +33,7 @@ export type IUserRepository = {
 }
 
 export type IUserSubscriptionRepository = {
-    create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null>;
+    create(userSubscription: Omit<UserSubscriptionDBModel, 'id'>): Promise<boolean | null>;
     updateById(userSubscription: UpdateUserSubscription): Promise<boolean | null>;
     getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
     getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;

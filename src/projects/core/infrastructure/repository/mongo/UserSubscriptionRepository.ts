@@ -11,7 +11,7 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null> {
+    async create(userSubscription: Omit<UserSubscriptionDBModel, 'id'>): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.userSubscription.create({
             insertDate: userSubscription.insertDate,
             isDeleted: userSubscription.isDeleted,

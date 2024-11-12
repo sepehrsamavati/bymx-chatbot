@@ -83,6 +83,19 @@ export default class UserApplication {
         return result;
     }
 
+    async setSaveMessages(userId: User['id'], saveMessages: boolean) {
+        const result = new OperationResult();
+
+        const updateResult = await this.#userRepository.update(userId, {
+            saveMessages: saveMessages
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
+    }
+
     async purchasePlan(user: User, planId: string) {
         const result = new OperationResult();
 
@@ -102,7 +115,8 @@ export default class UserApplication {
             plan: plan,
             expiry: expiry,
             insertDate: new Date(),
-            isDeleted: false
+            isDeleted: false,
+            isFinished: false
         });
 
         return res ? result.succeeded() : result.failed();

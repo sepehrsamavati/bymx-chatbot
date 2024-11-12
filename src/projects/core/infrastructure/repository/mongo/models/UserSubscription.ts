@@ -36,7 +36,7 @@ const schema = new mongoose.Schema<UserSubscriptionMongoStored>({
         type: Date,
         required: true,
     },
-    finished: {
+    isFinished: {
         type: Boolean,
         required: true,
         default: false

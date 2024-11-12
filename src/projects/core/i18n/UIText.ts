@@ -29,6 +29,8 @@ const keys = [
     "sendNewTitle",
     "changeTitleFailed",
     "titleChangedSuccessfully",
+    "activateSaveMessages",
+    "deactivateSaveMessages",
 ] as const;
 
 export type UITextKey = typeof keys[number];
