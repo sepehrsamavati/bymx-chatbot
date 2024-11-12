@@ -8,3 +8,9 @@ export type IOpenAIService = {
 export type IOpenAIModelCache = {
     getDefault(): Promise<OpenAIModel>;
 }
+
+export type IActionLockCache<T> = {
+    isLocked(key: T): boolean;
+    lock(key: T): void;
+    unlock(key: T): void;
+}

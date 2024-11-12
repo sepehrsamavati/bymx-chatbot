@@ -10,12 +10,9 @@ export const promptHandler: IUpdateHandler = {
 
         const res = await context.services.openAIApplication.textMessage(context.user, text);
 
-        if (!res)
-            return null;
-
         return {
             call: {
-                text: res
+                text: res.ok ? res.data : res.message
             }
         }
     }

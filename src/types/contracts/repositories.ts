@@ -4,7 +4,7 @@ import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIMessage, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat } from "../entities/openAIChat";
-import type { UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
+import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -34,6 +34,7 @@ export type IUserRepository = {
 
 export type IUserSubscriptionRepository = {
     create(userSubscription: UserSubscriptionDBModel): Promise<boolean | null>;
+    updateById(userSubscription: UpdateUserSubscription): Promise<boolean | null>;
     getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
     getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
 }

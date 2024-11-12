@@ -35,5 +35,10 @@ const schema = new mongoose.Schema<UserSubscriptionMongoStored>({
     expiry: {
         type: Date,
         required: true,
+    },
+    finished: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 }, { versionKey: false, collection: userSubscriptionModelDefinition.collection });

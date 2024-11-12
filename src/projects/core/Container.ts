@@ -1,4 +1,5 @@
 import config from "./config.js";
+import type { User } from "../../types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
@@ -6,6 +7,7 @@ import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
 import OpenAIChatApplication from "./application/OpenAIChatApplication.js";
+import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
@@ -47,6 +49,7 @@ type Applications = {
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
+    openAIMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
 };
 
 export type ServicesType = Constants & Connections & Repositories & Applications & Services;
@@ -89,6 +92,7 @@ export default class CoreServices {
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
+            openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),

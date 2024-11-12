@@ -1,10 +1,10 @@
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
-import { OperationResult } from "../common/dto/OperationResult.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
+import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
-import { UserSubscription } from "../../../types/entities/userSubscription.js";
+import type { UserSubscription } from "../../../types/entities/userSubscription.js";
 
 export default class OpenAIApplication {
     #openAI;
@@ -13,6 +13,7 @@ export default class OpenAIApplication {
     #userSubscriptionRepository;
     #userRepository;
     #openAIModelCache;
+    #messageLock;
 
     constructor(container: ServicesType) {
         this.#openAI = container.openAI;
@@ -21,6 +22,7 @@ export default class OpenAIApplication {
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
         this.#userRepository = container.userRepository;
         this.#openAIModelCache = container.openAIModelCache;
+        this.#messageLock = container.openAIMessageLockCache;
     }
 
     async getFreePointStatus(userId: string) {
@@ -43,8 +45,8 @@ export default class OpenAIApplication {
         };
     }
 
-    async textMessage(user: User, message: string) {
-        // const result = new OperationResult();
+    async #textMessage(user: User, message: string): Promise<OperationResultWithData<string>> {
+        const result = new OperationResultWithData<string>().failed("anErrorOccurred");
 
         let selectedChat = user.selectedChat;
 
@@ -52,10 +54,10 @@ export default class OpenAIApplication {
             const hasChats = await this.#openAIChatRepository.exists(user.id);
 
             if (hasChats === null)
-                return; // error
+                return result.failed(); // error
 
             if (hasChats)
-                return; // select chat
+                return result.failed("shouldSelectChat"); // select chat
 
             const defaultModel = await this.#openAIModelCache.getDefault();
 
@@ -76,7 +78,7 @@ export default class OpenAIApplication {
             });
 
             if (defaultChatId === null)
-                return; // error
+                return result.failed(); // error
 
             const updateResult = await this.#userRepository.update(user.id, {
                 selectedChat: {
@@ -91,14 +93,14 @@ export default class OpenAIApplication {
                     id: defaultChatId
                 };
             } else {
-                return; // error
+                return result.failed(); // error
             }
         }
 
         const freePointUsage = await this.getFreePointStatus(user.id);
 
         if (freePointUsage === null)
-            return;
+            return result.failed();
 
         let historyMessages: OpenAIMessage[] = [];
 
@@ -106,27 +108,29 @@ export default class OpenAIApplication {
             const _historyMessages = await this.#openAIMessageRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
 
             if (_historyMessages === null)
-                return;
+                return result.failed();
 
             historyMessages = _historyMessages;
         }
 
         let subscription: Omit<UserSubscription, 'user'> | null = null;
+        let currentPlanUsage = 0;
 
         if (freePointUsage.remaining <= 0) {
             subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
             if (!subscription)
-                return;
+                return result.failed("noActiveSubscription");
 
+            const _currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
 
-            const currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
+            if (_currentPlanUsage === null)
+                return result.failed();
 
-            if (currentPlanUsage === null)
-                return;
+            if (_currentPlanUsage > subscription.plan.points)
+                return result.failed("planPointsFinished");
 
-            if (currentPlanUsage > subscription.plan.points)
-                return;
+            currentPlanUsage = _currentPlanUsage;
         }
 
         const res = await this.#openAI.multiTextMessage(message, historyMessages, selectedChat.model.name, user.id);
@@ -154,9 +158,29 @@ export default class OpenAIApplication {
                 plan: subscription ? subscription.plan : undefined
             });
 
-            return res.output;
+            if (subscription && currentPlanUsage + userPointCost >= subscription.plan.points) {
+                await this.#userSubscriptionRepository.updateById({
+                    id: subscription.id,
+                    isFinished: true
+                });
+            }
+
+            return result.succeeded().setData(res.output);
         }
 
-        return;
+        return result.failed();
+    }
+
+    async textMessage(user: User, message: string) {
+        if (this.#messageLock.isLocked(user.id))
+            return new OperationResultWithData<string>().failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const result = await this.#textMessage(user, message);
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
     }
 }
