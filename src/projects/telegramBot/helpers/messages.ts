@@ -52,13 +52,13 @@ export const getPanel = async (context: RequestContext) => {
             + `\n${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `✅ ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `❌ ${context.uiText.disabled}`}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: context.uiText.chats, callback_data: "chats" }],
+                [{ text: context.uiText.chats, callback_data: "chats" }, { text: "models", callback_data: "modelsUsage" }],
                 [context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }],]
         }
     };
 };
 
-const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
+export const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
     if (model.pricePmt <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;
 

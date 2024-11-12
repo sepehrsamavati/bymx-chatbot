@@ -1,7 +1,7 @@
 import tgCall from "../helpers/call.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
-import { getChatListPanel, getPanel } from "../helpers/messages.js";
+import { getChatListPanel, getPanel, modelTitleGenerator } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
@@ -45,6 +45,29 @@ export const panelHandler: IUpdateHandler = {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id,
                         ..._chatList
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "modelsUsage": {
+                const models = await context.services.openAIModelApplication.getAll();
+
+                if (!models)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        text: `🤖\n\n`
+                            + models.sort((a, b) => a.pricePmt - b.pricePmt).map(model => `${modelTitleGenerator(context, model)}\nNrm msgs (raw expense): ${Math.round((1e6 / model.pricePmt) / 1e3).toLocaleString()}`).join('\n\n'),
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }],
+                            ]
+                        }
                     }
                 );
 
