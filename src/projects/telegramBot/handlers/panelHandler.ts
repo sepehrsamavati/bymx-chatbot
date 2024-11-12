@@ -6,13 +6,9 @@ import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.j
 import { getChatListPanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
-    updateType: [
-        TelegramUpdateType.TextMessage,
-        TelegramUpdateType.CallbackQuery
-    ],
+    updateType: TelegramUpdateType.CallbackQuery,
     mode: UserMode.General.Normal,
     async handler(context, update) {
-        const text = update.message?.text;
         const queryData = update.callback_query?.data;
 
         switch (queryData) {
@@ -93,47 +89,6 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             }
-        }
-
-        switch (text) {
-            case "/panel":
-                if (context.user.mode !== UserMode.General.Normal)
-                    await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
-
-                const _panel = await getPanel(context);
-
-                if (!_panel)
-                    return null;
-
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        ..._panel
-                    }
-                );
-
-                return { shouldContinue: false };
-            case "/models":
-                if (context.user.mode !== UserMode.General.Normal)
-                    await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
-
-                const modelUsageList = await getModelUsageListPanel(context);
-
-                if (!modelUsageList)
-                    return null;
-
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        ...modelUsageList
-                    }
-                );
-
-                return { shouldContinue: false };
         }
 
         return null;

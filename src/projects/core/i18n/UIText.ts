@@ -7,6 +7,7 @@ export type LangCode = typeof langCodes[number];
 const keys = [
     "_tgStart",
     "_tgHelp",
+    "_termsOfService",
 
     "panel",
     "chats",
@@ -41,6 +42,8 @@ const keys = [
     "modelUsageHelper",
     "modelUsageMemoryWarningHelper",
     "approximateMessageCount",
+    "shouldAcceptTermsOfService",
+    "acceptTos",
 ] as const;
 
 export type UITextKey = typeof keys[number];

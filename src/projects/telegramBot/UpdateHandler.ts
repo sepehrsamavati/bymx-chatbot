@@ -8,6 +8,7 @@ import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
+import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
@@ -15,6 +16,7 @@ import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../..
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
     panelHandler,
+    termsOfServiceHandler,
     chatManageHandler,
     planListHandler,
     createNewChatHandler,
