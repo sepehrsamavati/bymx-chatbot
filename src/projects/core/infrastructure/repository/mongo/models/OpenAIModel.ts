@@ -36,9 +36,26 @@ const schema = new mongoose.Schema<MongoStored<OpenAIModelDBModel>>({
         required: true,
         default: OpenAIModelType.Text
     },
-    pricePmt: {
-        type: Number,
-        required: true,
-        min: 0,
+    pricePmu: {
+        inputText: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        outputText: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        inputAudio: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        outputAudio: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
     },
 }, { versionKey: false, collection: openAIModelModelDefinition.collection });

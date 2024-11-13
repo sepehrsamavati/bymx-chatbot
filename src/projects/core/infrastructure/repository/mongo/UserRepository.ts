@@ -105,7 +105,7 @@ export default class UserRepository implements IUserRepository {
                 model: {
                     id: chatModel._id.toString(),
                     name: chatModel.name,
-                    pricePmt: chatModel.pricePmt,
+                    pricePmu: chatModel.pricePmu,
                     title: chatModel.title,
                     type: chatModel.type
                 },

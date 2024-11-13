@@ -76,10 +76,10 @@ export const getPanel = async (context: RequestContext) => {
 };
 
 const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
-    if (model.pricePmt <= 2)
+    if (model.pricePmu.outputText <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;
 
-    if (model.pricePmt < 8)
+    if (model.pricePmu.outputText < 8)
         return `🟡 ${model.title} (${context.uiText.affordable})`;
 
     return `🔴 ${model.title} (${context.uiText.costly})`;
@@ -94,9 +94,9 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(`👇 ${context.uiText.modelUsageHelper}`
             + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
-            + models.sort((a, b) => a.pricePmt - b.pricePmt).map(model =>
+            + models.map(model =>
                 `${modelTitleGenerator(context, model)}`
-                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(Math.round((1 - (config.openAI.feePercentage / 100)) * ((1e6 / model.pricePmt) / 600)).toLocaleString(), context.user.lang)}`
+                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(context.services.openAIModelApplication.calculateModelUsage(model).normalLengthTextMessage, context.user.lang)}`
             ).join('\n\n'),
         reply_markup: {
             inline_keyboard: [
@@ -117,7 +117,7 @@ export const getModelListPanel = async (context: RequestContext) => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }],
-                ...models.sort((a, b) => a.pricePmt - b.pricePmt).map(model => [{ text: modelTitleGenerator(context, model), callback_data: `selectChatModel${model.id}` }])
+                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `selectChatModel${model.id}` }])
             ]
         }
     };

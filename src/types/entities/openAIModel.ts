@@ -9,8 +9,13 @@ export type OpenAIModel = {
     title: string;
     /** Model type (text, audio, ...) */
     type: OpenAIModelType;
-    /** Price per million tokens */
-    pricePmt: number;
+    /** Price per million units (tokens, characters, minutes, ...) */
+    pricePmu: {
+        inputText: number;
+        outputText: number;
+        inputAudio: number;
+        outputAudio: number;
+    };
 }
 
 export type OpenAIModelDBModel = StoredEntity<OpenAIModel>;
