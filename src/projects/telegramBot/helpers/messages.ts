@@ -62,8 +62,11 @@ export const getPanel = async (context: RequestContext) => {
         return null;
 
     return {
-        text: `${context.uiText.dailyFreePoints}: ${freePointUsage.remaining}/${freePointUsage.total}`
-            + `\n${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `✅ ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `❌ ${context.uiText.disabled}`}`,
+        text: stringHelper.digitLocalization(
+            `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage.remaining}/${freePointUsage.total}`
+            + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `🔵 ${context.uiText.disabled}`}`
+            , context.user.lang
+        ),
         reply_markup: {
             inline_keyboard: [
                 [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
@@ -89,11 +92,11 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
         return null;
 
     return {
-        text: `👇 ${context.uiText.modelUsageHelper}`
-            + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`
+        text: stringHelper.digitLocalization(`👇 ${context.uiText.modelUsageHelper}`
+            + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
             + models.sort((a, b) => a.pricePmt - b.pricePmt).map(model =>
                 `${modelTitleGenerator(context, model)}`
-                + `\n${context.uiText.approximateMessageCount}: ${Math.round((1 - (config.openAI.feePercentage / 100)) * ((1e6 / model.pricePmt) / 600)).toLocaleString()}`
+                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(Math.round((1 - (config.openAI.feePercentage / 100)) * ((1e6 / model.pricePmt) / 600)).toLocaleString(), context.user.lang)}`
             ).join('\n\n'),
         reply_markup: {
             inline_keyboard: [
