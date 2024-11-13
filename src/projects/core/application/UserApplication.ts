@@ -83,6 +83,19 @@ export default class UserApplication {
         return result;
     }
 
+    async setUserStatus(userId: User['id'], status: UserStatus) {
+        const result = new OperationResult();
+
+        const updateResult = await this.#userRepository.update(userId, {
+            status: status
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
+    }
+
     async setSaveMessages(userId: User['id'], saveMessages: boolean) {
         const result = new OperationResult();
 

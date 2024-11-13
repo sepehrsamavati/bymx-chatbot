@@ -53,6 +53,9 @@ export default class UserRepository implements IUserRepository {
         if (update.mode !== undefined)
             _update.mode = update.mode;
 
+        if (update.status !== undefined)
+            _update.status = update.status;
+
         if (update.type !== undefined)
             _update.type = update.type;
 

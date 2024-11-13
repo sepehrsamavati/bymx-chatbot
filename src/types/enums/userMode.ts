@@ -2,7 +2,7 @@ import configError from "../../projects/core/helpers/configError.js";
 
 const General = Object.freeze({
     Normal: 0,
-    AcceptEULA: 1,
+    // AcceptEULA: 1,
     EnterPhoneNumber: 2
 });
 

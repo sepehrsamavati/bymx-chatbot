@@ -4,6 +4,7 @@ import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 
 export const userCommandHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.TextMessage,
@@ -11,7 +12,16 @@ export const userCommandHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        switch (text.toLowerCase()) {
+        const isCommand = update.message?.entities?.at(0)?.type === "bot_command";
+
+        let command = "";
+        if (isCommand) {
+            command = text;
+            if (command.startsWith("/start"))
+                command = "/start"; // remove start parameters
+        }
+
+        switch (command) {
             case "/start":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -46,7 +56,7 @@ export const userCommandHandler: IUpdateHandler = {
                     )
                 ]);
 
-                return { shouldContinue: false };
+                return { shouldContinue: context.user.status === UserStatus.EULA };
             case "/help":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -78,8 +88,6 @@ export const userCommandHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             case "/terms":
-                if (context.user.mode !== UserMode.General.AcceptEULA)
-                    await context.services.userApplication.setUserMode(context.user.id, UserMode.General.AcceptEULA);
 
                 await tgCall(
                     TelegramMethods.SendMessage,
@@ -110,9 +118,6 @@ export const userCommandHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             case "/models":
-                if (context.user.mode !== UserMode.General.Normal)
-                    await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
-
                 const modelUsageList = await getModelUsageListPanel(context);
 
                 if (!modelUsageList)
@@ -130,6 +135,6 @@ export const userCommandHandler: IUpdateHandler = {
                 return { shouldContinue: false };
         }
 
-        return null;
+        return { shouldContinue: !isCommand };
     }
 }

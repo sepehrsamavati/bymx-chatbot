@@ -1,5 +1,6 @@
 import tgCall from "../helpers/call.js";
 import { getPanel } from "../helpers/messages.js";
+import { setTimeout } from 'node:timers/promises';
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
@@ -13,38 +14,39 @@ export const termsOfServiceHandler: IUpdateHandler = {
 
     async handler(context, update) {
 
-        if (update.callback_query) {
+        if (update.callback_query?.data === "acceptTos") {
+            const _panel = await getPanel(context);
 
-            if (update.callback_query.data === "acceptTos") {
-                const _panel = await getPanel(context);
+            if (!_panel)
+                return null;
 
-                if (!_panel)
-                    return null;
+            await context.services.userApplication.setUserStatus(context.user.id, UserStatus.OK);
 
-                await Promise.allSettled([
-                    tgCall(
-                        TelegramMethods.DeleteMessage,
-                        {
-                            chat_id: update.callback_query?.message.chat.id,
-                            message_id: update.callback_query?.message.message_id
-                        }
-                    ),
-                    tgCall(
-                        TelegramMethods.SendMessage,
-                        {
-                            chat_id: update.callback_query?.message.chat.id,
-                            ..._panel
-                        }
-                    )
-                ]);
+            await Promise.allSettled([
+                tgCall(
+                    TelegramMethods.DeleteMessage,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id
+                    }
+                ),
+                tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        ..._panel
+                    }
+                )
+            ]);
 
-                return { shouldContinue: false };
-            }
+            return { shouldContinue: false };
         }
 
         if (context.user.status === UserStatus.EULA) {
 
             const message = update.message ?? update.callback_query?.message;
+
+            await setTimeout(500);
 
             await tgCall(
                 TelegramMethods.SendMessage,
