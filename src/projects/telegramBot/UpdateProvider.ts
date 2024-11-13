@@ -46,6 +46,10 @@ export class UpdateProvider {
             }
 
             this.#getUpdates();
+        } else {
+            setTimeout(() => {
+                this.#getUpdates();
+            }, 2e3).unref();
         }
     }
 }
