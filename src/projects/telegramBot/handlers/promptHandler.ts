@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
@@ -20,15 +21,31 @@ export const promptHandler: IUpdateHandler = {
 
         const res = await context.services.openAIApplication.textMessage(context.user, text);
 
-        await tgCall(
-            TelegramMethods.SendMessage,
-            {
-                chat_id: update.message?.chat.id,
-                reply_to_message_id: update.message?.message_id,
-                text: res.ok ? res.data : res.message,
-                parse_mode: "Markdown"
-            }
-        );
+        if (!res.ok && res.message === "selectChatBeforeUse") {
+            const _chatList = await getChatListPanel(context);
+
+            if (!_chatList)
+                return null;
+
+            await tgCall(
+                TelegramMethods.SendMessage,
+                {
+                    chat_id: update.message?.chat.id,
+                    ..._chatList,
+                    text: context.uiText.selectChatBeforeUse
+                }
+            );
+        } else {
+            await tgCall(
+                TelegramMethods.SendMessage,
+                {
+                    chat_id: update.message?.chat.id,
+                    reply_to_message_id: update.message?.message_id,
+                    text: res.ok ? res.data : res.message,
+                    parse_mode: "Markdown"
+                }
+            );
+        }
 
         return { shouldContinue: false };
     }

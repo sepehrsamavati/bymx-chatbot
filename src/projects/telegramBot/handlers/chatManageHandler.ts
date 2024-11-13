@@ -1,7 +1,7 @@
 import tgCall from "../helpers/call.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
-import { getChatListPanel, getChatPanel } from "../helpers/messages.js";
+import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
@@ -32,7 +32,7 @@ export const chatManageHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } if (queryData?.startsWith("renameChat")) {
+        } else if (queryData?.startsWith("renameChat")) {
             const chatId = queryData.replace("renameChat", "");
 
             const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -137,6 +137,59 @@ export const chatManageHandler: IUpdateHandler = {
                     }
                 };
             }
+        } else if (queryData?.startsWith("confirmDeleteChat_")) {
+            const chatId = queryData.replace("confirmDeleteChat_", "");
+
+            if (chatId.length > 0) {
+                const _chatDeleteConfirm = await getDeleteChatConfirmPanel(context, chatId);
+
+                if (!_chatDeleteConfirm)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ..._chatDeleteConfirm
+                    }
+                );
+
+                return { shouldContinue: false };
+            }
+
+            return null;
+        } else if (queryData?.startsWith("deleteChat_")) {
+            const chatId = queryData.replace("deleteChat_", "");
+
+            if (chatId.length > 0) {
+                const deleteResult = await context.services.openAIChatApplication.deleteByUser(context.user, chatId);
+
+                if (!deleteResult.ok)
+                    return {
+                        call: {
+                            text: deleteResult.message
+                        }
+                    };
+
+                const _chatList = await getChatListPanel(context);
+
+                if (!_chatList)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ..._chatList
+                    }
+                );
+
+                return { shouldContinue: false };
+            }
+
+            return null;
         }
 
         return null;

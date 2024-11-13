@@ -47,6 +47,10 @@ const keys = [
     "approximateMessageCount",
     "shouldAcceptTermsOfService",
     "acceptTos",
+    "delete",
+    "confirm",
+    "confirmToDelete",
+    "selectChatBeforeUse",
 ] as const;
 
 export type UITextKey = typeof keys[number];

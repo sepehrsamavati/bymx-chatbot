@@ -2,11 +2,14 @@ import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { CreateOpenAIChat } from "../../../types/entities/openAIChat.js";
 import config from "../config.js";
+import { User } from "../../../types/entities/user.js";
 
 export default class OpenAIChatApplication {
+    #userApplication;
     #openAIChatRepository;
 
     constructor(container: ServicesType) {
+        this.#userApplication = container.userApplication;
         this.#openAIChatRepository = container.openAIChatRepository;
     }
 
@@ -25,6 +28,34 @@ export default class OpenAIChatApplication {
             user: chat.user
         });
         return createdChatId;
+    }
+
+    async deleteByUser(user: User, chatId: string) {
+        const result = new OperationResult().failed();
+
+        const chat = await this.#openAIChatRepository.getChat({ id: chatId, isDeleted: false, user: user.id });
+
+        if (!chat)
+            return result;
+
+        if (user.selectedChat?.id === chatId) {
+            const unsetUserSelectedChat = await this.#userApplication.setUserSelectedChatById(user, null);
+
+            if (!unsetUserSelectedChat.ok)
+                return result;
+
+            user.selectedChat = undefined;
+        }
+
+        const deleted = await this.#openAIChatRepository.updateById({
+            id: chatId,
+            isDeleted: true,
+        });
+
+        if (deleted)
+            result.succeeded();
+
+        return result;
     }
 
     async setTitle(chatId: string, title: string) {

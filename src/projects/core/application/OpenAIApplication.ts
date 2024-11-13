@@ -47,7 +47,7 @@ export default class OpenAIApplication {
     }
 
     async #textMessage(user: User, message: string): Promise<OperationResultWithData<string>> {
-        const result = new OperationResultWithData<string>().failed("anErrorOccurred");
+        const result = new OperationResultWithData<string>().failed("errorOccurred");
 
         let selectedChat = user.selectedChat;
 
@@ -58,7 +58,7 @@ export default class OpenAIApplication {
                 return result.failed(); // error
 
             if (hasChats)
-                return result.failed("shouldSelectChat"); // select chat
+                return result.failed("selectChatBeforeUse"); // select chat
 
             const defaultModel = await this.#openAIModelCache.getDefault();
 

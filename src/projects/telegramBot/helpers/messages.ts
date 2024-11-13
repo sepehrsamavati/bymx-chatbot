@@ -16,6 +16,19 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
             inline_keyboard: [
                 [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }],
                 [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat${chat.id}` }],
+                [{ text: `❌ ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
+            ]
+        }
+    };
+};
+
+export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId: string) => {
+    return {
+        text: `⚠ ${context.uiText.confirmToDelete}`,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat${chatId}` }],
+                [{ text: `✅ ${context.uiText.confirm}`, callback_data: `deleteChat_${chatId}` }],
             ]
         }
     };

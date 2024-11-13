@@ -65,8 +65,12 @@ export default class UserRepository implements IUserRepository {
         if (update.memoryAmount !== undefined)
             _update.memoryAmount = update.memoryAmount;
 
-        if (update.selectedChat !== undefined)
-            _update.selectedChat = update.selectedChat.id;
+        if (Object.hasOwn(update, 'selectedChat')) {
+            if (update.selectedChat !== undefined)
+                _update.selectedChat = update.selectedChat.id;
+            else
+                _update.$unset = { selectedChat: 1 };
+        }
 
         return _update;
     }

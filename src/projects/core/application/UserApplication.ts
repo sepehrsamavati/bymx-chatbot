@@ -4,6 +4,7 @@ import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User } from "../../../types/entities/user.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
+import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 
 export default class UserApplication {
     #userRepository;
@@ -47,21 +48,25 @@ export default class UserApplication {
         }
     }
 
-    async setUserSelectedChatById(user: User, chatId: string) {
+    async setUserSelectedChatById(user: User, chatId: string | null) {
         const result = new OperationResult();
 
-        const chat = await this.#openAIChatRepository.getChat({
-            id: chatId
-        });
+        let chat: Omit<OpenAIChat, "user"> | null = null;
 
-        if (!chat)
-            return result.failed();
+        if (chatId !== null) {
+            chat = await this.#openAIChatRepository.getChat({
+                id: chatId
+            });
+
+            if (!chat)
+                return result.failed();
+        }
 
         const updateResult = await this.#userRepository.update(user.id, {
-            selectedChat: {
+            selectedChat: chat ? {
                 ...chat,
                 user: user
-            }
+            } : undefined
         });
 
         if (updateResult?.ok)
