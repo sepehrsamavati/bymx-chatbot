@@ -44,5 +44,10 @@
     "confirm": "تائید",
     "confirmToDelete": "جهت حذف تائید کنید:",
     "selectChatBeforeUse": "قبل از استفاده یک چت انتخاب کنید:",
-    "usedPointsForThisMessage": "امتیاز مصرف شده برای این پیام"
+    "usedPointsForThisMessage": "امتیاز مصرف شده برای این پیام",
+    "shouldGivePhoneNumber": "جهت تائید حساب شماره تلفن خود را ارسال کنید",
+    "clickBottomButton": "بر روی دکمه زیر کلیک کنید",
+    "sendPhoneNumber": "ارسال شماره تلفن",
+    "phoneNumberNotSupported": "در حال حاضر تنها حساب‌های ایرانی قابلیت استفاده از بات رو دارند!",
+    "phoneNumberNotValid": "شماره تلفن ارسالی نامعتبر می‌باشد!"
 }

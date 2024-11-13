@@ -88,4 +88,8 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		ref: openAIChatModelDefinition.model,
 		required: false
 	},
+	phoneNumber: {
+		type: String,
+		required: false
+	},
 }, { versionKey: false, collection: userModelDefinition.collection });

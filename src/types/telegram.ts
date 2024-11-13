@@ -53,9 +53,8 @@ export type TelegramMessage = {
         user_id: ChatID;
         phone_number: string;
     };
-    forward_from?: TelegramUser;
-    forward_from_chat?: Chat;
-    reply_to_message?: TelegramMessage;
+    forward_origin?: object;
+    reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;
 };
 
 type ChatMemberOwner = {

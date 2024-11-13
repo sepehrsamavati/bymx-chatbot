@@ -1,5 +1,5 @@
 import tgCall from "../helpers/call.js";
-import { getPanel } from "../helpers/messages.js";
+import { getGivePhoneNumberPanel, getPanel } from "../helpers/messages.js";
 import { setTimeout } from 'node:timers/promises';
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
@@ -15,12 +15,8 @@ export const termsOfServiceHandler: IUpdateHandler = {
     async handler(context, update) {
 
         if (update.callback_query?.data === "acceptTos") {
-            const _panel = await getPanel(context);
 
-            if (!_panel)
-                return null;
-
-            await context.services.userApplication.setUserStatus(context.user.id, UserStatus.OK);
+            await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
 
             await Promise.allSettled([
                 tgCall(
@@ -34,36 +30,111 @@ export const termsOfServiceHandler: IUpdateHandler = {
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.callback_query?.message.chat.id,
-                        ..._panel
+                        ...getGivePhoneNumberPanel(context)
                     }
                 )
             ]);
 
             return { shouldContinue: false };
-        }
+        } else if (update.message?.contact && context.user.status === UserStatus.PhoneNumber) {
+            const message = update.message;
+            if (message.contact) {
+                const contactIsValid = !message.forward_origin && message.contact.user_id === message.from.id;
+                if (!contactIsValid)
+                    return {
+                        call: {
+                            text: `❌ ${context.uiText.phoneNumberNotValid}`
+                        }
+                    };
 
-        if (context.user.status === UserStatus.EULA) {
+                const contactIsSupported = message.contact.phone_number.startsWith("98") || message.contact.phone_number.startsWith("+98");
+                if (!contactIsSupported)
+                    return {
+                        call: {
+                            text: `❌ ${context.uiText.phoneNumberNotSupported}`
+                        }
+                    };
 
-            const message = update.message ?? update.callback_query?.message;
+                const _panel = await getPanel(context);
 
-            await setTimeout(500);
+                if (!_panel)
+                    return null;
 
-            await tgCall(
-                TelegramMethods.SendMessage,
-                {
-                    chat_id: message?.chat.id,
-                    reply_to_message_id: message?.message_id,
-                    text: context.uiText.shouldAcceptTermsOfService
-                        + `\n\n${context.uiText._termsOfService}`,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: `✅ ${context.uiText.acceptTos}`, callback_data: "acceptTos" }],
-                        ]
-                    }
-                }
-            );
+                const userUpdateResult = await context.services.userApplication.setUserPhoneNumber(context.user.id, message.contact.phone_number, true);
+
+                if (!userUpdateResult.ok)
+                    return {
+                        call: {
+                            text: userUpdateResult.message
+                        }
+                    };
+
+                await Promise.allSettled([
+                    (message.reply_to_message ? tgCall(
+                        TelegramMethods.DeleteMessage,
+                        {
+                            chat_id: message.chat.id,
+                            message_id: message.reply_to_message.message_id
+                        }
+                    ) : undefined),
+                    tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: message.chat.id,
+                            ..._panel,
+                            reply_markup: {
+                                ..._panel.reply_markup,
+                                remove_keyboard: true
+                            }
+                        }
+                    )
+                ]);
+            }
 
             return { shouldContinue: false };
+        }
+
+        switch (context.user.status) {
+            case UserStatus.EULA: {
+
+                const message = update.message ?? update.callback_query?.message;
+
+                await setTimeout(500);
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: message?.chat.id,
+                        reply_to_message_id: message?.message_id,
+                        text: context.uiText.shouldAcceptTermsOfService
+                            + `\n\n${context.uiText._termsOfService}`,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `✅ ${context.uiText.acceptTos}`, callback_data: "acceptTos" }],
+                            ]
+                        }
+                    }
+                );
+
+                return { shouldContinue: false };
+            }
+            case UserStatus.PhoneNumber: {
+
+                const message = update.message ?? update.callback_query?.message;
+
+                await setTimeout(500);
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: message?.chat.id,
+                        reply_to_message_id: message?.message_id,
+                        ...getGivePhoneNumberPanel(context)
+                    }
+                );
+
+                return { shouldContinue: false };
+            }
         }
 
         return null;

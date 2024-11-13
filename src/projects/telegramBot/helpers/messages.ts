@@ -76,6 +76,20 @@ export const getPanel = async (context: RequestContext) => {
     };
 };
 
+export const getGivePhoneNumberPanel = (context: RequestContext) => {
+    return {
+        text: `${context.uiText.shouldGivePhoneNumber} (👇 ${context.uiText.clickBottomButton})`,
+        reply_markup: {
+            one_time_keyboard: true,
+            resize_keyboard: true,
+            force_reply: true,
+            keyboard: [
+                [{ text: `☎ ${context.uiText.sendPhoneNumber}`, request_contact: true }],
+            ]
+        }
+    }
+};
+
 const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
     if (model.pricePmu.outputText <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;

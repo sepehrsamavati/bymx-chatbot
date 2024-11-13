@@ -7,6 +7,7 @@ import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -53,6 +54,9 @@ export default class OpenAIApplication {
 
     async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
+
+        if (user.status !== UserStatus.OK)
+            return result.failed("shouldAcceptTermsOfService");
 
         let selectedChat = user.selectedChat;
 

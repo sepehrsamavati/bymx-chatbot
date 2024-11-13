@@ -62,6 +62,9 @@ export default class UserRepository implements IUserRepository {
         if (update.saveMessages !== undefined)
             _update.saveMessages = update.saveMessages;
 
+        if (update.phoneNumber !== undefined)
+            _update.phoneNumber = update.phoneNumber;
+
         if (update.memoryAmount !== undefined)
             _update.memoryAmount = update.memoryAmount;
 
@@ -93,7 +96,8 @@ export default class UserRepository implements IUserRepository {
             tgId: result.tgId,
             type: result.type,
             saveMessages: result.saveMessages,
-            memoryAmount: result.memoryAmount
+            memoryAmount: result.memoryAmount,
+            phoneNumber: result.phoneNumber
         };
 
         const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>>;

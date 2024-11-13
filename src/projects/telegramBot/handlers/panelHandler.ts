@@ -31,9 +31,6 @@ export const panelHandler: IUpdateHandler = {
             };
             case "usedPointsForMessage": {
 
-            };
-            case "chats": {
-
                 await tgCall(
                     TelegramMethods.AnswerCallbackQuery,
                     {
@@ -41,6 +38,23 @@ export const panelHandler: IUpdateHandler = {
                         text: context.uiText.usedPointsForThisMessage,
                         show_alert: true,
                         cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "chats": {
+                const _chatList = await getChatListPanel(context);
+
+                if (!_chatList)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ..._chatList
                     }
                 );
 

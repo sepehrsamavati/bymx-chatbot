@@ -23,10 +23,11 @@ export type User = {
     selectedChat?: OpenAIChat;
     lastName?: string;
     username?: string;
+    phoneNumber?: string;
 }
 
 export type UserDBModel = StoredEntity<User>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
-export type UpdateUserModel = Partial<Pick<UserDBModel, 'saveMessages' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
+export type UpdateUserModel = Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
 export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName'>;

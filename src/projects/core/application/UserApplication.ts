@@ -101,6 +101,20 @@ export default class UserApplication {
         return result;
     }
 
+    async setUserPhoneNumber(userId: User['id'], phoneNumber: string, setStatus = false) {
+        const result = new OperationResult();
+
+        const updateResult = await this.#userRepository.update(userId, {
+            phoneNumber: phoneNumber,
+            status: setStatus ? UserStatus.OK : undefined,
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
+    }
+
     async setSaveMessages(userId: User['id'], saveMessages: boolean) {
         const result = new OperationResult();
 
