@@ -107,6 +107,13 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         return res.map(item => ({ id: item._id.toString(), caption: item.title }));
     }
 
+    async count(filter: SearchOpenAIChat): Promise<number | null> {
+        const res = await this.#databaseConnection.models.openAIChat
+            .countDocuments(this.#getFilter(filter));
+
+        return res;
+    }
+
     async exists(userId: string): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.openAIChat.exists({
             user: userId,

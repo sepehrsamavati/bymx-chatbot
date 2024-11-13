@@ -1,5 +1,7 @@
 import tgCall from "../helpers/call.js";
+import config from "../../core/config.js";
 import { getModelListPanel } from "../helpers/messages.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
@@ -11,6 +13,16 @@ export const createNewChatHandler: IUpdateHandler = {
         const queryData = update.callback_query?.data as string;
 
         if (queryData === "newChat") {
+            const canCreateNewChat = await context.services.openAIChatApplication.canCreateNewChat(context.user.id);
+
+            if (!canCreateNewChat.ok) {
+                return {
+                    call: {
+                        text: canCreateNewChat.message === "reachedChatCountLimit" ? stringHelper.formatter(context.uiText.reachedChatCountLimit, config.chatCountLimit) : canCreateNewChat.message
+                    }
+                };
+            }
+
             const modelList = await getModelListPanel(context)
 
             if (!modelList)

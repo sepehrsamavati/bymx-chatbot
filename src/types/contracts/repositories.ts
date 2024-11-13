@@ -56,6 +56,7 @@ export type IOpenAIChatRepository = {
     getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
     getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null>;
+    count(filter: SearchOpenAIChat): Promise<number | null>;
 }
 
 export type IOpenAIMessageRepository = {

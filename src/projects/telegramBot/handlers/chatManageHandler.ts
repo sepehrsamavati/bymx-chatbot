@@ -56,8 +56,8 @@ export const chatManageHandler: IUpdateHandler = {
                     text: context.uiText.sendNewTitle
                 }
             };
-        } else if (queryData?.startsWith("selectChat")) {
-            const chatId = queryData.replace("selectChat", "");
+        } else if (queryData?.startsWith("selectChat_")) {
+            const chatId = queryData.replace("selectChat_", "");
 
             if (context.user.selectedChat?.id !== chatId) {
                 const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);

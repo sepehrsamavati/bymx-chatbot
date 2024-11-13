@@ -14,7 +14,7 @@ type IOperationResultWithData<T> = {
 
 export class OperationResult implements IOperationResult {
     public ok = false;
-    public message = "";
+    public message: UITextOptionalKey = "";
 
     public succeeded(message?: UITextOptionalKey) {
         this.ok = true;

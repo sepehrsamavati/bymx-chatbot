@@ -31,11 +31,11 @@ export const getChatListPanel = async (context: RequestContext) => {
         text: chats.length > 0 ? context.uiText.savedChats : context.uiText.noSavedChats,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }, { text: `➕ ${context.uiText.newChat}`, callback_data: "newChat" }],
+                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : '➕'} ${context.uiText.newChat}`, callback_data: "newChat" }],
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
                         ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat${chat.id}` }
-                        : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat${chat.id}` }
+                        : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ])
             ]
         }

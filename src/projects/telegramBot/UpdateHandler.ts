@@ -1,9 +1,9 @@
 import tgCall from "./helpers/call.js";
-import UIText from "../core/i18n/UIText.js";
 import CoreServices from "../core/Container.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { planListHandler } from "./handlers/planListHandler.js";
+import UIText, { type UITextKey } from "../core/i18n/UIText.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
@@ -109,7 +109,7 @@ export class UpdateHandler {
             if (responseCtx.call) {
                 await tgCall(TelegramMethods.SendMessage, {
                     chat_id: userId,
-                    text: responseCtx.call.text
+                    text: requestContext.uiText[responseCtx.call.text as UITextKey] || responseCtx.call.text
                 })
             }
 

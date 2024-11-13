@@ -1,6 +1,7 @@
 import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { CreateOpenAIChat } from "../../../types/entities/openAIChat.js";
+import config from "../config.js";
 
 export default class OpenAIChatApplication {
     #openAIChatRepository;
@@ -10,6 +11,11 @@ export default class OpenAIChatApplication {
     }
 
     async create(chat: CreateOpenAIChat) {
+        const canCreateNewChat = await this.canCreateNewChat(chat.user.id);
+
+        if (!canCreateNewChat.ok)
+            return null;
+
         const createdChatId = await this.#openAIChatRepository.create({
             insertDate: new Date(),
             isDeleted: false,
@@ -52,5 +58,23 @@ export default class OpenAIChatApplication {
             isHidden: false,
         });
         return chats;
+    }
+
+    async canCreateNewChat(userId: string) {
+        const result = new OperationResult();
+
+        const currentChatsCount = await this.#openAIChatRepository.count({
+            user: userId,
+            isDeleted: false,
+            isHidden: false,
+        });
+
+        if (currentChatsCount === null)
+            return result.failed("errorOccurred");
+
+        if (currentChatsCount >= config.chatCountLimit)
+            return result.failed("reachedChatCountLimit");
+
+        return result.succeeded();
     }
 }

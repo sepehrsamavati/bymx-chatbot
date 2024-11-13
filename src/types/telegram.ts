@@ -2,8 +2,8 @@ import type { User } from "./entities/user";
 import type { UserModeType } from "./enums/userMode";
 import type CoreServices from "../projects/core/Container";
 import type { TelegramMethods } from "./enums/telegramMethods";
-import type { UITextLanguage } from "../projects/core/i18n/UIText";
 import type { TelegramUpdateType } from "./enums/telegramUpdateHandler";
+import type { UITextLanguage, UITextOptionalKey } from "../projects/core/i18n/UIText";
 
 export type ChatID = number;
 
@@ -155,7 +155,7 @@ export type RequestContext = {
 }
 
 type TelegramCall = {
-    text: string;
+    text: UITextOptionalKey;
 }
 
 type ResponseContextBase = {
