@@ -67,6 +67,7 @@ export class UpdateHandler {
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
+            username: fromTgUser?.username,
             lang: "fa",
         });
 
