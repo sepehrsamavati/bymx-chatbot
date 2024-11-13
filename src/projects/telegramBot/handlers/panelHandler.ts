@@ -29,18 +29,18 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             };
-            case "chats": {
-                const _chatList = await getChatListPanel(context);
+            case "usedPointsForMessage": {
 
-                if (!_chatList)
-                    return null;
+            };
+            case "chats": {
 
                 await tgCall(
-                    TelegramMethods.EditMessageText,
+                    TelegramMethods.AnswerCallbackQuery,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
-                        ..._chatList
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.usedPointsForThisMessage,
+                        show_alert: true,
+                        cache_time: 600,
                     }
                 );
 

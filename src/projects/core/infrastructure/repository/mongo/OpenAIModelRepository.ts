@@ -17,7 +17,7 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
             .map(item => ({
                 id: item._id.toString(),
                 name: item.name,
-                pricePmt: item.pricePmt,
+                pricePmu: item.pricePmu,
                 title: item.title,
                 type: item.type
             } as OpenAIModel));
@@ -31,7 +31,7 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
         return res ? {
             id: res._id.toString(),
             name: res.name,
-            pricePmt: res.pricePmt,
+            pricePmu: res.pricePmu,
             title: res.title,
             type: res.type
         } : null;

@@ -51,6 +51,7 @@ const keys = [
     "confirm",
     "confirmToDelete",
     "selectChatBeforeUse",
+    "usedPointsForThisMessage",
 ] as const;
 
 export type UITextKey = typeof keys[number];

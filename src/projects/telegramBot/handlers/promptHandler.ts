@@ -36,15 +36,30 @@ export const promptHandler: IUpdateHandler = {
                 }
             );
         } else {
-            await tgCall(
-                TelegramMethods.SendMessage,
-                {
-                    chat_id: update.message?.chat.id,
-                    reply_to_message_id: update.message?.message_id,
-                    text: res.ok ? res.data : res.message,
-                    parse_mode: "Markdown"
-                }
-            );
+            if (res.ok)
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        text: res.data.output,
+                        parse_mode: res.data.isComplete ? "Markdown" : undefined,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
+                            ]
+                        }
+                    }
+                );
+            else
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        text: res.message
+                    }
+                );
         }
 
         return { shouldContinue: false };

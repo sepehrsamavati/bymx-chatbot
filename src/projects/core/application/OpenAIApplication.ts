@@ -5,7 +5,12 @@ import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
+import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
+
+export type IOpenAITextResponse = IOpenAITextResult & {
+    pointUsage: number;
+}
 
 export default class OpenAIApplication {
     #openAI;
@@ -46,8 +51,8 @@ export default class OpenAIApplication {
         };
     }
 
-    async #textMessage(user: User, message: string): Promise<OperationResultWithData<string>> {
-        const result = new OperationResultWithData<string>().failed("errorOccurred");
+    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
 
         let selectedChat = user.selectedChat;
 
@@ -137,14 +142,11 @@ export default class OpenAIApplication {
         const res = await this.#openAI.multiTextMessage(message, historyMessages, selectedChat.model.name, user.id);
 
         if (res) {
-            const tokenCount = res.totalTokens ?? (
-                message + " " + res.output
-            ).split(' ').length;
-
             const { cost, userPointCost } = modelCostCalculator({
                 model: selectedChat.model,
                 profitPercentage: config.openAI.feePercentage,
-                tokenCount: tokenCount
+                inputUnits: res.inputTokens,
+                outputUnits: res.outputTokens,
             });
 
             await this.#openAIMessageRepository.create({
@@ -166,15 +168,18 @@ export default class OpenAIApplication {
                 });
             }
 
-            return result.succeeded().setData(res.output);
+            return result.succeeded().setData({
+                ...res,
+                pointUsage: userPointCost
+            });
         }
 
         return result.failed();
     }
 
-    async textMessage(user: User, message: string) {
+    async textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         if (this.#messageLock.isLocked(user.id))
-            return new OperationResultWithData<string>().failed("youHavePendingPrompts");
+            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 

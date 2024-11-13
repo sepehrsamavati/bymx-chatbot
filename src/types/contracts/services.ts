@@ -1,8 +1,15 @@
 import type { OpenAIModel } from "../entities/openAIModel.js";
 import type { OpenAIMessage } from "../entities/openAIMessage.js";
 
+export type IOpenAITextResult = {
+    output: string;
+    isComplete: boolean;
+    inputTokens: number;
+    outputTokens: number;
+};
+
 export type IOpenAIService = {
-    multiTextMessage(input: string, messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>, modelName: string, userId?: string): Promise<{ output: string; totalTokens?: number; } | null>;
+    multiTextMessage(input: string, messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>, modelName: string, userId?: string): Promise<IOpenAITextResult | null>;
 }
 
 export type IOpenAIModelCache = {

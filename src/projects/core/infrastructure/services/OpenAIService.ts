@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import config from "../../config.js";
 import { logger } from "../../helpers/logger.js";
-import type { IOpenAIService } from "../../../../types/contracts/services.js";
 import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
+import type { IOpenAIService, IOpenAITextResult } from "../../../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -17,8 +17,10 @@ export default class OpenAIService implements IOpenAIService {
         apiKey: config.openAI.apiToken
     });
 
-    async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming) {
+    async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAITextResult | null> {
         try {
+            const prompt = typeof opts.messages[opts.messages.length - 1].content === "string" ? opts.messages[opts.messages.length - 1].content as string : "";
+
             const chatCompletion = await this.#client.chat.completions.create(opts);
 
             const lastMessage = opts.messages[opts.messages.length - 1]?.content;
@@ -36,7 +38,9 @@ export default class OpenAIService implements IOpenAIService {
 
                 return {
                     output,
-                    totalTokens: chatCompletion.usage?.total_tokens
+                    isComplete: choice?.finish_reason === "stop",
+                    inputTokens: chatCompletion.usage?.prompt_tokens ?? prompt.split(' ').length,
+                    outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
                 };
             }
 

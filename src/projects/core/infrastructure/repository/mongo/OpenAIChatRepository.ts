@@ -90,7 +90,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             model: {
                 id: model._id.toString(),
                 name: model.name,
-                pricePmt: model.pricePmt,
+                pricePmu: model.pricePmu,
                 title: model.title,
                 type: model.type
             }

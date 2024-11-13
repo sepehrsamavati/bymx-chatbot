@@ -1,3 +1,4 @@
+import config from "../config.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 
 const pointsPerDollar = 1_000;
@@ -16,7 +17,7 @@ export const modelCostCalculator = (opts: {
 
     const cost = inputTextCost + outputTextCost;
     const price = cost + ((profitPercentage * cost) / 100);
-    const userPointCost = Math.round(price * pointsPerDollar);
+    const userPointCost = Math.ceil(price * pointsPerDollar);
 
     return {
         /** No profit $USD price */
@@ -27,3 +28,17 @@ export const modelCostCalculator = (opts: {
         userPointCost
     };
 };
+
+export const modelUsageCalculator = (model: OpenAIModel) => {
+    const { userPointCost } = modelCostCalculator({
+        inputUnits: 350,
+        outputUnits: 350,
+        model: model,
+        profitPercentage: config.openAI.feePercentage
+    });
+
+    return {
+        /** Messages per 1K points ($1) */
+        normalLengthTextMessage: Math.floor(1000 / userPointCost)
+    };
+}

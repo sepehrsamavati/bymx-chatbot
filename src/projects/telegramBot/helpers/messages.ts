@@ -2,6 +2,7 @@ import config from "../../core/config.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
 import type { RequestContext } from "../../../types/telegram.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
+import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -96,7 +97,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
             + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
             + models.map(model =>
                 `${modelTitleGenerator(context, model)}`
-                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(context.services.openAIModelApplication.calculateModelUsage(model).normalLengthTextMessage, context.user.lang)}`
+                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(modelUsageCalculator(model).normalLengthTextMessage.toLocaleString(), context.user.lang)}`
             ).join('\n\n'),
         reply_markup: {
             inline_keyboard: [

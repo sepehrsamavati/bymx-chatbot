@@ -43,5 +43,6 @@
     "delete": "حذف",
     "confirm": "تائید",
     "confirmToDelete": "جهت حذف تائید کنید:",
-    "selectChatBeforeUse": "قبل از استفاده یک چت انتخاب کنید:"
+    "selectChatBeforeUse": "قبل از استفاده یک چت انتخاب کنید:",
+    "usedPointsForThisMessage": "امتیاز مصرف شده برای این پیام"
 }
