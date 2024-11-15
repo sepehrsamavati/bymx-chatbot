@@ -147,7 +147,7 @@ export type TelegramResponse<Method extends TelegramMethods> = Method extends ke
 
 
 export type RequestContext = {
-    services: CoreServices['provider'];
+    services: CoreServices['applications'];
     user: User;
     uiText: UITextLanguage;
     getUit: (keyOrMessage: UITextOptionalKey) => string;

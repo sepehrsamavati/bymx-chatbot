@@ -16,7 +16,7 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }],
-                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat${chat.id}` }],
+                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }],
                 [{ text: `❌ ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
             ]
         }
@@ -28,7 +28,7 @@ export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId:
         text: `⚠ ${context.uiText.confirmToDelete}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat${chatId}` }],
+                [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat_${chatId}` }],
                 [{ text: `✅ ${context.uiText.confirm}`, callback_data: `deleteChat_${chatId}` }],
             ]
         }
@@ -48,7 +48,7 @@ export const getChatListPanel = async (context: RequestContext) => {
                 [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : '➕'} ${context.uiText.newChat}`, callback_data: "newChat" }],
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
-                        ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat${chat.id}` }
+                        ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
                         : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ])
             ]

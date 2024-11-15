@@ -1,9 +1,9 @@
 import tgCall from "../helpers/call.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
-import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel } from "../helpers/messages.js";
 
 export const chatManageHandler: IUpdateHandler = {
     updateType: [
@@ -15,8 +15,12 @@ export const chatManageHandler: IUpdateHandler = {
         const text = update.message?.text;
         const queryData = update.callback_query?.data;
 
-        if (queryData?.startsWith("manageChat")) {
-            const chatId = queryData.replace("manageChat", "");
+        if (queryData?.startsWith("manageChat_")) {
+            const chatId = queryData.replace("manageChat_", "");
+
+            if (context.user.selectedChat?.id !== chatId)
+                return null;
+
             const chatPanel = await getChatPanel(context, chatId);
 
             if (!chatPanel)
@@ -32,16 +36,13 @@ export const chatManageHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } else if (queryData?.startsWith("renameChat")) {
-            const chatId = queryData.replace("renameChat", "");
+        } else if (queryData?.startsWith("renameChat_")) {
+            const chatId = queryData.replace("renameChat_", "");
 
-            const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
-
-            if (!chat)
+            if (context.user.selectedChat?.id !== chatId)
                 return null;
 
             await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
-            context.services.userSelectedChat.set(context.user.id, chat.id);
 
             await tgCall(
                 TelegramMethods.DeleteMessage,
@@ -93,7 +94,7 @@ export const chatManageHandler: IUpdateHandler = {
 
             return null;
         } else if (text && context.user.mode === UserMode.ChatManagement.ChangeTitle) {
-            const selectedChatId = context.services.userSelectedChat.get(context.user.id);
+            const selectedChatId = context.user.selectedChat?.id;
 
             if (!selectedChatId) {
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -104,7 +105,6 @@ export const chatManageHandler: IUpdateHandler = {
                 const result = await context.services.openAIChatApplication.setTitle(selectedChatId, text);
 
                 if (result.ok) {
-                    context.services.userSelectedChat.unset(context.user.id);
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 }
 
