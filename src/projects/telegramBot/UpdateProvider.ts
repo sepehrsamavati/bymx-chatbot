@@ -16,6 +16,7 @@ export class UpdateProvider {
 
         if (!bot?.ok) {
             console.log("Telegram connection issue!");
+            await this.#handler.dispose();
             return;
         }
 

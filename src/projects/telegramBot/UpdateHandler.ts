@@ -120,4 +120,8 @@ export class UpdateHandler {
         await container.dispose();
 
     }
+
+    dispose() {
+        return this.#services.destroy();
+    }
 }
