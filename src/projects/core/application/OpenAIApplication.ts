@@ -1,13 +1,13 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
-import { UserStatus } from "../../../types/enums/userStatus.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -45,10 +45,12 @@ export default class OpenAIApplication {
         if (freePointUsage === null)
             return null;
 
+        const { dailyFreePoints } = config;
+
         return {
             used: freePointUsage,
-            remaining: freePointUsage < 200 ? 200 - freePointUsage : 0,
-            total: 200
+            remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
+            total: dailyFreePoints
         };
     }
 

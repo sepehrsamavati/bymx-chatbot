@@ -9,6 +9,7 @@ const config = {
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
     chatCountLimit: 5,
+    dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
@@ -39,8 +40,13 @@ configError(
 );
 
 configError(
-    "Fee percentage not is invalid (0-100 range)",
+    "Fee percentage is invalid (0-100 range)",
     Number.isNaN(config.openAI.feePercentage)
+);
+
+configError(
+    "Daily free points value is not a number",
+    Number.isNaN(config.dailyFreePoints)
 );
 
 export default config;

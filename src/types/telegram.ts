@@ -150,6 +150,7 @@ export type RequestContext = {
     services: CoreServices['provider'];
     user: User;
     uiText: UITextLanguage;
+    getUit: (keyOrMessage: UITextOptionalKey) => string;
     readonly callStack: IUpdateHandler[];
 }
 

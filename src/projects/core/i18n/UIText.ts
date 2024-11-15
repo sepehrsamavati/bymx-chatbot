@@ -57,6 +57,10 @@ const keys = [
     "sendPhoneNumber",
     "phoneNumberNotSupported",
     "phoneNumberNotValid",
+    "youHavePendingPrompts",
+    "noActiveSubscription",
+    "planPointsFinished",
+    "buyPlans",
 ] as const;
 
 export type UITextKey = typeof keys[number];
@@ -74,5 +78,7 @@ type UITextObject = {
 const UIText: UITextObject = {
     fa: faData,
 };
+
+export const getUit = (uit: UITextLanguage, keyOrMessage: UITextOptionalKey) => uit[keyOrMessage as UITextKey] || keyOrMessage;
 
 export default UIText;

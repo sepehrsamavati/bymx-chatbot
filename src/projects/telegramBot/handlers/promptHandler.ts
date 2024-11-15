@@ -21,46 +21,60 @@ export const promptHandler: IUpdateHandler = {
 
         const res = await context.services.openAIApplication.textMessage(context.user, text);
 
-        if (!res.ok && res.message === "selectChatBeforeUse") {
-            const _chatList = await getChatListPanel(context);
-
-            if (!_chatList)
-                return null;
-
+        if (res.ok)
             await tgCall(
                 TelegramMethods.SendMessage,
                 {
                     chat_id: update.message?.chat.id,
-                    ..._chatList,
-                    text: context.uiText.selectChatBeforeUse
+                    reply_to_message_id: update.message?.message_id,
+                    text: res.data.output,
+                    parse_mode: res.data.isComplete ? "Markdown" : undefined,
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
+                        ]
+                    }
                 }
             );
-        } else {
-            if (res.ok)
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        text: res.data.output,
-                        parse_mode: res.data.isComplete ? "Markdown" : undefined,
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
-                            ]
+        else
+            switch (res.message) {
+                case "selectChatBeforeUse": {
+                    const _chatList = await getChatListPanel(context);
+
+                    if (!_chatList)
+                        return null;
+
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.message?.chat.id,
+                            ..._chatList,
+                            text: context.uiText.selectChatBeforeUse
                         }
-                    }
-                );
-            else
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        text: res.message
-                    }
-                );
-        }
+                    );
+                }
+                    break;
+                case "noActiveSubscription":
+                case "planPointsFinished":
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.message?.chat.id,
+                            reply_to_message_id: update.message?.message_id,
+                            text: context.getUit(res.message) + `\n\n${context.uiText.buyPlans}: /plans`
+                        }
+                    );
+                    break;
+                default:
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.message?.chat.id,
+                            reply_to_message_id: update.message?.message_id,
+                            text: context.getUit(res.message)
+                        }
+                    );
+            }
 
         return { shouldContinue: false };
     }
