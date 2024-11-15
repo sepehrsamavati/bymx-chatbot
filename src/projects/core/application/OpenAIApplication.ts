@@ -143,7 +143,9 @@ export default class OpenAIApplication {
             currentPlanUsage = _currentPlanUsage;
         }
 
-        const res = await this.#openAI.multiTextMessage(message, historyMessages, selectedChat.model.name, user.id);
+        const modelName = selectedChat.model.name;
+
+        const res = await this.#openAI.multiTextMessage(message, historyMessages, modelName, user.id);
 
         if (res) {
             const { cost, userPointCost } = modelCostCalculator({
@@ -161,6 +163,7 @@ export default class OpenAIApplication {
                 prompt: message,
                 output: res.output,
                 points: userPointCost,
+                model: modelName,
                 saved: user.saveMessages,
                 plan: subscription ? subscription.plan : undefined
             });

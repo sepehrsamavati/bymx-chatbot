@@ -3,6 +3,7 @@ import type { StoredEntity } from "../contracts/entities";
 import { OpenAIPlan } from "./openAIPlan";
 
 export type OpenAIMessage = {
+    /** NOTE: Chat's model can be changed by used; Use message `model` field instead */
     chat: OpenAIChat;
     plan?: OpenAIPlan;
     prompt: string;
@@ -11,6 +12,8 @@ export type OpenAIMessage = {
     saved: boolean;
     cost: number;
     points: number;
+    /** Name of OpenAI model used for message */
+    model: string;
     fileId?: string;
 }
 

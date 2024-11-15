@@ -24,6 +24,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             output: message.output,
             prompt: message.prompt,
             saved: message.saved,
+            model: message.model,
             fileId: message.fileId
         });
         return Boolean(res?._id);
@@ -148,6 +149,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             output: item.output,
             points: item.points,
             saved: item.saved,
+            model: item.model,
             fileId: item.fileId,
             chat: {
                 id: item.chat._id.toString(),
