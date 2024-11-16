@@ -1,16 +1,19 @@
 import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
-import { CreateOpenAIChat } from "../../../types/entities/openAIChat.js";
+import { CreateOpenAIChat, OpenAIChat } from "../../../types/entities/openAIChat.js";
 import config from "../config.js";
 import { User } from "../../../types/entities/user.js";
+import { OpenAIModel } from "../../../types/entities/openAIModel.js";
 
 export default class OpenAIChatApplication {
     #userApplication;
     #openAIChatRepository;
+    #openAIModelApplication;
 
     constructor(container: ServicesType) {
         this.#userApplication = container.userApplication;
         this.#openAIChatRepository = container.openAIChatRepository;
+        this.#openAIModelApplication = container.openAIModelApplication;
     }
 
     async create(chat: CreateOpenAIChat) {
@@ -64,6 +67,28 @@ export default class OpenAIChatApplication {
         const updated = await this.#openAIChatRepository.updateById({
             id: chatId,
             title: title
+        });
+
+        if (updated === true)
+            result.succeeded();
+
+        return result;
+    }
+
+    async setModel(chat: OpenAIChat, modelId: string) {
+        const result = new OperationResult().failed();
+
+        const _model = await this.#openAIModelApplication.getById(modelId);
+
+        if (!_model)
+            return result.failed();
+
+        if (modelId === chat.model.id)
+            return result.failed();
+
+        const updated = await this.#openAIChatRepository.updateById({
+            id: chat.id,
+            model: _model.id
         });
 
         if (updated === true)

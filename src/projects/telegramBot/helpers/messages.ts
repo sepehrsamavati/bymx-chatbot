@@ -16,7 +16,7 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }],
-                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }],
+                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }, { text: `🤖 ${context.uiText.changeModel}`, callback_data: "changeChatModel" }],
                 [{ text: `❌ ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
             ]
         }
@@ -121,7 +121,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
     };
 };
 
-export const getModelListPanel = async (context: RequestContext) => {
+export const getModelListPanel = async (context: RequestContext, changeChatModel?: string) => {
     const models = await context.services.openAIModelApplication.getAll();
 
     if (!models)
@@ -131,8 +131,10 @@ export const getModelListPanel = async (context: RequestContext) => {
         text: context.uiText.selectModel,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }],
-                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `selectChatModel${model.id}` }])
+                (changeChatModel
+                    ? [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
+                    : [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]),
+                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }])
             ]
         }
     };

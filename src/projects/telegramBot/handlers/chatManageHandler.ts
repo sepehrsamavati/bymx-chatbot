@@ -3,7 +3,8 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel } from "../helpers/messages.js";
+import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel, getModelListPanel } from "../helpers/messages.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
 
 export const chatManageHandler: IUpdateHandler = {
     updateType: [
@@ -57,6 +58,22 @@ export const chatManageHandler: IUpdateHandler = {
                     text: context.uiText.sendNewTitle
                 }
             };
+        } else if (queryData === "changeChatModel" && context.user.selectedChat) {
+            const _modelListPanel = await getModelListPanel(context, context.user.selectedChat.id);
+
+            if (!_modelListPanel)
+                return null;
+
+            await tgCall(
+                TelegramMethods.EditMessageText,
+                {
+                    chat_id: update.callback_query?.message.chat.id,
+                    message_id: update.callback_query?.message.message_id,
+                    ..._modelListPanel
+                }
+            );
+
+            return { shouldContinue: false };
         } else if (queryData?.startsWith("selectChat_")) {
             const chatId = queryData.replace("selectChat_", "");
 
@@ -93,6 +110,38 @@ export const chatManageHandler: IUpdateHandler = {
             }
 
             return null;
+        } else if (queryData?.startsWith("changeChatModel_")) {
+            const modelId = queryData.replace("changeChatModel_", "");
+            const chat = context.user.selectedChat;
+
+            if (!chat)
+                return null;
+
+            const result = await context.services.openAIChatApplication.setModel(chat, modelId);
+
+            const chatPanel = await getChatPanel(context, chat.id);
+
+            let sendUpdateStatus = true;
+
+            if (chatPanel && result.ok) {
+                const res = await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ...chatPanel
+                    }
+                );
+
+                if (res?.ok)
+                    sendUpdateStatus = false;
+            }
+
+            return sendUpdateStatus ? {
+                call: {
+                    text: result.ok ? `✅ ${stringHelper.formatter(context.uiText.itemChangedSuccessfully, context.uiText.model)}` : `❌ ${context.uiText.changeModelFailed}`
+                }
+            } : { shouldContinue: false };
         } else if (text && context.user.mode === UserMode.ChatManagement.ChangeTitle) {
             const selectedChatId = context.user.selectedChat?.id;
 

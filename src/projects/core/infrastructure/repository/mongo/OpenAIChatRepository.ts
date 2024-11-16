@@ -61,6 +61,9 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         if (update.title !== undefined)
             _update.title = update.title;
 
+        if (update.model !== undefined)
+            _update.model = update.model;
+
         const res = await this.#databaseConnection.models.openAIChat.updateOne({
             _id: update.id
         }, _update);

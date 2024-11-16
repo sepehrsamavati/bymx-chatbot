@@ -38,8 +38,8 @@ export const createNewChatHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } else if (queryData.startsWith("selectChatModel")) {
-            const modelId = queryData.replace("selectChatModel", "");
+        } else if (queryData.startsWith("selectChatModel_")) {
+            const modelId = queryData.replace("selectChatModel_", "");
 
             const model = await context.services.openAIModelApplication.getById(modelId);
 
