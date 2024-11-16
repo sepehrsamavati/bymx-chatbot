@@ -9,7 +9,13 @@ export type IOpenAITextResult = {
 };
 
 export type IOpenAIService = {
-    multiTextMessage(input: string, messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>, modelName: string, userId?: string): Promise<IOpenAITextResult | null>;
+    multiTextMessage(opts: {
+        input: string;
+        systemMessage?: string;
+        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+        modelName: string;
+        userId?: string;
+    }): Promise<IOpenAITextResult | null>;
 }
 
 export type IOpenAIModelCache = {

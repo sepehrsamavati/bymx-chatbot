@@ -1,4 +1,3 @@
-import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
@@ -8,6 +7,8 @@ import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
+import type { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
+import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -34,7 +35,7 @@ export default class OpenAIApplication {
         this.#messageLock = container.openAIMessageLockCache;
     }
 
-    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async #textMessage(user: User, message: string, systemMessage?: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
@@ -127,7 +128,13 @@ export default class OpenAIApplication {
 
         const modelName = selectedChat.model.name;
 
-        const res = await this.#openAI.multiTextMessage(message, historyMessages, modelName, user.id);
+        const res = await this.#openAI.multiTextMessage({
+            input: message,
+            messages: historyMessages,
+            modelName,
+            systemMessage,
+            userId: user.id
+        });
 
         if (res) {
             const { cost, userPointCost } = modelCostCalculator({
@@ -165,13 +172,13 @@ export default class OpenAIApplication {
         return result.failed();
     }
 
-    async textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async textMessage(user: User, message: string, behaviorType?: OpenAISystemMessage): Promise<OperationResultWithData<IOpenAITextResponse>> {
         if (this.#messageLock.isLocked(user.id))
             return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
-        const result = await this.#textMessage(user, message);
+        const result = await this.#textMessage(user, message, openAISystemMessageMapper(behaviorType));
 
         this.#messageLock.unlock(user.id);
 

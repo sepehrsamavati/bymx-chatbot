@@ -36,10 +36,13 @@ export default class OpenAIService implements IOpenAIService {
             if (result?.content?.length && result?.role === "assistant") {
                 const output = result.content;
 
+                if (!chatCompletion.usage)
+                    logger.warn("OpenAI chat completion usage not available!");
+
                 return {
                     output,
                     isComplete: choice?.finish_reason === "stop",
-                    inputTokens: chatCompletion.usage?.prompt_tokens ?? prompt.split(' ').length,
+                    inputTokens: chatCompletion.usage?.prompt_tokens ?? opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0),
                     outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
                 };
             }
@@ -53,8 +56,19 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
-    async multiTextMessage(input: string, messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>, modelName: string, userId?: string) {
+    async multiTextMessage(opts: {
+        input: string;
+        systemMessage?: string;
+        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+        modelName: string;
+        userId?: string;
+    }) {
+        const { messages, input, modelName, userId, systemMessage } = opts;
+
         const _messages: IChatCompletionConfig['messages'] = [];
+
+        if (systemMessage)
+            _messages.push({ role: 'system', content: systemMessage });
 
         for (const message of messages) {
             _messages.push({ role: 'user', content: message.prompt });
