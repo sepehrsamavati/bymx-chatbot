@@ -90,6 +90,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             id: res._id.toString(),
             title: res.title,
             isHidden: res.isHidden,
+            behavior: res.behavior,
             model: {
                 id: model._id.toString(),
                 name: model.name,

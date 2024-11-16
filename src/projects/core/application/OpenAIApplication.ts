@@ -6,9 +6,9 @@ import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
-import type { UserSubscription } from "../../../types/entities/userSubscription.js";
-import type { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
+import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
+import type { UserSubscription } from "../../../types/entities/userSubscription.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -35,7 +35,7 @@ export default class OpenAIApplication {
         this.#messageLock = container.openAIMessageLockCache;
     }
 
-    async #textMessage(user: User, message: string, systemMessage?: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
@@ -58,16 +58,14 @@ export default class OpenAIApplication {
                 title: "",
                 user: user,
                 model: defaultModel,
+                behavior: OpenAISystemMessage.Baymax,
                 isHidden: true
             } satisfies Partial<OpenAIChat>;
 
             const defaultChatId = await this.#openAIChatRepository.create({
+                ...openAIChat,
                 insertDate: new Date(),
                 isDeleted: false,
-                title: "",
-                user: user,
-                model: defaultModel,
-                isHidden: true
             });
 
             if (defaultChatId === null)
@@ -132,7 +130,7 @@ export default class OpenAIApplication {
             input: message,
             messages: historyMessages,
             modelName,
-            systemMessage,
+            systemMessage: openAISystemMessageMapper(selectedChat.behavior),
             userId: user.id
         });
 
@@ -172,13 +170,13 @@ export default class OpenAIApplication {
         return result.failed();
     }
 
-    async textMessage(user: User, message: string, behaviorType?: OpenAISystemMessage): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         if (this.#messageLock.isLocked(user.id))
             return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
-        const result = await this.#textMessage(user, message, openAISystemMessageMapper(behaviorType));
+        const result = await this.#textMessage(user, message);
 
         this.#messageLock.unlock(user.id);
 

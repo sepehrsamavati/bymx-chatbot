@@ -5,6 +5,7 @@ import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 
 export const createNewChatHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.CallbackQuery,
@@ -50,7 +51,8 @@ export const createNewChatHandler: IUpdateHandler = {
                 title: "",
                 isHidden: false,
                 model: model,
-                user: context.user
+                user: context.user,
+                behavior: OpenAISystemMessage.None
             });
 
             if (chatId) {

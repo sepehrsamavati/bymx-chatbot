@@ -114,6 +114,7 @@ export default class UserRepository implements IUserRepository {
                     type: chatModel.type
                 },
                 title: selectedChat.title,
+                behavior: selectedChat.behavior,
                 isHidden: selectedChat.isHidden,
                 user: user
             };

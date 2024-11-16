@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type { userModelDefinition } from "./User.js";
 import { openAIModelModelDefinition } from "./OpenAIModel.js";
 import type { OpenAIChatDBModel } from "../../../../../../types/entities/openAIChat.js";
+import { OpenAISystemMessage } from "../../../../../../types/enums/openAISystemMessages.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
 type OpenAIChatMongoStored = MongoStored<FlattenToObjectIDs<OpenAIChatDBModel, 'user' | 'model'>>;
@@ -42,5 +43,11 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
         type: Boolean,
         required: true,
         default: false
+    },
+    behavior: {
+        type: Number,
+        required: true,
+        enum: OpenAISystemMessage,
+        default: OpenAISystemMessage.None
     },
 }, { versionKey: false, collection: openAIChatModelDefinition.collection });

@@ -157,6 +157,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
                 isHidden: item.chat.isHidden,
                 model: item.chat.model,
                 user: item.chat.user,
+                behavior: item.chat.behavior
             },
             plan: item.plan ? {
                 id: item.plan._id.toString(),

@@ -1,9 +1,8 @@
+import config from "../config.js";
 import type { ServicesType } from "../Container.js";
+import { User } from "../../../types/entities/user.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { CreateOpenAIChat, OpenAIChat } from "../../../types/entities/openAIChat.js";
-import config from "../config.js";
-import { User } from "../../../types/entities/user.js";
-import { OpenAIModel } from "../../../types/entities/openAIModel.js";
 
 export default class OpenAIChatApplication {
     #userApplication;
@@ -28,7 +27,8 @@ export default class OpenAIChatApplication {
             isHidden: chat.isHidden,
             model: chat.model,
             title: chat.title,
-            user: chat.user
+            user: chat.user,
+            behavior: chat.behavior
         });
         return createdChatId;
     }
