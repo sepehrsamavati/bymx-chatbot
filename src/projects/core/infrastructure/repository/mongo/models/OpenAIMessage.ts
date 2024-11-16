@@ -27,6 +27,10 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
         required: true,
         min: 0,
     },
+    model: {
+        type: String,
+        required: true,
+    },
     cost: {
         type: Number,
         required: true,
