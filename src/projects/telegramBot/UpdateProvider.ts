@@ -1,6 +1,8 @@
 import tgCall from "./helpers/call.js";
 import { logger } from "../core/helpers/logger.js";
 import { UpdateHandler } from "./UpdateHandler.js";
+import exitHelper from "../core/helpers/exitHelper.js";
+import { ExitCode } from "../../types/enums/exitCodes.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 
 export class UpdateProvider {
@@ -17,6 +19,7 @@ export class UpdateProvider {
         if (!bot?.ok) {
             console.log("Telegram connection issue!");
             await this.#handler.dispose();
+            exitHelper(ExitCode.TelegramConnectionIssue);
             return;
         }
 
