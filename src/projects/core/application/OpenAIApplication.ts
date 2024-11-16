@@ -152,7 +152,6 @@ export default class OpenAIApplication {
         if (res) {
             const { cost, userPointCost } = modelCostCalculator({
                 model: selectedChat.model,
-                profitPercentage: config.openAI.feePercentage,
                 inputUnits: res.inputTokens,
                 outputUnits: res.outputTokens,
             });
