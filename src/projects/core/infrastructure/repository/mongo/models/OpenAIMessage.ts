@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { openAIChatModelDefinition } from "./OpenAIChat";
-import { openAIPlanModelDefinition } from "./OpenAIPlan";
+import { openAIChatModelDefinition } from "./OpenAIChat.js";
+import { openAIPlanModelDefinition } from "./OpenAIPlan.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition } from "../lib/model.type.js";
 import type { OpenAIMessageDBModel } from "../../../../../../types/entities/openAIMessage.js";
 

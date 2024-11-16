@@ -1,4 +1,4 @@
-import faData from "./languages/fa.json" assert { type: 'json' };
+import faData from "./languages/fa.json" with { type: 'json' };
 
 export const langCodes = ["fa"] as const;
 
