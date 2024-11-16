@@ -62,8 +62,11 @@ const keys = [
     "phoneNumberNotValid",
     "youHavePendingPrompts",
     "noActiveSubscription",
+    "freePointsFinished",
+    "noPointAvailable",
     "planPointsFinished",
     "buyPlans",
+    "subscription",
 ] as const;
 
 export type UITextKey = typeof keys[number];

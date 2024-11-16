@@ -19,6 +19,7 @@ export default class OpenAIApplication {
     #openAIMessageRepository;
     #userSubscriptionRepository;
     #userRepository;
+    #userApplication;
     #openAIModelCache;
     #messageLock;
 
@@ -28,30 +29,9 @@ export default class OpenAIApplication {
         this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
         this.#userRepository = container.userRepository;
+        this.#userApplication = container.userApplication;
         this.#openAIModelCache = container.openAIModelCache;
         this.#messageLock = container.openAIMessageLockCache;
-    }
-
-    async getFreePointStatus(userId: string) {
-        const start = new Date();
-        start.setUTCHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-
-        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
-
-
-        if (freePointUsage === null)
-            return null;
-
-        const { dailyFreePoints } = config;
-
-        return {
-            used: freePointUsage,
-            remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
-            total: dailyFreePoints
-        };
     }
 
     async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
@@ -109,7 +89,7 @@ export default class OpenAIApplication {
             }
         }
 
-        const freePointUsage = await this.getFreePointStatus(user.id);
+        const freePointUsage = await this.#userApplication.getFreePointStatus(user.id);
 
         if (freePointUsage === null)
             return result.failed();
@@ -132,7 +112,7 @@ export default class OpenAIApplication {
             subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
             if (!subscription)
-                return result.failed("noActiveSubscription");
+                return result.failed("noPointAvailable");
 
             const _currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
 

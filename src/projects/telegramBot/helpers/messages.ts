@@ -57,7 +57,13 @@ export const getChatListPanel = async (context: RequestContext) => {
 };
 
 export const getPanel = async (context: RequestContext) => {
-    const freePointUsage = await context.services.openAIApplication.getFreePointStatus(context.user.id);
+    const [
+        freePointUsage,
+        activeSubscription
+    ] = await Promise.all([
+        context.services.userApplication.getFreePointStatus(context.user.id),
+        context.services.userApplication.getActiveSubscription(context.user.id),
+    ]);
 
     if (!freePointUsage)
         return null;
@@ -65,6 +71,7 @@ export const getPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(
             `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage.remaining}/${freePointUsage.total}`
+            + `\n\n🔹 ${context.uiText.subscription}: ${activeSubscription ? activeSubscription.plan.title : context.uiText.noActiveSubscription}`
             + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `🔵 ${context.uiText.disabled}`}`
             , context.user.lang
         ),

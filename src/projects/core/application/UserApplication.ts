@@ -1,21 +1,24 @@
+import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
+import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User } from "../../../types/entities/user.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
-import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
     #openAIPlanRepository;
+    #openAIMessageRepository;
     #userSubscriptionRepository;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
         this.#openAIPlanRepository = container.openAIPlanRepository;
+        this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
     }
 
@@ -152,5 +155,31 @@ export default class UserApplication {
         });
 
         return res ? result.succeeded() : result.failed();
+    }
+
+    async getActiveSubscription(userId: string) {
+        return await this.#userSubscriptionRepository.getActive(userId, new Date());
+    }
+
+    async getFreePointStatus(userId: string) {
+        const start = new Date();
+        start.setUTCHours(0, 0, 0, 0);
+
+        const end = new Date();
+        end.setUTCHours(23, 59, 59, 999);
+
+        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
+
+
+        if (freePointUsage === null)
+            return null;
+
+        const { dailyFreePoints } = config;
+
+        return {
+            used: freePointUsage,
+            remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
+            total: dailyFreePoints
+        };
     }
 }

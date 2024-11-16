@@ -54,7 +54,10 @@
     "phoneNumberNotSupported": "در حال حاضر تنها حساب‌های ایرانی قابلیت استفاده از بات رو دارند!",
     "phoneNumberNotValid": "شماره تلفن ارسالی نامعتبر می‌باشد!",
     "youHavePendingPrompts": "لطفا منتظر پاسخ پیام قبلی خود باشید!",
-    "noActiveSubscription": "امتیاز رایگان شما تمام شده است و پلن فعالی ندارید!",
+    "noActiveSubscription": "پلن فعالی ندارید",
+    "freePointsFinished": "امتیاز رایگان شما تمام شده است!",
+    "noPointAvailable": "امتیاز رایگان شما تمام شده است و پلن فعالی ندارید!",
     "planPointsFinished": "امتیاز پلن شما به اتمام رسیده است!",
-    "buyPlans": "خرید پلن"
+    "buyPlans": "خرید پلن",
+    "subscription": "اشتراک"
 }
