@@ -34,6 +34,9 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         if (filter.user !== undefined)
             _filter.user = filter.user;
 
+        if (filter.behavior !== undefined)
+            _filter.behavior = filter.behavior;
+
         return _filter;
     }
 
@@ -44,6 +47,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
             model: chat.model.id,
             user: chat.user.id,
             title: chat.title,
+            behavior: chat.behavior,
             isHidden: chat.isHidden
         });
         return res?._id.toString() || null;

@@ -67,6 +67,8 @@ const keys = [
     "planPointsFinished",
     "buyPlans",
     "subscription",
+    "restart",
+    "modelsCost",
 ] as const;
 
 export type UITextKey = typeof keys[number];

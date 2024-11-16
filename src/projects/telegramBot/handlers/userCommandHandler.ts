@@ -5,6 +5,7 @@ import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
+import emojiIcon from "../helpers/emojiIcon.js";
 
 export const userCommandHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.TextMessage,
@@ -80,8 +81,12 @@ export const userCommandHandler: IUpdateHandler = {
                         TelegramMethods.SendMessage,
                         {
                             chat_id: update.message?.chat.id,
-                            text: ``
-                                + `\n\n${context.uiText.panel}: /panel\n${context.uiText.termsOfService}: /terms`
+                            text: context.uiText._tgHelp
+                                + `\n\n\n${emojiIcon.play} ${context.uiText.restart}: /start`
+                                + `\n${emojiIcon.textDocument} ${context.uiText.termsOfService}: /terms`
+                                + `\n${emojiIcon.panel} ${context.uiText.panel}: /panel`
+                                + `\n${emojiIcon.model} ${context.uiText.modelsCost}: /models`
+                                + `\n${emojiIcon.help} ${context.uiText.help}: /help`
                         }
                     )
                 ]);
