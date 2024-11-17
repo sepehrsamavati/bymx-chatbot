@@ -37,6 +37,30 @@ type MessageEntityType = 'url' | 'spoiler'
     | 'italic' | 'email' | 'bold' | 'hashtag' | 'mention' | 'cashtag'
     | 'bot_command' | 'text_mention' | 'custom_emoji' | 'pre';
 
+type PhotoSize = {
+    file_id: string;
+    file_unique_id: string;
+    width: number;
+    height: number;
+    file_size?: number;
+}
+
+type Document = {
+    file_id: string;
+    file_unique_id: string;
+    thumbnail?: PhotoSize;
+    file_name?: string;
+    mime_type?: string;
+    file_size?: number;
+}
+
+type File = {
+    file_id: string;
+    file_unique_id: string;
+    file_size?: number;
+    file_path?: string;
+}
+
 export type TelegramMessage = {
     text?: string;
     date: number;
@@ -53,6 +77,9 @@ export type TelegramMessage = {
         user_id: ChatID;
         phone_number: string;
     };
+    document?: Document;
+    audio?: unknown;
+    photo?: unknown;
     forward_origin?: object;
     reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;
 };
@@ -141,6 +168,7 @@ type TelegramResponseMap = {
     [TelegramMethods.GetUpdates]: TelegramResponseBase<TelegramUpdateObject[]>;
     [TelegramMethods.DeleteMessage]: TelegramResponseBase<null>;
     [TelegramMethods.SetMessageReaction]: TelegramResponseBase<null>;
+    [TelegramMethods.GetFile]: TelegramResponseBase<File>;
 }
 
 export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;

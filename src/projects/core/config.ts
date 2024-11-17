@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import * as dotenv from "dotenv";
 import configError from "./helpers/configError.js";
 
@@ -9,6 +10,7 @@ const config = {
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
     chatCountLimit: 5,
+    cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
@@ -23,6 +25,9 @@ const config = {
 };
 
 Object.freeze(config);
+
+if (!fs.existsSync(config.cacheDirectory))
+    fs.mkdirSync(config.cacheDirectory, { recursive: true });
 
 configError(
     "MongoDB connection string not defined",
