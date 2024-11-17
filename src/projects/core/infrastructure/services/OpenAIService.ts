@@ -1,8 +1,9 @@
+import fs from "node:fs";
 import OpenAI from "openai";
 import config from "../../config.js";
-import { logger } from "../../helpers/logger.js";
+import { errorLogger, logger } from "../../helpers/logger.js";
 import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
-import type { IOpenAIService, IOpenAITextResult } from "../../../../types/contracts/services.js";
+import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult } from "../../../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -55,14 +56,7 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
-    async multiTextMessage(opts: {
-        input: string;
-        systemMessage?: string;
-        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
-        modelName: string;
-        tokenLimit?: number;
-        userId?: string;
-    }) {
+    async multiTextMessage(opts: IOpenAIRequest) {
         const { messages, input, modelName, userId, systemMessage, tokenLimit } = opts;
 
         const _messages: IChatCompletionConfig['messages'] = [];
@@ -84,5 +78,74 @@ export default class OpenAIService implements IOpenAIService {
             user: userId,
             messages: _messages
         });
+    }
+
+    async fileSearch(opts: {
+        inputMessage: string;
+        inputFilePath: string;
+        // systemMessage?: string;
+        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+        // modelName: string;
+        // tokenLimit?: number;
+        // userId?: string;
+    }): Promise<IOpenAITextResult | null> {
+        try {
+            const assistant = await this.#client.beta.assistants.retrieve(config.openAI.fileSearchAssistantId);
+
+            if (!assistant)
+                return null;
+
+            // Upload a file with an "assistants" purpose
+            const file = await this.#client.files.create({
+                file: fs.createReadStream(opts.inputFilePath),
+                purpose: "assistants",
+            });
+
+            const { messages, inputMessage } = opts;
+
+            const _messages: OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message[] = [];
+
+            for (const message of messages) {
+                _messages.push({ role: 'user', content: message.prompt });
+                _messages.push({ role: 'assistant', content: message.output });
+            }
+
+            _messages.push({
+                role: 'user',
+                content: inputMessage,
+                attachments: [
+                    {
+                        file_id: file.id,
+                        tools: [{ type: "file_search" }]
+                    }
+                ]
+            });
+
+            const thread = await this.#client.beta.threads.create({
+                messages: _messages,
+            });
+
+            const threadRun = await this.#client.beta.threads.runs.createAndPoll(thread.id, {
+                assistant_id: assistant.id,
+                tools: [{ "type": "file_search" }],
+            });
+
+            const threadMessages = await this.#client.beta.threads.messages.list(thread.id, {
+                run_id: threadRun.id,
+            });
+
+            // @ts-ignore
+            const output = threadMessages.data[0].content[0].text.value;
+
+            return {
+                inputTokens: threadRun.usage?.prompt_tokens ?? 0,
+                outputTokens: threadRun.usage?.completion_tokens ?? output.split(' ').length,
+                isComplete: threadRun.status === "completed",
+                output: output
+            };
+        } catch (err) {
+            errorLogger("OpenAI service file search", err);
+            return null;
+        }
     }
 }

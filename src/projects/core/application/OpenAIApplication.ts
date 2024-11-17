@@ -1,14 +1,15 @@
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
+import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
-import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
+import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -35,7 +36,7 @@ export default class OpenAIApplication {
         this.#messageLock = container.openAIMessageLockCache;
     }
 
-    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async #middleware(user: User, message: string) {
         const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
@@ -126,6 +127,24 @@ export default class OpenAIApplication {
             remainingPoints = subscription.plan.points - _currentPlanUsage;
         }
 
+        return {
+            result,
+            selectedChat,
+            remainingPoints,
+            historyMessages,
+            subscription,
+            currentPlanUsage,
+        };
+    }
+
+    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        const _middlewareResult = await this.#middleware(user, message);
+
+        if (_middlewareResult instanceof OperationResultWithData)
+            return _middlewareResult;
+
+        const { selectedChat, currentPlanUsage, historyMessages, remainingPoints, result, subscription } = _middlewareResult;
+
         const predictedCost = modelCostPredication({
             inputUnits: message.split(' ').length,
             model: selectedChat.model,
@@ -193,5 +212,57 @@ export default class OpenAIApplication {
         this.#messageLock.unlock(user.id);
 
         return result;
+    }
+
+    async fileWithMessage(user: User, filePath: string, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        if (user.type !== UserType.Owner)
+            return new OperationResultWithData<IOpenAITextResponse>().failed("soon");
+
+        if (this.#messageLock.isLocked(user.id))
+            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const _middlewareResult = await this.#middleware(user, message);
+
+        if (_middlewareResult instanceof OperationResultWithData)
+            return _middlewareResult;
+
+        const { selectedChat, historyMessages, result, subscription } = _middlewareResult;
+
+        const res = await this.#openAI.fileSearch({
+            inputMessage: message,
+            messages: historyMessages,
+            inputFilePath: filePath
+        });
+
+        if (!res)
+            return result.failed();
+
+        const { cost, userPointCost } = modelCostCalculator({
+            model: selectedChat.model,
+            inputUnits: res.inputTokens,
+            outputUnits: res.outputTokens,
+        });
+
+        await this.#openAIMessageRepository.create({
+            chat: selectedChat,
+            cost: cost,
+            insertDate: new Date(),
+            isDeleted: false,
+            prompt: message,
+            output: res.output,
+            points: userPointCost,
+            model: selectedChat.model.name,
+            saved: user.saveMessages,
+            plan: subscription ? subscription.plan : undefined
+        });
+
+        this.#messageLock.unlock(user.id);
+
+        return result.succeeded().setData({
+            ...res,
+            pointUsage: userPointCost
+        });
     }
 }

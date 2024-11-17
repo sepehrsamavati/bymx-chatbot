@@ -8,14 +8,21 @@ export type IOpenAITextResult = {
     outputTokens: number;
 };
 
+export type IOpenAIRequest = {
+    input: string;
+    systemMessage?: string;
+    messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+    tokenLimit?: number;
+    modelName: string;
+    userId?: string;
+};
+
 export type IOpenAIService = {
-    multiTextMessage(opts: {
-        input: string;
-        systemMessage?: string;
+    multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
+    fileSearch(opts: {
+        inputMessage: string;
+        inputFilePath: string;
         messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
-        tokenLimit?: number;
-        modelName: string;
-        userId?: string;
     }): Promise<IOpenAITextResult | null>;
 }
 
