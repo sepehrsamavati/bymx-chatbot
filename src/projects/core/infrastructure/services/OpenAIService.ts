@@ -7,7 +7,7 @@ import type { IOpenAIService, IOpenAITextResult } from "../../../../types/contra
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
 const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {
-    max_completion_tokens: 300,
+    // max_completion_tokens: 300,
     top_p: 0.2
 };
 
