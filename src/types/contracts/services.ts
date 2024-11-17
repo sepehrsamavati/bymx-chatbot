@@ -13,6 +13,7 @@ export type IOpenAIService = {
         input: string;
         systemMessage?: string;
         messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+        tokenLimit?: number;
         modelName: string;
         userId?: string;
     }): Promise<IOpenAITextResult | null>;

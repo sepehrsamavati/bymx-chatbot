@@ -2,7 +2,7 @@ import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
-import { modelCostCalculator } from "../helpers/openAICostCalculator.js";
+import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import type { IOpenAITextResult } from "../../../types/contracts/services.js";
@@ -106,8 +106,9 @@ export default class OpenAIApplication {
 
         let subscription: Omit<UserSubscription, 'user'> | null = null;
         let currentPlanUsage = 0;
+        let remainingPoints = freePointUsage.remaining;
 
-        if (freePointUsage.remaining <= 0) {
+        if (remainingPoints <= 0) {
             subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
             if (!subscription)
@@ -122,7 +123,17 @@ export default class OpenAIApplication {
                 return result.failed("planPointsFinished");
 
             currentPlanUsage = _currentPlanUsage;
+            remainingPoints = subscription.plan.points - _currentPlanUsage;
         }
+
+        const predictedCost = modelCostPredication({
+            inputUnits: message.split(' ').length,
+            model: selectedChat.model,
+            pointUsageLimit: remainingPoints
+        });
+
+        if (predictedCost.inputLimit)
+            return result.failed();
 
         const modelName = selectedChat.model.name;
 
@@ -131,7 +142,8 @@ export default class OpenAIApplication {
             messages: historyMessages,
             modelName,
             systemMessage: openAISystemMessageMapper(selectedChat.behavior),
-            userId: user.id
+            userId: user.id,
+            tokenLimit: predictedCost.outputTokens
         });
 
         if (res) {

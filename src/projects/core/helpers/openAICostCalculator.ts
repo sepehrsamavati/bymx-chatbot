@@ -28,15 +28,34 @@ export const modelCostCalculator = (opts: {
     };
 };
 
-const modelCostPredication = (opts: {
+export const modelCostPredication = (opts: {
     inputUnits: number;
+    pointUsageLimit: number;
     model: OpenAIModel;
 }) => {
-    const minimumResponseUnits = Math.round(opts.inputUnits / 3); // 30% of input
-    return modelCostCalculator({
+    const { feePercentage } = config.openAI;
+
+    const inputCost = modelCostCalculator({
         ...opts,
-        outputUnits: minimumResponseUnits
+        outputUnits: 0
     });
+
+    const notRoundedInputPointCost = inputCost.price * pointsPerDollar;
+
+    if (notRoundedInputPointCost >= opts.pointUsageLimit)
+        return {
+            inputLimit: true,
+            outputTokens: 0
+        };
+
+    const userDollarCharge = (1 - (feePercentage / 100)) * (opts.pointUsageLimit / pointsPerDollar);
+
+    const outputTokens = (1_000_000 * userDollarCharge) / opts.model.pricePmu.outputText;
+
+    return {
+        inputLimit: false,
+        outputTokens
+    };
 }
 
 export const modelUsageCalculator = (model: OpenAIModel) => {

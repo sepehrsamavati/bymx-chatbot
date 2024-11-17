@@ -7,7 +7,6 @@ import type { IOpenAIService, IOpenAITextResult } from "../../../../types/contra
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
 const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {
-    // max_completion_tokens: 300,
     top_p: 0.2
 };
 
@@ -61,9 +60,10 @@ export default class OpenAIService implements IOpenAIService {
         systemMessage?: string;
         messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
         modelName: string;
+        tokenLimit?: number;
         userId?: string;
     }) {
-        const { messages, input, modelName, userId, systemMessage } = opts;
+        const { messages, input, modelName, userId, systemMessage, tokenLimit } = opts;
 
         const _messages: IChatCompletionConfig['messages'] = [];
 
@@ -79,6 +79,7 @@ export default class OpenAIService implements IOpenAIService {
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
+            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < 4_000 ? tokenLimit : undefined,
             model: modelName,
             user: userId,
             messages: _messages
