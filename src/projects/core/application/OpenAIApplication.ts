@@ -277,6 +277,7 @@ export default class OpenAIApplication {
             points: userPointCost,
             model: selectedChat.model.name,
             saved: user.saveMessages,
+            fileId: tempFile.fsId,
             plan: subscription ? subscription.plan : undefined
         });
 

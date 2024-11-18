@@ -14,6 +14,7 @@ export type OpenAIMessage = {
     points: number;
     /** Name of OpenAI model used for message */
     model: string;
+    /** User temp file `fsId` */
     fileId?: string;
 }
 
