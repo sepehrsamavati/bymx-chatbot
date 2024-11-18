@@ -4,6 +4,7 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
+import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
@@ -71,7 +72,7 @@ export const promptHandler: IUpdateHandler = {
                     {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
-                        text: res.data.output,
+                        text: convertToTelegramMarkdown(res.data.output),
                         parse_mode: res.data.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
@@ -106,7 +107,7 @@ export const promptHandler: IUpdateHandler = {
                 {
                     chat_id: update.message?.chat.id,
                     reply_to_message_id: update.message?.message_id,
-                    text: res.data.output,
+                    text: convertToTelegramMarkdown(res.data.output),
                     parse_mode: res.data.isComplete ? "Markdown" : undefined,
                     reply_markup: {
                         inline_keyboard: [

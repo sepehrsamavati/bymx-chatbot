@@ -84,7 +84,8 @@ export default async function tgCall<Method extends TelegramMethods>(method: Met
         else {
 
             if (tries === 1) {
-                if (params && typeof params === "object" && Object.hasOwn(params, 'parse_mode') && (result as any).description?.includes("can't parse entities")) {
+                const hasMarkdown = params && typeof params === "object" && Object.hasOwn(params, 'parse_mode');
+                if (hasMarkdown && (result as any).description?.includes("can't parse entities")) {
                     delete params.parse_mode;
                     continue;
                 }
