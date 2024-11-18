@@ -12,7 +12,7 @@ export type OpenAIModel = {
     /** Assistant ID */
     assistants: {
         /** File search assistant ID */
-        fileSearch: string;
+        fileSearch?: string;
     };
     /** Price per million units (tokens, characters, minutes, ...) */
     pricePmu: {

@@ -17,10 +17,13 @@ export const promptHandler: IUpdateHandler = {
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
-            if (!cachedFile.ok)
-                return null;
-
             let tempFile: UserTempFile | null = null;
+
+            if (cachedFile.ok && cachedFile.data)
+                tempFile = {
+                    ...cachedFile.data,
+                    user: context.user
+                };
 
             if (!tempFile) {
                 const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: update.message.reply_to_message.document.file_id });
@@ -51,10 +54,12 @@ export const promptHandler: IUpdateHandler = {
                     return null;
             }
 
-            const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
+            if (!cachedFile.data) {
+                const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
 
-            if (!fileAddResult.ok)
-                return null;
+                if (!fileAddResult.ok)
+                    return null;
+            }
 
             const res = await context.services.openAIApplication.fileWithMessage({
                 tempFile, message: text

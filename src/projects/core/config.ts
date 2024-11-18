@@ -14,7 +14,6 @@ const config = {
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
-        fileSearchAssistantId: process.env.BYMX_OPEN_AI_FILE_SEARCH_ASSISTANT_ID ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
         feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0")
     },
@@ -43,11 +42,6 @@ configError(
 configError(
     "Open AI API token not defined",
     !config.openAI.apiToken
-);
-
-configError(
-    "Open AI file search assistant ID not defined",
-    !config.openAI.fileSearchAssistantId
 );
 
 configError(

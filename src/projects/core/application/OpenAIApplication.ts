@@ -161,12 +161,10 @@ export default class OpenAIApplication {
         if (predictedCost.inputLimit)
             return result.failed();
 
-        const modelName = selectedChat.model.name;
-
         const res = await this.#openAI.multiTextMessage({
-            input: message,
+            inputMessage: message,
             messages: historyMessages,
-            modelName,
+            model: selectedChat.model,
             systemMessage: openAISystemMessageMapper(selectedChat.behavior),
             userId: user.id,
             tokenLimit: predictedCost.outputTokens
@@ -187,7 +185,7 @@ export default class OpenAIApplication {
                 prompt: message,
                 output: res.output,
                 points: userPointCost,
-                model: modelName,
+                model: selectedChat.model.name,
                 saved: user.saveMessages,
                 plan: subscription ? subscription.plan : undefined
             });
@@ -248,7 +246,8 @@ export default class OpenAIApplication {
         const res = await this.#openAI.fileSearch({
             inputMessage: message,
             messages: historyMessages,
-            tempFile
+            tempFile,
+            model: selectedChat.model
         });
 
         if (!res) {
@@ -256,10 +255,11 @@ export default class OpenAIApplication {
             return result.failed();
         }
 
-        await this.#userTempFileApplication.setOpenAiInfo(tempFile.fsId, {
-            openAiFileId: res.fileId,
-            vectorIds: res.vectorIds
-        });
+        if (!tempFile.openAiFileId)
+            await this.#userTempFileApplication.setOpenAiInfo(tempFile.fsId, {
+                openAiFileId: res.fileId,
+                vectorIds: res.vectorIds
+            });
 
         const { cost, userPointCost } = modelCostCalculator({
             model: selectedChat.model,

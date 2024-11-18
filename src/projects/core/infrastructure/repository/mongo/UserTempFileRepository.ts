@@ -57,9 +57,7 @@ export class UserTempFileRepository implements IUserTempFileRepository {
     }
 
     async updateById(update: UpdateUserTempFile): Promise<boolean | null> {
-        const _update: FilterQuery<UserTempFile> = {
-            fsId: update.id
-        };
+        const _update: FilterQuery<UserTempFile> = {};
 
         if (update.isDeleted !== undefined)
             _update.isDeleted = update.isDeleted;
@@ -70,7 +68,7 @@ export class UserTempFileRepository implements IUserTempFileRepository {
         if (update.vectorIds !== undefined)
             _update.vectorIds = update.vectorIds;
 
-        const res = await this.#databaseConnection.models.userTempFile.updateOne(_update).lean().exec();
+        const res = await this.#databaseConnection.models.userTempFile.updateOne({ fsId: update.id, isDeleted: false }, _update).lean().exec();
 
         return res.modifiedCount === 1;
     }

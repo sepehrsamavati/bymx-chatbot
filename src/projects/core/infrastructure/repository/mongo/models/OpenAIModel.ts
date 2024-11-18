@@ -36,6 +36,15 @@ const schema = new mongoose.Schema<MongoStored<OpenAIModelDBModel>>({
         required: true,
         default: OpenAIModelType.Text
     },
+    assistants: {
+        type: {
+            fileSearch: {
+                type: String,
+                required: false
+            }
+        },
+        required: true
+    },
     pricePmu: {
         inputText: {
             type: Number,

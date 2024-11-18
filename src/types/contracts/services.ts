@@ -9,24 +9,24 @@ export type IOpenAITextResult = {
     outputTokens: number;
 };
 
-export type IOpenAITextResultWithFile = IOpenAITextResult & { fileId: string; vectorIds: string[]; };
+export type IOpenAITextResultWithFile = IOpenAITextResult & {
+    /** OpenAI storage file ID */
+    fileId: string;
+    vectorIds: string[];
+};
 
 export type IOpenAIRequest = {
-    input: string;
+    inputMessage: string;
     systemMessage?: string;
     messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
     tokenLimit?: number;
-    modelName: string;
+    model: OpenAIModel;
     userId?: string;
 };
 
 export type IOpenAIService = {
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
-    fileSearch(opts: {
-        inputMessage: string;
-        tempFile: UserTempFile;
-        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
-    }): Promise<IOpenAITextResultWithFile | null>;
+    fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile | null>;
 }
 
 export type IOpenAIModelCache = {

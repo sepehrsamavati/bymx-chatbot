@@ -59,7 +59,7 @@ export default class OpenAIService implements IOpenAIService {
     }
 
     async multiTextMessage(opts: IOpenAIRequest) {
-        const { messages, input, modelName, userId, systemMessage, tokenLimit } = opts;
+        const { messages, inputMessage, model, userId, systemMessage, tokenLimit } = opts;
 
         const _messages: IChatCompletionConfig['messages'] = [];
 
@@ -71,33 +71,28 @@ export default class OpenAIService implements IOpenAIService {
             _messages.push({ role: 'assistant', content: message.output });
         }
 
-        _messages.push({ role: 'user', content: input });
+        _messages.push({ role: 'user', content: inputMessage });
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
             max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < 4_000 ? tokenLimit : undefined,
-            model: modelName,
+            model: model.name,
             user: userId,
             messages: _messages
         });
     }
 
-    async fileSearch(opts: {
-        inputMessage: string;
-        tempFile: UserTempFile;
-        // systemMessage?: string;
-        messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
-        // modelName: string;
-        // tokenLimit?: number;
-        // userId?: string;
-    }): Promise<IOpenAITextResultWithFile | null> {
+    async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile | null> {
         try {
             // const assistant = await this.#client.beta.assistants.retrieve(config.openAI.fileSearchAssistantId);
 
             // if (!assistant)
             //     return null;
 
-            const { tempFile, messages, inputMessage } = opts;
+            const { tempFile, messages, systemMessage, inputMessage, model } = opts;
+
+            if (!model.assistants.fileSearch)
+                return null;
 
             // Upload a file with an "assistants" purpose
             let fileId = tempFile.openAiFileId;
@@ -135,7 +130,7 @@ export default class OpenAIService implements IOpenAIService {
             const vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
 
             const threadRun = await this.#client.beta.threads.runs.createAndPoll(thread.id, {
-                assistant_id: config.openAI.fileSearchAssistantId,
+                assistant_id: model.assistants.fileSearch,
                 tools: [{ "type": "file_search" }],
             });
 
@@ -143,8 +138,20 @@ export default class OpenAIService implements IOpenAIService {
                 run_id: threadRun.id,
             });
 
-            // @ts-ignore
-            const output = threadMessages.data[0].content[0].text.value;
+            const content = threadMessages.data[0].content[0];
+            let output = "ERROR";
+
+            if (content.type === "text") {
+                output = content.text.value;
+                for (const annotation of content.text.annotations) {
+                    output.replace(annotation.text, "");
+                }
+            }
+
+            const threadDeleteResult = await this.#client.beta.threads.del(thread.id);
+            if (!threadDeleteResult.deleted) {
+                logger.error(`Delete file search thread failed! / ThreadId: ${thread.id} / RqId: ${threadDeleteResult._request_id}`);
+            }
 
             return {
                 inputTokens: threadRun.usage?.prompt_tokens ?? 0,
