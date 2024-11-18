@@ -126,6 +126,11 @@ export default class OpenAIService implements IOpenAIService {
 
             const thread = await this.#client.beta.threads.create({
                 messages: _messages,
+                tool_resources: tempFile.vectorIds.length ? {
+                    file_search: {
+                        vector_store_ids: tempFile.vectorIds
+                    }
+                } : undefined
             });
 
             const vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
