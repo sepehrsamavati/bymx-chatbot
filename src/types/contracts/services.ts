@@ -1,6 +1,7 @@
 import type { OpenAIModel } from "../entities/openAIModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OpenAIMessage } from "../entities/openAIMessage.js";
+import { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
 export type IOpenAITextResult = {
     output: string;
@@ -27,6 +28,8 @@ export type IOpenAIRequest = {
 export type IOpenAIService = {
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
     fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile | null>;
+    deleteFileById(id: string): Promise<OperationResult>;
+    deleteVectorById(id: string): Promise<OperationResult>;
 }
 
 export type IOpenAIModelCache = {

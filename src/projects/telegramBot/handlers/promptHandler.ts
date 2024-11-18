@@ -45,7 +45,8 @@ export const promptHandler: IUpdateHandler = {
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
                             vectorIds: [],
-                            user: context.user
+                            user: context.user,
+                            lastAccessed: new Date()
                         };
                     }
                     else

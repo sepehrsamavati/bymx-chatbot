@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import OpenAI from "openai";
-import path from "node:path";
 import config from "../../config.js";
 import { errorLogger, logger } from "../../helpers/logger.js";
 import type { UserTempFile } from "../../../../types/entities/userTempFile.js";
 import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
 import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../../types/contracts/services.js";
+import { getTempFilePath } from "../../helpers/storageHelper.js";
+import { OperationResult } from "../../common/dto/OperationResult.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -21,7 +22,7 @@ export default class OpenAIService implements IOpenAIService {
 
     async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAITextResult | null> {
         try {
-            const prompt = typeof opts.messages[opts.messages.length - 1].content === "string" ? opts.messages[opts.messages.length - 1].content as string : "";
+            // const prompt = typeof opts.messages[opts.messages.length - 1].content === "string" ? opts.messages[opts.messages.length - 1].content as string : "";
 
             const chatCompletion = await this.#client.chat.completions.create(opts);
 
@@ -97,7 +98,7 @@ export default class OpenAIService implements IOpenAIService {
             // Upload a file with an "assistants" purpose
             let fileId = tempFile.openAiFileId;
             if (!fileId) {
-                const filePath = path.join(config.cacheDirectory, tempFile.fsId) + `.${tempFile.extension}`;
+                const filePath = getTempFilePath(tempFile);
                 const file = await this.#client.files.create({
                     file: fs.createReadStream(filePath),
                     purpose: "assistants",
@@ -165,5 +166,35 @@ export default class OpenAIService implements IOpenAIService {
             errorLogger("OpenAI service file search", err);
             return null;
         }
+    }
+
+    async deleteFileById(id: string): Promise<OperationResult> {
+        const result = new OperationResult().failed();
+
+        try {
+            const res = await this.#client.files.del(id);
+
+            if (res.deleted)
+                result.succeeded();
+        } catch (err) {
+            errorLogger("OpenAI service error on deleting file", err);
+        }
+
+        return result;
+    }
+
+    async deleteVectorById(id: string): Promise<OperationResult> {
+        const result = new OperationResult().failed();
+
+        try {
+            const res = await this.#client.beta.vectorStores.del(id);
+
+            if (res.deleted)
+                result.succeeded();
+        } catch (err) {
+            errorLogger("OpenAI service error on deleting vector", err);
+        }
+
+        return result;
     }
 }

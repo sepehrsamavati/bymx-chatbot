@@ -21,6 +21,7 @@ import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTe
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
+import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 
 type Constants = {
     mongoDbConnectionStringUri: string;
@@ -79,6 +80,12 @@ export default class CoreServices {
         const promise = new Promise<void>(resolve => this.#diReadyQueue.add(resolve));
         return promise;
     }
+    
+    async #rootInitialize() {
+        const userTempFileCleanupJob = new UserTempFileCleanup(this.container.cradle.userTempFileApplication);
+
+        // userTempFileCleanupJob.start();
+    }
 
     constructor(autoSetup = true) {
         this.container.register({
@@ -112,6 +119,7 @@ export default class CoreServices {
                 .connect()
                 .then(() => {
                     this.#diReadyQueue.forEach(cb => cb());
+                    this.#rootInitialize();
                 });
     }
 

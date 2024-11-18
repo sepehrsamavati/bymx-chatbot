@@ -59,5 +59,9 @@ const schema = new mongoose.Schema<UserTempFileMongoStored>({
         }],
         required: true,
         default: []
+    },
+    lastAccessed: {
+        type: Date,
+        required: true
     }
 }, { versionKey: false, collection: userTempFileModelDefinition.collection });

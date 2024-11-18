@@ -42,7 +42,9 @@ export type IUserSubscriptionRepository = {
 
 export type IUserTempFileRepository = {
     create(userTempFile: CreateUserTempFile): Promise<boolean | null>;
+    /** Gets entity and updates `lastAccessed` property */
     get(filter: SearchUserTempFile): Promise<Omit<UserTempFile, 'user'> | null>;
+    getInactive(lastAccessedLowerThan: Date, limit: number): Promise<Omit<UserTempFile, 'user'>[] | null>;
     updateById(update: UpdateUserTempFile): Promise<boolean | null>;
 }
 

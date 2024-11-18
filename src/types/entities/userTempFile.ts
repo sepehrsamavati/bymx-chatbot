@@ -6,6 +6,7 @@ export type UserTempFile = {
     fsId: string;
     tgId: string;
     tgUniqueId: string;
+    lastAccessed: Date;
     openAiFileId?: string;
     size: number;
     user: User;
@@ -20,4 +21,4 @@ export type SearchUserTempFile = Partial<Pick<CreateUserTempFile, 'user' | 'fsId
 export type UpdateUserTempFile = {
     /** File System ID (fsId) */
     id: UserTempFile['fsId'];
-} & Pick<Partial<UserTempFileDBModel>, 'isDeleted' | 'vectorIds' | 'openAiFileId'>;
+} & Pick<Partial<UserTempFileDBModel>, 'isDeleted' | 'vectorIds' | 'openAiFileId' | 'lastAccessed'>;

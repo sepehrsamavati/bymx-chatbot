@@ -20,7 +20,8 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             tgId: userTempFile.tgId,
             tgUniqueId: userTempFile.tgUniqueId,
             vectorIds: userTempFile.vectorIds,
-            user: userTempFile.user
+            user: userTempFile.user,
+            lastAccessed: userTempFile.lastAccessed
         });
         return Boolean(res?._id);
     }
@@ -43,7 +44,7 @@ export class UserTempFileRepository implements IUserTempFileRepository {
         if (filter.tgUniqueId !== undefined)
             _filter.tgUniqueId = filter.tgUniqueId;
 
-        const res = await this.#databaseConnection.models.userTempFile.findOne(_filter).lean().exec();
+        const res = await this.#databaseConnection.models.userTempFile.findOneAndUpdate(_filter, { $set: { lastAccessed: new Date() } }).lean().exec();
 
         return res ? {
             extension: res.extension,
@@ -52,7 +53,8 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             size: res.size,
             tgUniqueId: res.tgUniqueId,
             openAiFileId: res.openAiFileId,
-            vectorIds: res.vectorIds
+            vectorIds: res.vectorIds,
+            lastAccessed: res.lastAccessed
         } : null;
     }
 
@@ -68,8 +70,31 @@ export class UserTempFileRepository implements IUserTempFileRepository {
         if (update.vectorIds !== undefined)
             _update.vectorIds = update.vectorIds;
 
+        if (update.lastAccessed !== undefined)
+            _update.lastAccessed = update.lastAccessed;
+
         const res = await this.#databaseConnection.models.userTempFile.updateOne({ fsId: update.id, isDeleted: false }, _update).lean().exec();
 
         return res.modifiedCount === 1;
+    }
+
+    async getInactive(lastAccessedLowerThan: Date, limit = 100): Promise<Omit<UserTempFile, 'user'>[] | null> {
+        const res = await this.#databaseConnection.models.userTempFile.find({
+            isDeleted: false,
+            lastAccessed: {
+                $lt: lastAccessedLowerThan
+            }
+        }).limit(limit).lean().exec();
+
+        return res ? res.map(item => ({
+            extension: item.extension,
+            fsId: item.fsId,
+            lastAccessed: item.lastAccessed,
+            size: item.size,
+            tgId: item.tgId,
+            tgUniqueId: item.tgUniqueId,
+            vectorIds: item.vectorIds,
+            openAiFileId: item.openAiFileId
+        })) : null;
     }
 }
