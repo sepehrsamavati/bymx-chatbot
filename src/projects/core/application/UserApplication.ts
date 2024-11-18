@@ -6,6 +6,7 @@ import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User } from "../../../types/entities/user.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
+import { UserTempFile } from "../../../types/entities/userTempFile.js";
 
 export default class UserApplication {
     #userRepository;

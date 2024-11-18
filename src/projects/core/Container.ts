@@ -12,10 +12,12 @@ import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
 import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
+import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
+import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
@@ -36,10 +38,12 @@ type Repositories = {
     openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
     openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
+    userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
 };
 
 type Applications = {
     userApplication: UserApplication;
+    userTempFileApplication: UserTempFileApplication;
     openAIApplication: OpenAIApplication;
     openAIPlanApplication: OpenAIPlanApplication;
     openAIChatApplication: OpenAIChatApplication;
@@ -84,6 +88,7 @@ export default class CoreServices {
             databaseTransaction: asClass(MongoDBTransaction, { lifetime: "SCOPED", dispose: async ctx => await ctx.end() }),
 
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
+            userTempFileApplication: asClass(UserTempFileApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
             openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
@@ -99,6 +104,7 @@ export default class CoreServices {
             openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
             openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),
             openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
+            userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)

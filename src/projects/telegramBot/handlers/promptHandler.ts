@@ -1,11 +1,10 @@
-import path from "node:path";
-import config from "../../core/config.js";
 import tgCall, { downloadFile } from "../helpers/call.js";
 import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
+import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const promptHandler: IUpdateHandler = {
@@ -16,46 +15,72 @@ export const promptHandler: IUpdateHandler = {
 
         if (text && context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
 
-            const res = await tgCall(TelegramMethods.GetFile, { file_id: update.message.reply_to_message.document.file_id });
+            const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
-            if (res?.ok && res.result.file_path) {
-                const fileExtension = res.result.file_path.split('.').pop() as string;
+            if (!cachedFile.ok)
+                return null;
 
-                if (fileExtension !== "pdf")
-                    return null;
+            let tempFile: UserTempFile | null = null;
 
-                const downloadResult = await downloadFile(res.result.file_path, fileExtension);
-                if (downloadResult.ok) {
+            if (!tempFile) {
+                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: update.message.reply_to_message.document.file_id });
 
-                    const res = await context.services.openAIApplication.fileWithMessage(
-                        context.user,
-                        path.join(config.cacheDirectory, downloadResult.data) + `.${fileExtension}`,
-                        text
-                    );
+                if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
-                    if (res.ok)
-                        await tgCall(
-                            TelegramMethods.SendMessage,
-                            {
-                                chat_id: update.message?.chat.id,
-                                reply_to_message_id: update.message?.message_id,
-                                text: res.data.output,
-                                parse_mode: res.data.isComplete ? "Markdown" : undefined,
-                                reply_markup: {
-                                    inline_keyboard: [
-                                        [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
-                                    ]
-                                }
-                            }
-                        );
-                    else
-                        return {
-                            call: {
-                                text: res.message
-                            }
+                    const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
+
+                    if (fileExtension !== "pdf")
+                        return null;
+
+                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    if (downloadResult.ok) {
+                        tempFile = {
+                            extension: fileExtension,
+                            fsId: downloadResult.data,
+                            size: fileInfo.result.file_size,
+                            tgId: fileInfo.result.file_id,
+                            tgUniqueId: fileInfo.result.file_unique_id,
+                            vectorIds: [],
+                            user: context.user
                         };
+                    }
+                    else
+                        return null;
                 }
+                else
+                    return null;
             }
+
+            const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
+
+            if (!fileAddResult.ok)
+                return null;
+
+            const res = await context.services.openAIApplication.fileWithMessage({
+                tempFile, message: text
+            });
+
+            if (res.ok)
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        text: res.data.output,
+                        parse_mode: res.data.isComplete ? "Markdown" : undefined,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
+                            ]
+                        }
+                    }
+                );
+            else
+                return {
+                    call: {
+                        text: res.message
+                    }
+                };
 
             return { shouldContinue: false };
         }

@@ -8,6 +8,7 @@ import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
 import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
+import { userTempFileModelDefinition } from "../models/UserTempFile.js";
 
 export class MongoDBTransaction implements ITransaction {
     #session: mongoose.ClientSession | null = null;
@@ -143,6 +144,7 @@ class MongooseModels {
             openAIPlan: openAIPlanModelDefinition.createModel(this.connection),
             openAIChat: openAIChatModelDefinition.createModel(this.connection),
             openAIMessage: openAIMessageModelDefinition.createModel(this.connection),
+            userTempFile: userTempFileModelDefinition.createModel(this.connection),
         });
     }
 }

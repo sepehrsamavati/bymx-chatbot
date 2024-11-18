@@ -4,14 +4,19 @@ import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
-import type { IOpenAITextResult } from "../../../types/contracts/services.js";
 import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
 import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
+import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
+    pointUsage: number;
+}
+
+export type IOpenAITextWithFileResponse = IOpenAITextResultWithFile & {
     pointUsage: number;
 }
 
@@ -22,6 +27,7 @@ export default class OpenAIApplication {
     #userSubscriptionRepository;
     #userRepository;
     #userApplication;
+    #userTempFileApplication;
     #openAIModelCache;
     #messageLock;
 
@@ -32,12 +38,13 @@ export default class OpenAIApplication {
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
         this.#userRepository = container.userRepository;
         this.#userApplication = container.userApplication;
+        this.#userTempFileApplication = container.userTempFileApplication;
         this.#openAIModelCache = container.openAIModelCache;
         this.#messageLock = container.openAIMessageLockCache;
     }
 
     async #middleware(user: User, message: string) {
-        const result = new OperationResultWithData<IOpenAITextResponse>().failed("errorOccurred");
+        const result = new OperationResultWithData<any>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
             return result.failed("shouldAcceptTermsOfService");
@@ -214,30 +221,45 @@ export default class OpenAIApplication {
         return result;
     }
 
-    async fileWithMessage(user: User, filePath: string, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async fileWithMessage(opts: {
+        tempFile: UserTempFile;
+        message: string;
+    }): Promise<OperationResultWithData<IOpenAITextWithFileResponse>> {
+        const { tempFile, message } = opts;
+        const user = tempFile.user;
+
         if (user.type !== UserType.Owner)
-            return new OperationResultWithData<IOpenAITextResponse>().failed("soon");
+            return new OperationResultWithData<IOpenAITextWithFileResponse>().failed("soon");
 
         if (this.#messageLock.isLocked(user.id))
-            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
+            return new OperationResultWithData<IOpenAITextWithFileResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
         const _middlewareResult = await this.#middleware(user, message);
 
-        if (_middlewareResult instanceof OperationResultWithData)
+        if (_middlewareResult instanceof OperationResultWithData) {
+            this.#messageLock.unlock(user.id);
             return _middlewareResult;
+        }
 
         const { selectedChat, historyMessages, result, subscription } = _middlewareResult;
 
         const res = await this.#openAI.fileSearch({
             inputMessage: message,
             messages: historyMessages,
-            inputFilePath: filePath
+            tempFile
         });
 
-        if (!res)
+        if (!res) {
+            this.#messageLock.unlock(user.id);
             return result.failed();
+        }
+
+        await this.#userTempFileApplication.setOpenAiInfo(tempFile.fsId, {
+            openAiFileId: res.fileId,
+            vectorIds: res.vectorIds
+        });
 
         const { cost, userPointCost } = modelCostCalculator({
             model: selectedChat.model,

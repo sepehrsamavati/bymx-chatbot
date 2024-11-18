@@ -1,4 +1,5 @@
 import type { OpenAIModel } from "../entities/openAIModel.js";
+import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OpenAIMessage } from "../entities/openAIMessage.js";
 
 export type IOpenAITextResult = {
@@ -7,6 +8,8 @@ export type IOpenAITextResult = {
     inputTokens: number;
     outputTokens: number;
 };
+
+export type IOpenAITextResultWithFile = IOpenAITextResult & { fileId: string; vectorIds: string[]; };
 
 export type IOpenAIRequest = {
     input: string;
@@ -21,9 +24,9 @@ export type IOpenAIService = {
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
     fileSearch(opts: {
         inputMessage: string;
-        inputFilePath: string;
+        tempFile: UserTempFile;
         messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
-    }): Promise<IOpenAITextResult | null>;
+    }): Promise<IOpenAITextResultWithFile | null>;
 }
 
 export type IOpenAIModelCache = {

@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import OpenAI from "openai";
+import path from "node:path";
 import config from "../../config.js";
 import { errorLogger, logger } from "../../helpers/logger.js";
+import type { UserTempFile } from "../../../../types/entities/userTempFile.js";
 import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
-import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult } from "../../../../types/contracts/services.js";
+import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -82,26 +84,31 @@ export default class OpenAIService implements IOpenAIService {
 
     async fileSearch(opts: {
         inputMessage: string;
-        inputFilePath: string;
+        tempFile: UserTempFile;
         // systemMessage?: string;
         messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
         // modelName: string;
         // tokenLimit?: number;
         // userId?: string;
-    }): Promise<IOpenAITextResult | null> {
+    }): Promise<IOpenAITextResultWithFile | null> {
         try {
-            const assistant = await this.#client.beta.assistants.retrieve(config.openAI.fileSearchAssistantId);
+            // const assistant = await this.#client.beta.assistants.retrieve(config.openAI.fileSearchAssistantId);
 
-            if (!assistant)
-                return null;
+            // if (!assistant)
+            //     return null;
+
+            const { tempFile, messages, inputMessage } = opts;
 
             // Upload a file with an "assistants" purpose
-            const file = await this.#client.files.create({
-                file: fs.createReadStream(opts.inputFilePath),
-                purpose: "assistants",
-            });
-
-            const { messages, inputMessage } = opts;
+            let fileId = tempFile.openAiFileId;
+            if (!fileId) {
+                const filePath = path.join(config.cacheDirectory, tempFile.fsId) + `.${tempFile.extension}`;
+                const file = await this.#client.files.create({
+                    file: fs.createReadStream(filePath),
+                    purpose: "assistants",
+                });
+                fileId = file.id;
+            }
 
             const _messages: OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message[] = [];
 
@@ -115,7 +122,7 @@ export default class OpenAIService implements IOpenAIService {
                 content: inputMessage,
                 attachments: [
                     {
-                        file_id: file.id,
+                        file_id: fileId,
                         tools: [{ type: "file_search" }]
                     }
                 ]
@@ -125,8 +132,10 @@ export default class OpenAIService implements IOpenAIService {
                 messages: _messages,
             });
 
+            const vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
+
             const threadRun = await this.#client.beta.threads.runs.createAndPoll(thread.id, {
-                assistant_id: assistant.id,
+                assistant_id: config.openAI.fileSearchAssistantId,
                 tools: [{ "type": "file_search" }],
             });
 
@@ -141,7 +150,9 @@ export default class OpenAIService implements IOpenAIService {
                 inputTokens: threadRun.usage?.prompt_tokens ?? 0,
                 outputTokens: threadRun.usage?.completion_tokens ?? output.split(' ').length,
                 isComplete: threadRun.status === "completed",
-                output: output
+                output: output,
+                vectorIds: vectorIds,
+                fileId: fileId
             };
         } catch (err) {
             errorLogger("OpenAI service file search", err);
