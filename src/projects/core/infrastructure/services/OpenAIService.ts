@@ -144,7 +144,7 @@ export default class OpenAIService implements IOpenAIService {
             if (content.type === "text") {
                 output = content.text.value;
                 for (const annotation of content.text.annotations) {
-                    output.replace(annotation.text, "");
+                    output = output.replace(annotation.text, "");
                 }
             }
 
