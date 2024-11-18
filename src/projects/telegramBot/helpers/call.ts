@@ -4,6 +4,7 @@ import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import config from "../../core/config.js";
 import { finished } from "node:stream/promises";
+import { setTimeout } from 'node:timers/promises';
 import type { TelegramResponse } from "../../../types/telegram.js";
 import type { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { OperationResultWithData } from "../../core/common/dto/OperationResult.js";
@@ -33,7 +34,7 @@ export const downloadFile = async (tgFilePath: string, extension?: string) => {
     return result.succeeded().setData(fileId);
 };
 
-export default async function tgCall<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
+async function _tgCall<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
     // let formData = params instanceof FormData ? params : null;
 
     // if (formData && params && params.file) {
@@ -69,4 +70,34 @@ export default async function tgCall<Method extends TelegramMethods>(method: Met
                 console.error(error);
             });
     });
+}
+
+export default async function tgCall<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
+
+    for (let tries = 1; tries <= 3; tries++) {
+        const result = await _tgCall(method, params);
+        if (!result) {
+            await setTimeout(1e3);
+            continue;
+        } else if (result.ok)
+            return result;
+        else {
+
+            if (tries === 1) {
+                if (params && typeof params === "object" && Object.hasOwn(params, 'parse_mode') && (result as any).description?.includes("can't parse entities")) {
+                    delete params.parse_mode;
+                    continue;
+                }
+            }
+
+            if ((result as any).error_code === 400)
+                return result;
+            else {
+                await setTimeout(5e3);
+                continue;
+            }
+        }
+    }
+
+    return null;
 }
