@@ -84,7 +84,7 @@ export default class CoreServices {
     async #rootInitialize() {
         const userTempFileCleanupJob = new UserTempFileCleanup(this.container.cradle.userTempFileApplication);
 
-        // userTempFileCleanupJob.start();
+        userTempFileCleanupJob.start();
     }
 
     constructor(autoSetup = true) {
