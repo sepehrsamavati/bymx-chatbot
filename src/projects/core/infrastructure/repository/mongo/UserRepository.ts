@@ -111,7 +111,8 @@ export default class UserRepository implements IUserRepository {
                     name: chatModel.name,
                     pricePmu: chatModel.pricePmu,
                     title: chatModel.title,
-                    type: chatModel.type
+                    type: chatModel.type,
+                    assistants: chatModel.assistants
                 },
                 title: selectedChat.title,
                 behavior: selectedChat.behavior,

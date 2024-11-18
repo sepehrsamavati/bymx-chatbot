@@ -100,7 +100,8 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
                 name: model.name,
                 pricePmu: model.pricePmu,
                 title: model.title,
-                type: model.type
+                type: model.type,
+                assistants: model.assistants
             }
         };
     }

@@ -9,6 +9,11 @@ export type OpenAIModel = {
     title: string;
     /** Model type (text, audio, ...) */
     type: OpenAIModelType;
+    /** Assistant ID */
+    assistants: {
+        /** File search assistant ID */
+        fileSearch: string;
+    };
     /** Price per million units (tokens, characters, minutes, ...) */
     pricePmu: {
         inputText: number;

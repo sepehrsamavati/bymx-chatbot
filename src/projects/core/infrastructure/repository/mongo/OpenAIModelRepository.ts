@@ -19,8 +19,9 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
                 name: item.name,
                 pricePmu: item.pricePmu,
                 title: item.title,
-                type: item.type
-            } as OpenAIModel));
+                type: item.type,
+                assistants: item.assistants
+            } satisfies OpenAIModel));
         return res;
     }
 
@@ -33,7 +34,8 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
             name: res.name,
             pricePmu: res.pricePmu,
             title: res.title,
-            type: res.type
+            type: res.type,
+            assistants: res.assistants
         } : null;
     }
 
