@@ -20,6 +20,13 @@ export const promptHandler: IUpdateHandler = {
 
         if (update.message?.reply_to_message?.document) {
 
+            if (context.user.selectedChat && !context.user.selectedChat.model.assistants.fileSearch)
+                return {
+                    call: {
+                        text: stringHelper.formatter(context.uiText.selectedModelNoFileSearch, context.user.selectedChat.model.title)
+                    }
+                };
+
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
                 return {
                     call: {

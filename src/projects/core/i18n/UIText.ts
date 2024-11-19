@@ -77,6 +77,7 @@ const keys = [
     "fileUploadLimitReached",
     "fileProcessingLimitReached",
     "fileSizeExceededError",
+    "selectedModelNoFileSearch",
 ] as const;
 
 export type UITextKey = typeof keys[number];
