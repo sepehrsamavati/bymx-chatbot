@@ -79,7 +79,7 @@ export type TelegramMessage = {
     };
     document?: Document;
     audio?: unknown;
-    photo?: unknown;
+    photo?: PhotoSize[];
     forward_origin?: object;
     reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;
 };

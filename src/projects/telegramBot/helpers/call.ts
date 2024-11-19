@@ -12,10 +12,12 @@ import { OperationResultWithData } from "../../core/common/dto/OperationResult.j
 const botUrl = "https://api.telegram.org/bot" + config.telegramBotToken + "/";
 const botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegramBotToken + "/";
 
+export const getFileUrl = (tgFilePath: string) => botUrlFileStorage + tgFilePath;
+
 export const downloadFile = async (tgFilePath: string, extension?: string) => {
     const result = new OperationResultWithData<string>();
 
-    const response = await fetch(botUrlFileStorage + tgFilePath);
+    const response = await fetch(getFileUrl(tgFilePath));
 
     if (!(response.body && response.status === 200))
         return result.failed();

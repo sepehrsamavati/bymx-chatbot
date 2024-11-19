@@ -54,7 +54,7 @@ export const modelCostPredication = (opts: {
 
     return {
         inputLimit: false,
-        outputTokens
+        outputTokens: Math.floor(outputTokens)
     };
 }
 

@@ -145,7 +145,7 @@ export default class OpenAIApplication {
         };
     }
 
-    async #textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async #message(user: User, message: string, imageUrl?: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         const _middlewareResult = await this.#middleware(user, message);
 
         if (_middlewareResult instanceof OperationResultWithData)
@@ -154,7 +154,7 @@ export default class OpenAIApplication {
         const { selectedChat, currentPlanUsage, historyMessages, remainingPoints, result, subscription } = _middlewareResult;
 
         const predictedCost = modelCostPredication({
-            inputUnits: message.split(' ').length,
+            inputUnits: message.split(' ').length + (imageUrl ? 500 : 0),
             model: selectedChat.model,
             pointUsageLimit: remainingPoints
         });
@@ -168,7 +168,8 @@ export default class OpenAIApplication {
             model: selectedChat.model,
             systemMessage: openAISystemMessageMapper(selectedChat.behavior),
             userId: user.id,
-            tokenLimit: predictedCost.outputTokens
+            tokenLimit: predictedCost.outputTokens,
+            imageUrl: imageUrl
         });
 
         if (res) {
@@ -213,7 +214,20 @@ export default class OpenAIApplication {
 
         this.#messageLock.lock(user.id);
 
-        const result = await this.#textMessage(user, message);
+        const result = await this.#message(user, message);
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
+    async imageMessage(user: User, message: string, imageUrl: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        if (this.#messageLock.isLocked(user.id))
+            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const result = await this.#message(user, message, imageUrl);
 
         this.#messageLock.unlock(user.id);
 
@@ -227,7 +241,7 @@ export default class OpenAIApplication {
         const { tempFile, message } = opts, user = tempFile.user;
         const guardResult = new OperationResultWithData<IOpenAITextWithFileResponse>();
 
-        if (openAiSupportedFileExtensions.includes(tempFile.extension))
+        if (openAiSupportedFileExtensions.fileSearch.includes(tempFile.extension))
             return guardResult.failed("fileNotSupported");
 
         if (user.type !== UserType.Owner)

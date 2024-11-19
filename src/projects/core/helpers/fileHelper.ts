@@ -1,3 +1,5 @@
-export const openAiSupportedFileExtensions = Object.freeze([
-    "pdf"
-]);
+export const openAiSupportedFileExtensions = Object.freeze({
+    fileSearch: Object.freeze([
+        "pdf"
+    ])
+});

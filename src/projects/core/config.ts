@@ -15,6 +15,7 @@ const config = {
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     /** Minutes */
     tempFileCleanupAge: Number.parseInt(process.env.BYMX_FILE_CLEANUP_AGE ?? "5"),
+    httpProxyUri: process.env.BYMX_HTTP_PROXY ? new URL(process.env.BYMX_HTTP_PROXY).toString() : undefined,
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
@@ -62,10 +63,10 @@ configError(
 if (!fs.existsSync(config.cacheDirectory))
     fs.mkdirSync(config.cacheDirectory, { recursive: true });
 
-if (process.env.BYMX_HTTP_PROXY) {
+if (config.httpProxyUri) {
     // Corporate proxy uses CA not in undici's certificate store
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-    const dispatcher = new ProxyAgent({ uri: new URL(process.env.BYMX_HTTP_PROXY).toString() });
+    const dispatcher = new ProxyAgent({ uri: config.httpProxyUri });
     setGlobalDispatcher(dispatcher);
 }
 

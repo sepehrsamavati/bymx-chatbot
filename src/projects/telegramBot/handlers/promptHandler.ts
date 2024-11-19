@@ -1,8 +1,8 @@
-import tgCall, { downloadFile } from "../helpers/call.js";
 import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
+import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
@@ -14,7 +14,7 @@ export const promptHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        if (text && context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
+        if (context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
@@ -100,7 +100,19 @@ export const promptHandler: IUpdateHandler = {
             }
         );
 
-        const res = await context.services.openAIApplication.textMessage(context.user, text);
+        let imageUrl: string | undefined;
+
+        if (context.user.type === UserType.Owner && update.message?.reply_to_message?.photo) {
+            const photo = update.message?.reply_to_message?.photo.at(-1);
+            if (photo) {
+                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: photo.file_id });
+                if (fileInfo?.ok && fileInfo.result.file_path) {
+                    imageUrl = getFileUrl(fileInfo.result.file_path);
+                }
+            }
+        }
+
+        const res = await (imageUrl ? context.services.openAIApplication.imageMessage(context.user, text, imageUrl) : context.services.openAIApplication.textMessage(context.user, text));
 
         if (res.ok)
             await tgCall(

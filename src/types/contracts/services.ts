@@ -19,6 +19,7 @@ export type IOpenAITextResultWithFile = IOpenAITextResult & {
 export type IOpenAIRequest = {
     inputMessage: string;
     systemMessage?: string;
+    imageUrl?: string;
     messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
     tokenLimit?: number;
     model: OpenAIModel;

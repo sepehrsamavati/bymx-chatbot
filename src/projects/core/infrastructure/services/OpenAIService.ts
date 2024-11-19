@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import OpenAI from "openai";
 import config from "../../config.js";
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { errorLogger, logger } from "../../helpers/logger.js";
+import { getTempFilePath } from "../../helpers/storageHelper.js";
+import { OperationResult } from "../../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../../types/entities/userTempFile.js";
 import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
 import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../../types/contracts/services.js";
-import { getTempFilePath } from "../../helpers/storageHelper.js";
-import { OperationResult } from "../../common/dto/OperationResult.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -17,7 +18,8 @@ const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {
 
 export default class OpenAIService implements IOpenAIService {
     #client = new OpenAI({
-        apiKey: config.openAI.apiToken
+        apiKey: config.openAI.apiToken,
+        httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
     });
 
     async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAITextResult | null> {
@@ -60,7 +62,7 @@ export default class OpenAIService implements IOpenAIService {
     }
 
     async multiTextMessage(opts: IOpenAIRequest) {
-        const { messages, inputMessage, model, userId, systemMessage, tokenLimit } = opts;
+        const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl } = opts;
 
         const _messages: IChatCompletionConfig['messages'] = [];
 
@@ -72,7 +74,24 @@ export default class OpenAIService implements IOpenAIService {
             _messages.push({ role: 'assistant', content: message.output });
         }
 
-        _messages.push({ role: 'user', content: inputMessage });
+        if (imageUrl)
+            _messages.push({
+                role: 'user',
+                content: [
+                    {
+                        type: "text",
+                        text: inputMessage
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": imageUrl
+                        }
+                    }
+                ]
+            });
+        else
+            _messages.push({ role: 'user', content: inputMessage });
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
