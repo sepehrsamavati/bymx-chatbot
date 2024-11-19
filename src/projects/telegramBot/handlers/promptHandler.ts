@@ -18,7 +18,7 @@ export const promptHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        if (context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
+        if (update.message?.reply_to_message?.document) {
 
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
                 return {

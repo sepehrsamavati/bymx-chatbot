@@ -244,9 +244,6 @@ export default class OpenAIApplication {
         if (!openAiSupportedFileExtensions.fileSearch.includes(tempFile.extension))
             return guardResult.failed("fileNotSupported");
 
-        if (user.type !== UserType.Owner)
-            return guardResult.failed("soon");
-
         if (this.#messageLock.isLocked(user.id))
             return guardResult.failed("youHavePendingPrompts");
 
