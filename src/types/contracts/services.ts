@@ -1,7 +1,7 @@
 import type { OpenAIModel } from "../entities/openAIModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OpenAIMessage } from "../entities/openAIMessage.js";
-import { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
+import type { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
 export type IOpenAITextResult = {
     output: string;
@@ -10,10 +10,13 @@ export type IOpenAITextResult = {
     outputTokens: number;
 };
 
-export type IOpenAITextResultWithFile = IOpenAITextResult & {
-    /** OpenAI storage file ID */
-    fileId: string;
-    vectorIds: string[];
+export type IOpenAITextResultWithFile = {
+    result?: IOpenAITextResult;
+    file: {
+        /** OpenAI storage file ID */
+        fileId?: string;
+        vectorIds?: string[];
+    };
 };
 
 export type IOpenAIRequest = {
@@ -26,9 +29,11 @@ export type IOpenAIRequest = {
     userId?: string;
 };
 
+export type IOpenAIRequestWithFile = IOpenAIRequest & { tempFile: UserTempFile; };
+
 export type IOpenAIService = {
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
-    fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile | null>;
+    fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;
     deleteVectorById(id: string): Promise<OperationResult>;
 }

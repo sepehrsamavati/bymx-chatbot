@@ -6,7 +6,6 @@ import { errorLogger, logger } from "../../helpers/logger.js";
 import { getTempFilePath } from "../../helpers/storageHelper.js";
 import { OperationResult } from "../../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../../types/entities/userTempFile.js";
-import type { OpenAIMessage } from "../../../../types/entities/openAIMessage.js";
 import type { IOpenAIRequest, IOpenAIService, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
@@ -102,20 +101,17 @@ export default class OpenAIService implements IOpenAIService {
         });
     }
 
-    async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile | null> {
+    async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile> {
+        let fileId: string | undefined = undefined;
+        let vectorIds: string[] | undefined = undefined;
         try {
-            // const assistant = await this.#client.beta.assistants.retrieve(config.openAI.fileSearchAssistantId);
-
-            // if (!assistant)
-            //     return null;
-
-            const { tempFile, messages, systemMessage, inputMessage, model } = opts;
+            const { tempFile, messages, inputMessage, model } = opts;
 
             if (!model.assistants.fileSearch)
-                return null;
+                return { file: {} };
 
             // Upload a file with an "assistants" purpose
-            let fileId = tempFile.openAiFileId;
+            fileId = tempFile.openAiFileId;
             if (!fileId) {
                 const filePath = getTempFilePath(tempFile);
                 const file = await this.#client.files.create({
@@ -152,7 +148,7 @@ export default class OpenAIService implements IOpenAIService {
                 } : undefined
             });
 
-            const vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
+            vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
 
             const threadRun = await this.#client.beta.threads.runs.createAndPoll(thread.id, {
                 assistant_id: model.assistants.fileSearch,
@@ -179,16 +175,24 @@ export default class OpenAIService implements IOpenAIService {
             }
 
             return {
-                inputTokens: threadRun.usage?.prompt_tokens ?? 0,
-                outputTokens: threadRun.usage?.completion_tokens ?? output.split(' ').length,
-                isComplete: threadRun.status === "completed",
-                output: output,
-                vectorIds: vectorIds,
-                fileId: fileId
+                result: {
+                    inputTokens: threadRun.usage?.prompt_tokens ?? 0,
+                    outputTokens: threadRun.usage?.completion_tokens ?? output.split(' ').length,
+                    isComplete: threadRun.status === "completed",
+                    output: output,
+                },
+                file: {
+                    vectorIds: vectorIds,
+                    fileId: fileId
+                }
             };
         } catch (err) {
             errorLogger("OpenAI service file search", err);
-            return null;
+            return {
+                file: {
+                    vectorIds, fileId
+                }
+            };
         }
     }
 

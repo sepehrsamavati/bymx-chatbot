@@ -1,7 +1,9 @@
+import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
@@ -9,8 +11,6 @@ import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import stringHelper from "../../core/helpers/stringHelper.js";
-import config from "../../core/config.js";
 
 export const promptHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.TextMessage,
@@ -150,14 +150,14 @@ export const promptHandler: IUpdateHandler = {
 
             unlockFileProcessing();
 
-            if (res.ok)
+            if (res.ok && res.data.result)
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
-                        text: convertToTelegramMarkdown(res.data.output),
-                        parse_mode: res.data.isComplete ? "Markdown" : undefined,
+                        text: convertToTelegramMarkdown(res.data.result.output),
+                        parse_mode: res.data.result.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]

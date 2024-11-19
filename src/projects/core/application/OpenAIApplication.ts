@@ -239,7 +239,7 @@ export default class OpenAIApplication {
         message: string;
     }): Promise<OperationResultWithData<IOpenAITextWithFileResponse>> {
         const { tempFile, message } = opts, user = tempFile.user;
-        const guardResult = new OperationResultWithData<IOpenAITextWithFileResponse>();
+        const guardResult = new OperationResultWithData<any>();
 
         if (!openAiSupportedFileExtensions.fileSearch.includes(tempFile.extension))
             return guardResult.failed("fileNotSupported");
@@ -261,7 +261,7 @@ export default class OpenAIApplication {
 
         const { selectedChat, historyMessages, result, subscription } = _middlewareResult;
 
-        const res = await this.#openAI.fileSearch({
+        const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
             inputMessage: message,
             messages: historyMessages,
             tempFile,
@@ -273,10 +273,11 @@ export default class OpenAIApplication {
             return result.failed();
         }
 
-        if (!tempFile.openAiFileId)
-            await this.#userTempFileApplication.setOpenAiInfo(tempFile.fsId, {
-                openAiFileId: res.fileId,
-                vectorIds: res.vectorIds
+        if ((!tempFile.openAiFileId || tempFile.vectorIds.length === 0) // file oai info not stored
+            && (fileUpdateInfo.fileId || fileUpdateInfo.vectorIds)) // file oai info is available
+            await this.#userTempFileApplication.setOpenAiInfo(tempFile.fsId, { // stored file info
+                openAiFileId: fileUpdateInfo.fileId,
+                vectorIds: fileUpdateInfo.vectorIds
             });
 
         const { cost, userPointCost } = modelCostCalculator({
@@ -302,8 +303,9 @@ export default class OpenAIApplication {
         this.#messageLock.unlock(user.id);
 
         return result.succeeded().setData({
-            ...res,
+            result: res,
+            file: fileUpdateInfo,
             pointUsage: userPointCost
-        });
+        } satisfies IOpenAITextWithFileResponse);
     }
 }

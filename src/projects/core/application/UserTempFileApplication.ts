@@ -42,7 +42,7 @@ export default class UserTempFileApplication {
         return result;
     }
 
-    async setOpenAiInfo(fsId: UserTempFile['fsId'], update: Pick<Required<UserTempFile>, 'openAiFileId' | 'vectorIds'>) {
+    async setOpenAiInfo(fsId: UserTempFile['fsId'], update: Pick<Partial<UserTempFile>, 'openAiFileId' | 'vectorIds'>) {
         const result = new OperationResult();
 
         const res = await this.#userTempFileRepository.updateById({
