@@ -76,6 +76,7 @@ const keys = [
     "onlyPdfIsSupported",
     "fileUploadLimitReached",
     "fileProcessingLimitReached",
+    "fileSizeExceededError",
 ] as const;
 
 export type UITextKey = typeof keys[number];

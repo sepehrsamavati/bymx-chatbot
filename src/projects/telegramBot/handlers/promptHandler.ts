@@ -92,6 +92,19 @@ export const promptHandler: IUpdateHandler = {
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
+                    const maxValidFileSize = 10 * Math.pow(1024, 2); // 10MB
+                    if (fileInfo.result.file_size > maxValidFileSize) {
+                        unlockFileProcessing();
+                        return {
+                            call: {
+                                text: stringHelper.digitLocalization(
+                                    stringHelper.formatter(context.uiText.fileSizeExceededError, 10),
+                                    context.user.lang
+                                )
+                            }
+                        };
+                    }
+
                     const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
                     if (fileExtension !== tempExtension) {
                         unlockFileProcessing();
