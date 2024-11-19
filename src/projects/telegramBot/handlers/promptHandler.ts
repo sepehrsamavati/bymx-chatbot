@@ -33,6 +33,15 @@ export const promptHandler: IUpdateHandler = {
                     }
                 };
 
+            const pleaseWaitMessage = await tgCall(
+                TelegramMethods.SendMessage,
+                {
+                    chat_id: update.message?.chat.id,
+                    reply_to_message_id: update.message?.message_id,
+                    text: '⏳'
+                }
+            );
+
             context.services.fileProcessingLockCache.lock(context.user.id);
             const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
@@ -98,6 +107,15 @@ export const promptHandler: IUpdateHandler = {
                 tempFile, message: text
             });
 
+            if (pleaseWaitMessage?.ok && pleaseWaitMessage?.result)
+                await tgCall(
+                    TelegramMethods.DeleteMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        message_id: pleaseWaitMessage.result.message_id
+                    }
+                );
+
             unlockFileProcessing();
 
             if (res.ok)
@@ -135,7 +153,16 @@ export const promptHandler: IUpdateHandler = {
 
         let imageUrl: string | undefined;
 
-        if (context.user.type === UserType.Owner && update.message?.reply_to_message?.photo) {
+        if (update.message?.reply_to_message?.photo) {
+            if (context.services.fileProcessingLockCache.isLocked(context.user.id))
+                return {
+                    call: {
+                        text: "stillProcessingPreviousFile"
+                    }
+                };
+
+            context.services.fileProcessingLockCache.lock(context.user.id);
+
             const photo = update.message?.reply_to_message?.photo.at(-1);
             if (photo) {
                 const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: photo.file_id });
@@ -143,6 +170,8 @@ export const promptHandler: IUpdateHandler = {
                     imageUrl = getFileUrl(fileInfo.result.file_path);
                 }
             }
+
+            context.services.fileProcessingLockCache.unlock(context.user.id);
         }
 
         const res = await (imageUrl ? context.services.openAIApplication.imageMessage(context.user, text, imageUrl) : context.services.openAIApplication.textMessage(context.user, text));
