@@ -183,4 +183,21 @@ export default class UserApplication {
             total: dailyFreePoints
         };
     }
+
+    async getUserFileProcessingStatus(userId: string) {
+        const result = new OperationResult();
+
+        const fromDate = new Date();
+        fromDate.setMinutes(fromDate.getMinutes() - config.fileProcessingLimit.timePeriod);
+
+        const count = await this.#openAIMessageRepository.countUserFileUsage(userId, fromDate);
+
+        if (count === null || Number.isNaN(count))
+            return result.failed("errorOccurred");
+
+        if (count >= config.fileProcessingLimit.count)
+            return result.failed("fileProcessingLimitReached");
+
+        return result.succeeded();
+    }
 }

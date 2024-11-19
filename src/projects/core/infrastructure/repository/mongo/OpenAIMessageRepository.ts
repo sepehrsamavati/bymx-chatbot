@@ -169,4 +169,16 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             } : undefined
         }));
     }
+
+    async countUserFileUsage(userId: string, fromDate: Date): Promise<number | null> {
+        const count = await this.#databaseConnection.models.openAIMessage.countDocuments({
+            user: userId,
+            fileId: { "$exists": true },
+            insertDate: {
+                $gte: fromDate
+            }
+        });
+
+        return count;
+    }
 }

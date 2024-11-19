@@ -66,5 +66,7 @@
     "fileNotSupported": "فرمت فایل پشتیبانی نمی‌شود!",
     "targetFileNotSupported": "فرمت فایل مورد نظر پشتیبانی نمی‌شود!",
     "onlyPdfIsSupported": "فقط فایل PDF پشتیبانی می‌شود!",
-    "stillProcessingPreviousFile": "فایل قبلی همچنان در حال پردازش می باشد، لطفا منتظر بمانید..."
+    "stillProcessingPreviousFile": "فایل قبلی همچنان در حال پردازش می باشد، لطفا منتظر بمانید...",
+    "fileUploadLimitReached": "هر %s1 دقیقه امکان آپلود %s2 فایل وجود دارد!",
+    "fileProcessingLimitReached": "هر %s1 دقیقه امکان پردازش %s2 فایل وجود دارد!"
 }

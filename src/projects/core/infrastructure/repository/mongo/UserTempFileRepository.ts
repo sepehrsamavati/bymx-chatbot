@@ -97,4 +97,15 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             openAiFileId: item.openAiFileId
         })) : null;
     }
+
+    async countUserUsage(userId: string, fromDate: Date): Promise<number | null> {
+        const count = await this.#databaseConnection.models.userTempFile.countDocuments({
+            user: userId,
+            insertDate: {
+                $gte: fromDate
+            }
+        });
+
+        return count;
+    }
 }

@@ -57,6 +57,23 @@ export default class UserTempFileApplication {
         return result;
     }
 
+    async getUserUsageStatus(userId: string) {
+        const result = new OperationResult();
+
+        const fromDate = new Date();
+        fromDate.setMinutes(fromDate.getMinutes() - config.fileUploadLimit.timePeriod);
+
+        const count = await this.#userTempFileRepository.countUserUsage(userId, fromDate);
+
+        if (count === null || Number.isNaN(count))
+            return result.failed("errorOccurred");
+
+        if (count >= config.fileUploadLimit.count)
+            return result.failed("fileUploadLimitReached");
+
+        return result.succeeded();
+    }
+
     async deleteInactiveFiles() {
         const result = new OperationResult();
 

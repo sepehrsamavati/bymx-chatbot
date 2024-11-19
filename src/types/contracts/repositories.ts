@@ -46,6 +46,7 @@ export type IUserTempFileRepository = {
     get(filter: SearchUserTempFile): Promise<Omit<UserTempFile, 'user'> | null>;
     getInactive(lastAccessedLowerThan: Date, limit: number): Promise<Omit<UserTempFile, 'user'>[] | null>;
     updateById(update: UpdateUserTempFile): Promise<boolean | null>;
+    countUserUsage(userId: string, fromDate: Date): Promise<number | null>;
 }
 
 export type IOpenAIModelRepository = {
@@ -73,4 +74,5 @@ export type IOpenAIMessageRepository = {
     getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
     getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null>;
+    countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
 }

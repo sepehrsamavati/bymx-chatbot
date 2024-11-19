@@ -16,6 +16,16 @@ const config = {
     /** Minutes */
     tempFileCleanupAge: Number.parseInt(process.env.BYMX_FILE_CLEANUP_AGE ?? "5"),
     httpProxyUri: process.env.BYMX_HTTP_PROXY ? new URL(process.env.BYMX_HTTP_PROXY).toString() : undefined,
+    fileUploadLimit: {
+        /** Minutes */
+        timePeriod: Number.parseInt(process.env.BYMX_FILE_UPLOAD_LIMIT_PERIOD ?? "20"),
+        count: Number.parseInt(process.env.BYMX_FILE_UPLOAD_LIMIT_COUNT ?? "3"),
+    },
+    fileProcessingLimit: {
+        /** Minutes */
+        timePeriod: Number.parseInt(process.env.BYMX_FILE_PROCESSING_LIMIT_PERIOD ?? "30"),
+        count: Number.parseInt(process.env.BYMX_FILE_PROCESSING_LIMIT_COUNT ?? "10"),
+    },
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
@@ -58,6 +68,18 @@ configError(
 configError(
     "File cleanup (minute) is not a valid positive number (>= 1)",
     Number.isNaN(config.tempFileCleanupAge) || config.tempFileCleanupAge < 1
+);
+
+configError(
+    "File uploading limit 'time period'/'count' is not a valid positive number",
+    Number.isNaN(config.fileUploadLimit.count) || Number.isNaN(config.fileUploadLimit.timePeriod)
+    || config.fileUploadLimit.timePeriod < 0 || config.fileUploadLimit.count < 0
+);
+
+configError(
+    "File processing limit 'time period'/'count' is not a valid positive number",
+    Number.isNaN(config.fileProcessingLimit.count) || Number.isNaN(config.fileProcessingLimit.timePeriod)
+    || config.fileProcessingLimit.timePeriod < 0 || config.fileProcessingLimit.count < 0
 );
 
 if (!fs.existsSync(config.cacheDirectory))

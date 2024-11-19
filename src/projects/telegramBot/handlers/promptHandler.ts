@@ -9,6 +9,8 @@ import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
+import config from "../../core/config.js";
 
 export const promptHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.TextMessage,
@@ -18,20 +20,39 @@ export const promptHandler: IUpdateHandler = {
 
         if (context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
 
-            const tempExtension = update.message.reply_to_message.document.mime_type?.split('/').pop() as string;
-            if (!openAiSupportedFileExtensions.fileSearch.includes(tempExtension))
-                return {
-                    call: {
-                        text: "targetFileNotSupported"
-                    }
-                };
-
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
                 return {
                     call: {
                         text: "stillProcessingPreviousFile"
                     }
                 };
+
+            context.services.fileProcessingLockCache.lock(context.user.id);
+            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
+
+            const canDoFileProcessing = await context.services.userApplication.getUserFileProcessingStatus(context.user.id);
+            if (!canDoFileProcessing.ok) { // user file processing rate limit reached
+                return {
+                    call: {
+                        text: canDoFileProcessing.message === "fileProcessingLimitReached" ? stringHelper.digitLocalization(
+                            stringHelper.formatter(context.uiText.fileProcessingLimitReached, [config.fileProcessingLimit.timePeriod, config.fileProcessingLimit.count]),
+                            context.user.lang
+                        ) : canDoFileProcessing.message
+                    }
+                };
+            }
+
+            let tempExtension = update.message.reply_to_message.document.mime_type?.split('/').pop() as string;
+            if (update.message.reply_to_message.document.mime_type === "application/octet-stream") // read extension from file name
+                tempExtension = update.message.reply_to_message.document.file_name?.split('.').pop() as string;
+            if (!openAiSupportedFileExtensions.fileSearch.includes(tempExtension)) {
+                unlockFileProcessing();
+                return {
+                    call: {
+                        text: "targetFileNotSupported"
+                    }
+                };
+            }
 
             const pleaseWaitMessage = await tgCall(
                 TelegramMethods.SendMessage,
@@ -42,9 +63,6 @@ export const promptHandler: IUpdateHandler = {
                 }
             );
 
-            context.services.fileProcessingLockCache.lock(context.user.id);
-            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
-
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
             let tempFile: UserTempFile | null = null;
@@ -54,6 +72,20 @@ export const promptHandler: IUpdateHandler = {
                     ...cachedFile.data,
                     user: context.user
                 };
+
+            if (!tempFile || !tempFile.openAiFileId) { // file is not downloaded from tg OR file is not uploaded to oai
+                const canDoFileUpload = await context.services.userTempFileApplication.getUserUsageStatus(context.user.id);
+                if (!canDoFileUpload.ok) { // user file upload rate limit reached
+                    return {
+                        call: {
+                            text: canDoFileUpload.message === "fileUploadLimitReached" ? stringHelper.digitLocalization(
+                                stringHelper.formatter(context.uiText.fileUploadLimitReached, [config.fileUploadLimit.timePeriod, config.fileUploadLimit.count]),
+                                context.user.lang
+                            ) : canDoFileUpload.message
+                        }
+                    };
+                }
+            }
 
             if (!tempFile) {
                 const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: update.message.reply_to_message.document.file_id });
