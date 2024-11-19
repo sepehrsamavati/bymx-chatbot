@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import * as dotenv from "dotenv";
 import configError from "./helpers/configError.js";
+import { setGlobalDispatcher, ProxyAgent } from "undici";
 
 dotenv.config();
 
@@ -26,9 +27,6 @@ const config = {
 
 Object.freeze(config);
 
-if (!fs.existsSync(config.cacheDirectory))
-    fs.mkdirSync(config.cacheDirectory, { recursive: true });
-
 configError(
     "MongoDB connection string not defined",
     !config.mongoDbConnectionStringUri
@@ -53,5 +51,15 @@ configError(
     "Daily free points value is not a number",
     Number.isNaN(config.dailyFreePoints)
 );
+
+if (!fs.existsSync(config.cacheDirectory))
+    fs.mkdirSync(config.cacheDirectory, { recursive: true });
+
+if (process.env.BYMX_HTTP_PROXY) {
+    // Corporate proxy uses CA not in undici's certificate store
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const dispatcher = new ProxyAgent({ uri: new URL(process.env.BYMX_HTTP_PROXY).toString() });
+    setGlobalDispatcher(dispatcher);
+}
 
 export default config;
