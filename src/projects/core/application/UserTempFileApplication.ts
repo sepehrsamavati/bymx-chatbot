@@ -4,6 +4,7 @@ import { errorLogger, logger } from "../helpers/logger.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import config from "../config.js";
 
 export default class UserTempFileApplication {
     #userTempFileRepository;
@@ -60,7 +61,7 @@ export default class UserTempFileApplication {
         const result = new OperationResult();
 
         const expiry = new Date();
-        expiry.setMinutes(expiry.getMinutes() - 5);
+        expiry.setMinutes(expiry.getMinutes() - config.tempFileCleanupAge);
 
         const inactiveFiles = await this.#userTempFileRepository.getInactive(expiry, 100);
 
@@ -87,7 +88,7 @@ export default class UserTempFileApplication {
             if (updateResult.status === "rejected")
                 errorLogger(`UserTempFileApp / Error while updating inactive file status / FsId: '${tempFile.fsId}'`, updateResult.reason);
 
-            if(tempFile.openAiFileId) {
+            if (tempFile.openAiFileId) {
                 const res = await this.#openAiService.deleteFileById(tempFile.openAiFileId);
                 if (!res.ok)
                     logger.error(`UserTempFileApp / Error while deleting file '${tempFile.openAiFileId}' / ${res.message}`);

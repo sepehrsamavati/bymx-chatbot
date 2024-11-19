@@ -13,6 +13,8 @@ const config = {
     chatCountLimit: 5,
     cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
+    /** Minutes */
+    tempFileCleanupAge: Number.parseInt(process.env.BYMX_FILE_CLEANUP_AGE ?? "5"),
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
@@ -50,6 +52,11 @@ configError(
 configError(
     "Daily free points value is not a number",
     Number.isNaN(config.dailyFreePoints)
+);
+
+configError(
+    "File cleanup (minute) is not a valid positive number (>= 1)",
+    Number.isNaN(config.tempFileCleanupAge) || config.tempFileCleanupAge < 1
 );
 
 if (!fs.existsSync(config.cacheDirectory))

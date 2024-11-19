@@ -3,6 +3,7 @@ import type { User } from "../../../types/entities/user.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
+import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
@@ -223,14 +224,17 @@ export default class OpenAIApplication {
         tempFile: UserTempFile;
         message: string;
     }): Promise<OperationResultWithData<IOpenAITextWithFileResponse>> {
-        const { tempFile, message } = opts;
-        const user = tempFile.user;
+        const { tempFile, message } = opts, user = tempFile.user;
+        const guardResult = new OperationResultWithData<IOpenAITextWithFileResponse>();
+
+        if (openAiSupportedFileExtensions.includes(tempFile.extension))
+            return guardResult.failed("fileNotSupported");
 
         if (user.type !== UserType.Owner)
-            return new OperationResultWithData<IOpenAITextWithFileResponse>().failed("soon");
+            return guardResult.failed("soon");
 
         if (this.#messageLock.isLocked(user.id))
-            return new OperationResultWithData<IOpenAITextWithFileResponse>().failed("youHavePendingPrompts");
+            return guardResult.failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
