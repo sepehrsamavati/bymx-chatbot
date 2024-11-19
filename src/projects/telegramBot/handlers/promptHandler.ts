@@ -1,3 +1,4 @@
+import emojiIcon from "../helpers/emojiIcon.js";
 import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
@@ -6,6 +7,7 @@ import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
+import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const promptHandler: IUpdateHandler = {
@@ -15,6 +17,24 @@ export const promptHandler: IUpdateHandler = {
         const text = update.message?.text as string;
 
         if (context.user.type === UserType.Owner && update.message?.reply_to_message?.document) {
+
+            const tempExtension = update.message.reply_to_message.document.mime_type?.split('/').pop() as string;
+            if (!openAiSupportedFileExtensions.fileSearch.includes(tempExtension))
+                return {
+                    call: {
+                        text: "targetFileNotSupported"
+                    }
+                };
+
+            if (context.services.fileProcessingLockCache.isLocked(context.user.id))
+                return {
+                    call: {
+                        text: "stillProcessingPreviousFile"
+                    }
+                };
+
+            context.services.fileProcessingLockCache.lock(context.user.id);
+            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
@@ -32,9 +52,14 @@ export const promptHandler: IUpdateHandler = {
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
                     const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
-
-                    if (fileExtension !== "pdf")
-                        return null;
+                    if (fileExtension !== tempExtension) {
+                        unlockFileProcessing();
+                        return {
+                            call: {
+                                text: "fileNotSupported"
+                            }
+                        };
+                    }
 
                     const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok) {
@@ -49,23 +74,31 @@ export const promptHandler: IUpdateHandler = {
                             lastAccessed: new Date()
                         };
                     }
-                    else
+                    else {
+                        unlockFileProcessing();
                         return null;
+                    }
                 }
-                else
+                else {
+                    unlockFileProcessing();
                     return null;
+                }
             }
 
             if (!cachedFile.data) {
                 const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
 
-                if (!fileAddResult.ok)
+                if (!fileAddResult.ok) {
+                    unlockFileProcessing();
                     return null;
+                }
             }
 
             const res = await context.services.openAIApplication.fileWithMessage({
                 tempFile, message: text
             });
+
+            unlockFileProcessing();
 
             if (res.ok)
                 await tgCall(
@@ -77,7 +110,7 @@ export const promptHandler: IUpdateHandler = {
                         parse_mode: res.data.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
+                                [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                             ]
                         }
                     }
@@ -124,7 +157,7 @@ export const promptHandler: IUpdateHandler = {
                     parse_mode: res.data.isComplete ? "Markdown" : undefined,
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: `⚡ ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }]
+                            [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                         ]
                     }
                 }

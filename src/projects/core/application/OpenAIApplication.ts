@@ -241,7 +241,7 @@ export default class OpenAIApplication {
         const { tempFile, message } = opts, user = tempFile.user;
         const guardResult = new OperationResultWithData<IOpenAITextWithFileResponse>();
 
-        if (openAiSupportedFileExtensions.fileSearch.includes(tempFile.extension))
+        if (!openAiSupportedFileExtensions.fileSearch.includes(tempFile.extension))
             return guardResult.failed("fileNotSupported");
 
         if (user.type !== UserType.Owner)

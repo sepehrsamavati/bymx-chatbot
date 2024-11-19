@@ -5,6 +5,7 @@ const emojiIcon = Object.freeze({
     textDocument: '📃',
     panel: '📱',
     return: '🔙',
+    point: '⚡'
 });
 
 export default emojiIcon;

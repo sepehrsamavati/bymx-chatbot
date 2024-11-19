@@ -43,6 +43,20 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             };
+            case "modelProcessedThisMessage": {
+
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.modelProcessedThisMessage,
+                        show_alert: true,
+                        cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
             case "chats": {
                 const _chatList = await getChatListPanel(context);
 

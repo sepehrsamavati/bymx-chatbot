@@ -49,6 +49,7 @@ type Applications = {
     openAIPlanApplication: OpenAIPlanApplication;
     openAIChatApplication: OpenAIChatApplication;
     openAIModelApplication: OpenAIModelApplication;
+    fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
 };
 
 type Services = {
@@ -80,7 +81,7 @@ export default class CoreServices {
         const promise = new Promise<void>(resolve => this.#diReadyQueue.add(resolve));
         return promise;
     }
-    
+
     async #rootInitialize() {
         const userTempFileCleanupJob = new UserTempFileCleanup(this.container.cradle.userTempFileApplication);
 
@@ -104,6 +105,7 @@ export default class CoreServices {
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
             openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),

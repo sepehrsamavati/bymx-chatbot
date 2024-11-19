@@ -48,6 +48,7 @@
     "confirmToDelete": "جهت حذف تائید کنید:",
     "selectChatBeforeUse": "قبل از استفاده یک چت انتخاب کنید:",
     "usedPointsForThisMessage": "امتیاز مصرف شده برای این پیام",
+    "modelProcessedThisMessage": "نام مدلی که این پیام را ایجاد کرده است",
     "shouldGivePhoneNumber": "جهت تائید حساب شماره تلفن خود را ارسال کنید",
     "clickBottomButton": "بر روی دکمه زیر کلیک کنید",
     "sendPhoneNumber": "ارسال شماره تلفن",
@@ -61,5 +62,9 @@
     "buyPlans": "خرید پلن",
     "subscription": "اشتراک",
     "restart": "ری‌استارت",
-    "modelsCost": "هزینه مدل‌ها"
+    "modelsCost": "هزینه مدل‌ها",
+    "fileNotSupported": "فرمت فایل پشتیبانی نمی‌شود!",
+    "targetFileNotSupported": "فرمت فایل مورد نظر پشتیبانی نمی‌شود!",
+    "onlyPdfIsSupported": "فقط فایل PDF پشتیبانی می‌شود!",
+    "stillProcessingPreviousFile": "فایل قبلی همچنان در حال پردازش می باشد، لطفا منتظر بمانید..."
 }

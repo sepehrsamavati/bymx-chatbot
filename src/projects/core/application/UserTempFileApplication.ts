@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
+import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { errorLogger, logger } from "../helpers/logger.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
-import config from "../config.js";
 
 export default class UserTempFileApplication {
     #userTempFileRepository;

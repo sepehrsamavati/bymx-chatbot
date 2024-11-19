@@ -55,6 +55,7 @@ const keys = [
     "confirmToDelete",
     "selectChatBeforeUse",
     "usedPointsForThisMessage",
+    "modelProcessedThisMessage",
     "shouldGivePhoneNumber",
     "clickBottomButton",
     "sendPhoneNumber",
@@ -69,6 +70,10 @@ const keys = [
     "subscription",
     "restart",
     "modelsCost",
+    "fileNotSupported",
+    "targetFileNotSupported",
+    "stillProcessingPreviousFile",
+    "onlyPdfIsSupported",
 ] as const;
 
 export type UITextKey = typeof keys[number];
