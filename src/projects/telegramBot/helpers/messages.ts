@@ -1,6 +1,9 @@
+import emojiIcon from "./emojiIcon.js";
 import config from "../../core/config.js";
+import { UserType } from "../../../types/enums/userTypes.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
 import type { RequestContext } from "../../../types/telegram.js";
+import { accessHelper } from "../../core/helpers/accessHelper.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
 
@@ -45,7 +48,7 @@ export const getChatListPanel = async (context: RequestContext) => {
         text: chats.length > 0 ? context.uiText.savedChats : context.uiText.noSavedChats,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : '➕'} ${context.uiText.newChat}`, callback_data: "newChat" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : '➕'} ${context.uiText.newChat}`, callback_data: "newChat" }],
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
                         ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
@@ -68,6 +71,14 @@ export const getPanel = async (context: RequestContext) => {
     if (!freePointUsage)
         return null;
 
+    const inlineKeyboard = [
+        [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
+        [context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }],
+    ];
+
+    if (accessHelper(UserType.Admin, context.user.type))
+        inlineKeyboard.push([{ text: context.uiText.adminPanel, callback_data: "adminPanel" }]);
+
     return {
         text: stringHelper.digitLocalization(
             `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage.remaining}/${freePointUsage.total}`
@@ -76,9 +87,30 @@ export const getPanel = async (context: RequestContext) => {
             , context.user.lang
         ),
         reply_markup: {
+            inline_keyboard: inlineKeyboard
+        }
+    };
+};
+
+export const getAdminPanel = async (context: RequestContext) => {
+    const statistics = await context.services.userApplication.getAdminStatistics(context.user);
+
+    if (!statistics)
+        return null;
+
+    return {
+        text: stringHelper.digitLocalization(
+            `${context.uiText.adminPanel}`
+            + `\n\n${emojiIcon.users} ${context.uiText.users}: ${statistics.usersCount ?? '-'}`
+            + `\n\n${emojiIcon.sparkle} ${context.uiText.todaysRequests}: ${statistics.messageUsage?.count ?? '-'}`
+            + `\n${emojiIcon.point} ${context.uiText.todaysPointUsage}: ${statistics.messageUsage?.point ?? '-'}`
+            + `\n${emojiIcon.cost} ${context.uiText.todaysCost}: ${statistics.messageUsage?.cost ?? '-'}`
+            , context.user.lang
+        ),
+        reply_markup: {
             inline_keyboard: [
-                [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
-                [context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }],]
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }]
+            ]
         }
     };
 };

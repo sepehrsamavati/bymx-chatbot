@@ -31,6 +31,9 @@ export type IUserRepository = {
 
     /** Update user partially */
     update(id: UserDBModel['id'], update: UpdateUserModel): Promise<{ ok: boolean; } | null>;
+
+    /** Count all users (no filter | deleted, blocked, ...) */
+    countAll(): Promise<number | null>;
 }
 
 export type IUserSubscriptionRepository = {
@@ -73,6 +76,7 @@ export type IOpenAIMessageRepository = {
     create(message: OpenAIMessageDBModel): Promise<boolean | null>;
     getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
     getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
+    getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
 }

@@ -78,6 +78,12 @@ const keys = [
     "fileProcessingLimitReached",
     "fileSizeExceededError",
     "selectedModelNoFileSearch",
+    "adminPanel",
+    "statistics",
+    "users",
+    "todaysRequests",
+    "todaysPointUsage",
+    "todaysCost",
 ] as const;
 
 export type UITextKey = typeof keys[number];

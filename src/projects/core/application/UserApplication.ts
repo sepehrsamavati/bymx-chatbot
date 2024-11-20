@@ -1,12 +1,13 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
+import { getTodayRange } from "../helpers/dateHelper.js";
+import { accessHelper } from "../helpers/accessHelper.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User } from "../../../types/entities/user.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
-import { UserTempFile } from "../../../types/entities/userTempFile.js";
 
 export default class UserApplication {
     #userRepository;
@@ -163,11 +164,7 @@ export default class UserApplication {
     }
 
     async getFreePointStatus(userId: string) {
-        const start = new Date();
-        start.setUTCHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
+        const [start, end] = getTodayRange();
 
         const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
 
@@ -199,5 +196,28 @@ export default class UserApplication {
             return result.failed("fileProcessingLimitReached");
 
         return result.succeeded();
+    }
+
+    async getAdminStatistics(user: User) {
+        const [todayStart, todayEnd] = getTodayRange();
+
+        if (!accessHelper(UserType.Admin, user.type))
+            return null;
+
+        const [
+            usersCount,
+            usages
+        ] = await Promise.all([
+            this.#userRepository.countAll(),
+            this.#openAIMessageRepository.getUsage(todayStart, todayEnd),
+        ]);
+
+        return {
+            usersCount,
+            messageUsage: {
+                ...usages,
+                cost: usages?.cost.toFixed(2)
+            }
+        };
     }
 }

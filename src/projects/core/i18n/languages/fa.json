@@ -70,5 +70,11 @@
     "fileUploadLimitReached": "هر %s1 دقیقه امکان آپلود %s2 فایل وجود دارد!",
     "fileProcessingLimitReached": "هر %s1 دقیقه امکان پردازش %s2 فایل وجود دارد!",
     "fileSizeExceededError": "حجم فایل بیش از حد مجاز است (حداکثر %s1 مگابایت قابل قبول می‌باشد)",
-    "selectedModelNoFileSearch": "مدل انتخابی شما (%s1) از فایل پشتیبانی نمی‌کند!"
+    "selectedModelNoFileSearch": "مدل انتخابی شما (%s1) از فایل پشتیبانی نمی‌کند!",
+    "adminPanel": "پنل ادمین",
+    "statistics": "آمار",
+    "users": "کاربران",
+    "todaysRequests": "درخواست‌های امروز",
+    "todaysPointUsage": "مصرف امتیاز امروز",
+    "todaysCost": "هزینه امروز"
 }

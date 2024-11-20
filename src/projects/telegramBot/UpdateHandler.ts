@@ -4,6 +4,7 @@ import UIText, { getUit } from "../core/i18n/UIText.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
+import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
@@ -15,6 +16,7 @@ import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../..
 const handlers: IUpdateHandler[] = [
     userCommandHandler,
     panelHandler,
+    adminPanelHandler,
     termsOfServiceHandler,
     chatManageHandler,
     createNewChatHandler,

@@ -76,7 +76,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
                             },
                             insertDate: {
                                 $gte: fromDate,
-                                $lt: toDate
+                                $lte: toDate
                             }
                         }
                     },
@@ -180,5 +180,45 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         });
 
         return count;
+    }
+
+    async getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null> {
+        type AggregationResult = { count: number; point: number; cost: number; }[];
+        const res: AggregationResult = await this.#databaseConnection.models.openAIMessage.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    insertDate: {
+                        $gte: fromDate,
+                        $lte: toDate
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: {
+                        $sum: 1
+                    },
+                    point: {
+                        $sum: "$points"
+                    },
+                    cost: {
+                        $sum: "$cost"
+                    }
+                }
+            }
+        ]).exec();
+
+        if (res.length > 1)
+            throw new Error("OpenAI get message usage by date range errored (multiple aggregation result returned)");
+
+        const usage = res[0];
+
+        return usage ?? {
+            cost: 0,
+            count: 0,
+            point: 0
+        };
     }
 }

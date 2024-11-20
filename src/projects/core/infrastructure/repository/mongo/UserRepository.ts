@@ -169,4 +169,9 @@ export default class UserRepository implements IUserRepository {
             ok: result.modifiedCount === 1
         };
     }
+
+    async countAll(): Promise<number | null> {
+        const count = await this.#databaseConnection.models.user.countDocuments();
+        return count;
+    }
 }
