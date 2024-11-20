@@ -128,7 +128,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
                 saved: true,
                 chat: chatId
             })
-            .sort({ insertDate: 1 })
+            .sort({ insertDate: -1 })
             .limit(count)
             .populate<{
                 chat: PopulatedProperty<OpenAIChatDBModel>;
