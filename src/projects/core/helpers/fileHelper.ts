@@ -15,6 +15,8 @@ export const openAiSupportedFileExtensions = Object.freeze({
     mimeTypeFileExtensionMap: Object.freeze({
         "text/plain": "txt",
         "text/x-python": "py",
+        // "image/png": "png",
+        // "image/jpeg": "jpg",
         "text/css": "css",
         "text/html": "html",
         "application/json": "json",
