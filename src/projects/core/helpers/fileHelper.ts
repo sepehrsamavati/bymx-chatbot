@@ -4,7 +4,7 @@ export const openAiSupportedFileExtensions = Object.freeze({
     ]),
     plainTexts: Object.freeze([
         "txt",
-        "js", "mjs", "ts",
+        "js", "mjs", "ts", "jsx", "tsx",
         "css",
         "go",
         "json",
