@@ -2,7 +2,6 @@ import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { getChatListPanel } from "../helpers/messages.js";
 import { UserMode } from "../../../types/enums/userMode.js";
-import { UserType } from "../../../types/enums/userTypes.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
@@ -11,6 +10,7 @@ import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export const promptHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.TextMessage,
@@ -49,10 +49,15 @@ export const promptHandler: IUpdateHandler = {
                 };
             }
 
-            let tempExtension = update.message.reply_to_message.document.mime_type?.split('/').pop() as string;
-            if (update.message.reply_to_message.document.mime_type === "application/octet-stream") // read extension from file name
+            const mimeType = update.message.reply_to_message.document.mime_type ?? "";
+            let tempExtension = openAiSupportedFileExtensions.mimeTypeFileExtensionMap[mimeType] ?? "";
+            if (!tempExtension) // read extension from file name
                 tempExtension = update.message.reply_to_message.document.file_name?.split('.').pop() as string;
-            if (!openAiSupportedFileExtensions.fileSearch.includes(tempExtension)) {
+
+            const isFileSearch = openAiSupportedFileExtensions.fileSearch.includes(tempExtension);
+            const isPlainText = openAiSupportedFileExtensions.plainTexts.includes(tempExtension);
+
+            if (!(isFileSearch || isPlainText)) {
                 unlockFileProcessing();
                 return {
                     call: {
@@ -99,13 +104,14 @@ export const promptHandler: IUpdateHandler = {
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
-                    const maxValidFileSize = 10 * Math.pow(1024, 2); // 10MB
-                    if (fileInfo.result.file_size > maxValidFileSize) {
+                    const maxValidFileSizeMB = isFileSearch ? 10 : 1; // 10MB for file search | 1MB for plain text
+                    const maxValidFileSizeBytes = maxValidFileSizeMB * Math.pow(1024, 2);
+                    if (fileInfo.result.file_size > maxValidFileSizeBytes) {
                         unlockFileProcessing();
                         return {
                             call: {
                                 text: stringHelper.digitLocalization(
-                                    stringHelper.formatter(context.uiText.fileSizeExceededError, 10),
+                                    stringHelper.formatter(context.uiText.fileSizeExceededError, maxValidFileSizeMB),
                                     context.user.lang
                                 )
                             }
@@ -146,7 +152,7 @@ export const promptHandler: IUpdateHandler = {
                 }
             }
 
-            if (!cachedFile.data) {
+            if (!cachedFile.data) { // if file is not stored in db -> add to db
                 const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
 
                 if (!fileAddResult.ok) {
@@ -155,9 +161,9 @@ export const promptHandler: IUpdateHandler = {
                 }
             }
 
-            const res = await context.services.openAIApplication.fileWithMessage({
+            const res = isFileSearch ? await context.services.openAIApplication.fileWithMessage({
                 tempFile, message: text
-            });
+            }) : await context.services.openAIApplication.plainFileMessage(context.user, text, tempFile);
 
             if (pleaseWaitMessage?.ok && pleaseWaitMessage?.result)
                 await tgCall(
@@ -170,14 +176,16 @@ export const promptHandler: IUpdateHandler = {
 
             unlockFileProcessing();
 
-            if (res.ok && res.data.result)
+            const textResult = (isFileSearch ? (res.data as IOpenAITextResultWithFile).result : res.data) as IOpenAITextResult;
+
+            if (res.ok && textResult)
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
-                        text: convertToTelegramMarkdown(res.data.result.output),
-                        parse_mode: res.data.result.isComplete ? "Markdown" : undefined,
+                        text: convertToTelegramMarkdown(textResult.output),
+                        parse_mode: textResult.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]

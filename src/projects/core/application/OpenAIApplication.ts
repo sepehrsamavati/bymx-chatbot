@@ -1,6 +1,7 @@
+import fs from "node:fs/promises";
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
-import { UserType } from "../../../types/enums/userTypes.js";
+import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
@@ -145,8 +146,11 @@ export default class OpenAIApplication {
         };
     }
 
-    async #message(user: User, message: string, imageUrl?: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
-        const _middlewareResult = await this.#middleware(user, message);
+    async #message(user: User, textMessage: string, opts?: {
+        imageUrl?: string;
+        plainTextTempFile?: UserTempFile;
+    }): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        const _middlewareResult = await this.#middleware(user, textMessage);
 
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
@@ -154,7 +158,7 @@ export default class OpenAIApplication {
         const { selectedChat, currentPlanUsage, historyMessages, remainingPoints, result, subscription } = _middlewareResult;
 
         const predictedCost = modelCostPredication({
-            inputUnits: message.split(' ').length + (imageUrl ? 500 : 0),
+            inputUnits: textMessage.split(' ').length + (opts?.imageUrl ? 500 : 0),
             model: selectedChat.model,
             pointUsageLimit: remainingPoints
         });
@@ -162,14 +166,19 @@ export default class OpenAIApplication {
         if (predictedCost.inputLimit)
             return result.failed();
 
+        if (opts?.plainTextTempFile) {
+            const byteArrayData = await fs.readFile(getTempFilePath(opts.plainTextTempFile));
+            textMessage += `\n\nFile extension=${opts.plainTextTempFile.extension}\nFile content=\n${byteArrayData.toString()}`;
+        }
+
         const res = await this.#openAI.multiTextMessage({
-            inputMessage: message,
+            inputMessage: textMessage,
             messages: historyMessages,
             model: selectedChat.model,
             systemMessage: openAISystemMessageMapper(selectedChat.behavior),
             userId: user.id,
             tokenLimit: predictedCost.outputTokens,
-            imageUrl: imageUrl
+            imageUrl: opts?.imageUrl
         });
 
         if (res) {
@@ -184,7 +193,7 @@ export default class OpenAIApplication {
                 cost: cost,
                 insertDate: new Date(),
                 isDeleted: false,
-                prompt: message,
+                prompt: textMessage,
                 output: res.output,
                 points: userPointCost,
                 model: selectedChat.model.name,
@@ -221,13 +230,26 @@ export default class OpenAIApplication {
         return result;
     }
 
+    async plainFileMessage(user: User, textMessage: string, plainTextTempFile: UserTempFile): Promise<OperationResultWithData<IOpenAITextResponse>> {
+        if (this.#messageLock.isLocked(user.id))
+            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const result = await this.#message(user, textMessage, { plainTextTempFile });
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
     async imageMessage(user: User, message: string, imageUrl: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
         if (this.#messageLock.isLocked(user.id))
             return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
-        const result = await this.#message(user, message, imageUrl);
+        const result = await this.#message(user, message, { imageUrl });
 
         this.#messageLock.unlock(user.id);
 
