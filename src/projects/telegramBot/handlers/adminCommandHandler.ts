@@ -39,7 +39,7 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: getUserManagementText(context, await context.services.userApplication.getUserInfo(tgId))
                 }
             };
-        } else if (text.startsWith("/block")) {
+        } else if (text.startsWith("/ban")) {
             if (!accessHelper(UserType.Manager, context.user.type))
                 return {
                     shouldContinue: false,
@@ -48,7 +48,7 @@ export const adminCommandHandler: IUpdateHandler = {
                     }
                 };
 
-            const tgId = Number.parseInt(text.replace("/block", ""));
+            const tgId = Number.parseInt(text.replace("/ban", ""));
             const targetUser = await context.services.userApplication.getUserByTgId(tgId);
 
             if (!targetUser)
@@ -59,11 +59,11 @@ export const adminCommandHandler: IUpdateHandler = {
                     }
                 };
 
-            if (targetUser.status === UserStatus.Blocked)
+            if (targetUser.status === UserStatus.Banned)
                 return {
                     shouldContinue: false,
                     call: {
-                        text: "userAlreadyBlocked"
+                        text: "userAlreadyBanned"
                     }
                 };
 
@@ -79,11 +79,11 @@ export const adminCommandHandler: IUpdateHandler = {
                 return {
                     shouldContinue: false,
                     call: {
-                        text: "cantBlockYourself"
+                        text: "cantBanYourself"
                     }
                 };
 
-            const res = await context.services.userApplication.setUserStatus(targetUser.id, UserStatus.Blocked);
+            const res = await context.services.userApplication.setUserStatus(targetUser.id, UserStatus.Banned);
 
             return {
                 shouldContinue: false,
@@ -91,16 +91,16 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: res.ok ? emojiIcon.ok : emojiIcon.failed
                 }
             };
-        } else if (text.startsWith("/unblock")) {
+        } else if (text.startsWith("/unban")) {
             if (!accessHelper(UserType.Manager, context.user.type))
                 return {
                     shouldContinue: false,
                     call: {
-                        text: "noAccessToBlock"
+                        text: "noAccessToBan"
                     }
                 };
 
-            const tgId = Number.parseInt(text.replace("/unblock", ""));
+            const tgId = Number.parseInt(text.replace("/unban", ""));
             const targetUser = await context.services.userApplication.getUserByTgId(tgId);
 
             if (!targetUser)
@@ -111,11 +111,11 @@ export const adminCommandHandler: IUpdateHandler = {
                     }
                 };
 
-            if (targetUser.status !== UserStatus.Blocked)
+            if (targetUser.status !== UserStatus.Banned)
                 return {
                     shouldContinue: false,
                     call: {
-                        text: "userIsNotBlocked"
+                        text: "userIsNotBanned"
                     }
                 };
 

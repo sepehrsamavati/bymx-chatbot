@@ -77,7 +77,7 @@ export class UpdateHandler {
         if (!user)
             return;
 
-        if (user.status === UserStatus.Blocked)
+        if (user.status === UserStatus.Banned)
             return;
 
         const container = this.#services.createApplicationScope();

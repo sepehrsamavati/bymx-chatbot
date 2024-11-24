@@ -192,6 +192,6 @@ export const getUserManagementText = (context: RequestContext, userInfo: UserInf
         + `\n${new Date(userInfo.user.lastActivity).toLocaleString()}`
         + `\n${emojiIcon.free} ${userInfo.remainingDailyFreePoints}`
         + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
-        + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Blocked ? "unblock" : "block"}${userInfo.user.tgId}`
+        + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
     )
 };
