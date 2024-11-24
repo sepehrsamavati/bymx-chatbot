@@ -35,6 +35,9 @@ export type IUserRepository = {
 
     /** Count all users (no filter | deleted, blocked, ...) */
     countAll(): Promise<number | null>;
+
+    /** Returns list of Telegram IDs */
+    getTgIds(filter: SearchUserModel): Promise<number[] | null>;
 }
 
 export type IUserSubscriptionRepository = {

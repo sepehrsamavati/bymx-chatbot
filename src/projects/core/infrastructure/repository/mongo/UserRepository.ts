@@ -175,4 +175,16 @@ export default class UserRepository implements IUserRepository {
         const count = await this.#databaseConnection.models.user.countDocuments();
         return count;
     }
+
+    async getTgIds(filter: SearchUserModel): Promise<number[] | null> {
+        const _filter = this.#getFilter(filter);
+        const result = await this.#databaseConnection.models.user.find(_filter)
+            .select('tgId' satisfies keyof User)
+            .lean().exec();
+
+        if (!result)
+            return null;
+
+        return result.map(item => item.tgId);
+    }
 }
