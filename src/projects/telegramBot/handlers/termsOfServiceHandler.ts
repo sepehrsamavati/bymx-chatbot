@@ -5,6 +5,7 @@ import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import isContactSupported from "../../core/helpers/isContactSupported.js";
 
 export const termsOfServiceHandler: IUpdateHandler = {
     updateType: [
@@ -18,22 +19,60 @@ export const termsOfServiceHandler: IUpdateHandler = {
 
             await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
 
-            await Promise.allSettled([
-                tgCall(
+            // auto approve if phone number exists
+            if (context.user.phoneNumber && isContactSupported(context.user.phoneNumber)) {
+                // update database
+                const userUpdateResult = await context.services.userApplication.setUserStatus(context.user.id, UserStatus.OK);
+
+                if (!userUpdateResult.ok)
+                    return {
+                        call: {
+                            text: userUpdateResult.message
+                        }
+                    };
+
+                // update memory
+                context.user.status = UserStatus.OK;
+
+                await tgCall(
                     TelegramMethods.DeleteMessage,
                     {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id
                     }
-                ),
+                );
+
+                const _panel = await getPanel(context);
+                if (!_panel)
+                    return null;
+
                 tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.callback_query?.message.chat.id,
-                        ...getGivePhoneNumberPanel(context)
+                        ..._panel,
                     }
                 )
-            ]);
+
+                return { shouldContinue: true };
+            } else {
+                await Promise.allSettled([
+                    tgCall(
+                        TelegramMethods.DeleteMessage,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id
+                        }
+                    ),
+                    tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            ...getGivePhoneNumberPanel(context)
+                        }
+                    )
+                ]);
+            }
 
             return { shouldContinue: false };
         } else if (update.message?.contact && context.user.status === UserStatus.PhoneNumber) {
@@ -47,7 +86,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
                         }
                     };
 
-                const contactIsSupported = message.contact.phone_number.startsWith("98") || message.contact.phone_number.startsWith("+98");
+                const contactIsSupported = isContactSupported(message.contact.phone_number);
                 if (!contactIsSupported)
                     return {
                         call: {
