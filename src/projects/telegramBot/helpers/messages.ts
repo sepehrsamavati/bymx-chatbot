@@ -2,10 +2,12 @@ import emojiIcon from "./emojiIcon.js";
 import config from "../../core/config.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
+import { UserInfoModel } from "../../../types/entities/user.js";
 import type { RequestContext } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -123,7 +125,7 @@ export const getGivePhoneNumberPanel = (context: RequestContext) => {
             resize_keyboard: true,
             force_reply: true,
             keyboard: [
-                [{ text: `☎ ${context.uiText.sendPhoneNumber}`, request_contact: true }],
+                [{ text: `${emojiIcon.contact} ${context.uiText.sendPhoneNumber}`, request_contact: true }],
             ]
         }
     }
@@ -177,4 +179,19 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
             ]
         }
     };
+};
+
+export const getUserManagementText = (context: RequestContext, userInfo: UserInfoModel | null): string => {
+    if (!userInfo)
+        return context.uiText.userNotFound;
+
+    return (
+        `${emojiIcon.identifier} ${userInfo.user.tgId}`
+        + `\n${userInfo.user.firstName}${userInfo.user.lastName ? ` ${userInfo.user.lastName}` : ""}`
+        + `\n\n${userInfo.activePlans}`
+        + `\n${new Date(userInfo.user.lastActivity).toLocaleString()}`
+        + `\n${emojiIcon.free} ${userInfo.remainingDailyFreePoints}`
+        + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
+        + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Blocked ? "unblock" : "block"}${userInfo.user.tgId}`
+    )
 };

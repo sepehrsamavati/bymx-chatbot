@@ -12,6 +12,10 @@ const emojiIcon = Object.freeze({
     sparkle: '✨',
     identifier: '🆔',
     free: '🆓',
+    forbidden: '🚫',
+    contact: '☎',
+    ok: '✅',
+    failed: '❌'
 });
 
 export default emojiIcon;

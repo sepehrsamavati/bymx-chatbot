@@ -13,6 +13,7 @@ import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
+import { UserStatus } from "../../types/enums/userStatus.js";
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
@@ -42,7 +43,6 @@ export class UpdateHandler {
     #services = new CoreServices();
 
     async handle(update: TelegramUpdateObject) {
-        const container = this.#services.createApplicationScope();
 
         const chatType = update.message?.chat.type
             ?? update.callback_query?.message?.chat.type
@@ -65,7 +65,8 @@ export class UpdateHandler {
         if (!userId)
             return;
 
-        const user = await container.applications.userApplication.upsert({
+        // user root container (do not create scope)
+        const user = await this.#services.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
@@ -75,6 +76,11 @@ export class UpdateHandler {
 
         if (!user)
             return;
+
+        if (user.status === UserStatus.Blocked)
+            return;
+
+        const container = this.#services.createApplicationScope();
 
         let _handlers: IUpdateHandler[] = [];
 

@@ -6,7 +6,7 @@ import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
+import { getPanel, getModelUsageListPanel, getUserManagementText } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const adminCommandHandler: IUpdateHandler = {
@@ -25,34 +25,118 @@ export const adminCommandHandler: IUpdateHandler = {
 
         if (text.startsWith("/find@")) {
             const targetUsername = text.replace("/find@", "");
-
-            const info = await context.services.userApplication.getUserInfo(targetUsername);
-
             return {
+                shouldContinue: false,
                 call: {
-                    text: info ? (
-                        `${emojiIcon.identifier} ${info.user.tgId}`
-                        + `\n\n${info.activePlans}`
-                        + `\n${emojiIcon.free} ${info.remainingDailyFreePoints}`
-                    ) : context.uiText.userNotFound
+                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo(targetUsername))
                 }
             };
         } else if (text.startsWith("/find_")) {
             const tgId = Number.parseInt(text.replace("/find_", ""));
+            return {
+                shouldContinue: false,
+                call: {
+                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo(tgId))
+                }
+            };
+        } else if (text.startsWith("/block")) {
+            if (!accessHelper(UserType.Manager, context.user.type))
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "noAccessToBlock"
+                    }
+                };
 
-            const info = await context.services.userApplication.getUserInfo(tgId);
+            const tgId = Number.parseInt(text.replace("/block", ""));
+            const targetUser = await context.services.userApplication.getUserByTgId(tgId);
+
+            if (!targetUser)
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: context.uiText.userNotFound
+                    }
+                };
+
+            if (targetUser.status === UserStatus.Blocked)
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "userAlreadyBlocked"
+                    }
+                };
+
+            if (accessHelper(UserType.Owner, targetUser.type))
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "cantModifyOwner"
+                    }
+                };
+
+            if (context.user.id === targetUser.id)
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "cantBlockYourself"
+                    }
+                };
+
+            const res = await context.services.userApplication.setUserStatus(targetUser.id, UserStatus.Blocked);
 
             return {
+                shouldContinue: false,
                 call: {
-                    text: info ? (
-                        `${emojiIcon.identifier} ${info.user.tgId}`
-                        + `\n\n${info.activePlans}`
-                        + `\n${emojiIcon.free} ${info.remainingDailyFreePoints}`
-                    ) : context.uiText.userNotFound
+                    text: res.ok ? emojiIcon.ok : emojiIcon.failed
+                }
+            };
+        } else if (text.startsWith("/unblock")) {
+            if (!accessHelper(UserType.Manager, context.user.type))
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "noAccessToBlock"
+                    }
+                };
+
+            const tgId = Number.parseInt(text.replace("/unblock", ""));
+            const targetUser = await context.services.userApplication.getUserByTgId(tgId);
+
+            if (!targetUser)
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: context.uiText.userNotFound
+                    }
+                };
+
+            if (targetUser.status !== UserStatus.Blocked)
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "userIsNotBlocked"
+                    }
+                };
+
+            if (accessHelper(UserType.Owner, targetUser.type))
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: "cantModifyOwner"
+                    }
+                };
+
+            const res = await context.services.userApplication.setUserStatus(targetUser.id, UserStatus.EULA);
+
+            return {
+                shouldContinue: false,
+                call: {
+                    text: res.ok ? emojiIcon.ok : emojiIcon.failed
                 }
             };
         }
 
-        return { shouldContinue: false };
+        return { shouldContinue: true };
     }
 }

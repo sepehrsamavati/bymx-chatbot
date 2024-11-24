@@ -235,14 +235,14 @@ export default class UserApplication {
                 break;
         }
 
-        if(!user)
+        if (!user)
             return null;
 
         const [
             activePlans,
             dailyFreePointStatus
         ] = await Promise.all([
-            this.#userSubscriptionRepository.countByUserId(user.id,  new Date()),
+            this.#userSubscriptionRepository.countByUserId(user.id, new Date()),
             this.getFreePointStatus(user.id)
         ]);
 
@@ -251,5 +251,9 @@ export default class UserApplication {
             activePlans: activePlans,
             remainingDailyFreePoints: dailyFreePointStatus?.remaining ?? null,
         };
+    }
+
+    async getUserByTgId(tgId: number): Promise<User | null> {
+        return await this.#userRepository.getBy({ tgId: tgId });
     }
 }
