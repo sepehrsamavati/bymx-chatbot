@@ -10,6 +10,8 @@ const emojiIcon = Object.freeze({
     users: '👥',
     cost: '💸',
     sparkle: '✨',
+    identifier: '🆔',
+    free: '🆓',
 });
 
 export default emojiIcon;

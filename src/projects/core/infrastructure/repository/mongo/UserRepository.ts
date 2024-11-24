@@ -5,7 +5,8 @@ import { OpenAIChat } from "../../../../../types/entities/openAIChat.js";
 import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
-import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../../../../../types/entities/user.js";
+import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../../../../../types/entities/user.js";
+import MongoSearchHelper from "./lib/SearchHelper.js";
 
 export default class UserRepository implements IUserRepository {
     #databaseConnection;
@@ -30,7 +31,7 @@ export default class UserRepository implements IUserRepository {
             _filter.tgId = filter.tgId;
 
         if (filter.username !== undefined)
-            _filter.username = filter.username;
+            _filter.username = MongoSearchHelper.exactStringCaseInsensitive(filter.username);
 
         return _filter;
     }
@@ -124,7 +125,7 @@ export default class UserRepository implements IUserRepository {
         return user;
     }
 
-    async getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null> {
+    async getBy(filter: SearchUserModel): Promise<User | null> {
         const _filter = this.#getFilter(filter);
         const result = await this.#databaseConnection.models.user.findOne(_filter)
             .populate('selectedChat' satisfies keyof User)
@@ -132,7 +133,7 @@ export default class UserRepository implements IUserRepository {
         return this.#storedToView(result);
     }
 
-    async getAndUpdate(update: UpdateUserModel, filter: Pick<User, "id"> | Pick<User, "tgId">): ReturnType<IUserRepository["getBy"]> {
+    async getAndUpdate(update: UpdateUserModel, filter: SearchUserModel): ReturnType<IUserRepository["getBy"]> {
         const _filter = this.#getFilter(filter);
 
         const _update: UpdateQuery<UserDBModel> = {

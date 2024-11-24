@@ -103,6 +103,18 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         });
     }
 
+    async countByUserId(userId: string, expiryNotBefore: Date): Promise<number | null> {
+        const count = await this.#databaseConnection.models.userSubscription.countDocuments({
+            isDeleted: false,
+            isFinished: false,
+            user: userId,
+            expiry: {
+                $lte: expiryNotBefore
+            }
+        });
+        return count;
+    }
+
     async updateById(update: UpdateUserSubscription): Promise<boolean | null> {
         const _update: UpdateQuery<UserSubscriptionDBModel> = {};
 

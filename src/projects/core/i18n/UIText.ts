@@ -84,6 +84,7 @@ const keys = [
     "todaysRequests",
     "todaysPointUsage",
     "todaysCost",
+    "userNotFound",
 ] as const;
 
 export type UITextKey = typeof keys[number];

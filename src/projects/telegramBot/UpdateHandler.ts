@@ -7,6 +7,7 @@ import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
+import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
@@ -14,6 +15,7 @@ import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
 
 const handlers: IUpdateHandler[] = [
+    adminCommandHandler,
     userCommandHandler,
     panelHandler,
     adminPanelHandler,
@@ -111,7 +113,13 @@ export class UpdateHandler {
             if (responseCtx.call) {
                 await tgCall(TelegramMethods.SendMessage, {
                     chat_id: userId,
-                    text: requestContext.getUit(responseCtx.call.text)
+                    text: requestContext.getUit(responseCtx.call.text),
+                    ...(update.message ? {
+                        reply_parameters: {
+                            allow_sending_without_reply: true,
+                            message_id: update.message.message_id
+                        }
+                    } : {})
                 })
             }
 

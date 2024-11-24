@@ -6,8 +6,8 @@ import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
-import type { UpsertUserModel, User } from "../../../types/entities/user.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
+import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
 
 export default class UserApplication {
     #userRepository;
@@ -218,6 +218,38 @@ export default class UserApplication {
                 ...usages,
                 cost: usages?.cost.toFixed(2)
             }
+        };
+    }
+
+    getUserInfo(tgId: number): Promise<UserInfoModel | null>;
+    getUserInfo(username: string): Promise<UserInfoModel | null>;
+    async getUserInfo(tgIdOrUsername: number | string): Promise<UserInfoModel | null> {
+        let user: User | null = null;
+
+        switch (typeof tgIdOrUsername) {
+            case "string":
+                user = await this.#userRepository.getBy({ username: tgIdOrUsername });
+                break;
+            case "number":
+                user = await this.#userRepository.getBy({ tgId: tgIdOrUsername });
+                break;
+        }
+
+        if(!user)
+            return null;
+
+        const [
+            activePlans,
+            dailyFreePointStatus
+        ] = await Promise.all([
+            this.#userSubscriptionRepository.countByUserId(user.id,  new Date()),
+            this.getFreePointStatus(user.id)
+        ]);
+
+        return {
+            user: user,
+            activePlans: activePlans,
+            remainingDailyFreePoints: dailyFreePointStatus?.remaining ?? null,
         };
     }
 }

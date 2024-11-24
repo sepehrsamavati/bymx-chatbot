@@ -76,5 +76,6 @@
     "users": "کاربران",
     "todaysRequests": "درخواست‌های امروز",
     "todaysPointUsage": "مصرف امتیاز امروز",
-    "todaysCost": "هزینه امروز"
+    "todaysCost": "هزینه امروز",
+    "userNotFound": "کاربر یافت نشد"
 }

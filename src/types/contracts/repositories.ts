@@ -2,7 +2,7 @@ import type { CaptionOnly } from "./entities";
 import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIMessage, OpenAIMessageDBModel } from "../entities/openAIMessage";
-import type { User, UserDBModel, CreateUserModel, UpdateUserModel } from "../entities/user";
+import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
@@ -24,7 +24,7 @@ export type IUserRepository = {
     create(user: CreateUserModel): Promise<User['id'] | null>;
 
     /** Returns user on success and null on failure (or non existence user) */
-    getBy(filter: Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted'>): Promise<User | null>;
+    getBy(filter: SearchUserModel): Promise<User | null>;
 
     /** Similar to `getBy` but updates `username`, `lastActivity` and increases `usage` */
     getAndUpdate(update: UpdateUserModel, ...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
@@ -41,6 +41,7 @@ export type IUserSubscriptionRepository = {
     updateById(userSubscription: UpdateUserSubscription): Promise<boolean | null>;
     getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
     getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
+    countByUserId(userId: User['id'], expiryNotBefore: Date): Promise<number | null>;
 }
 
 export type IUserTempFileRepository = {
