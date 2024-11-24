@@ -13,4 +13,5 @@ export type TelegramBroadcast = {
 
 export type TelegramBroadcastDBModel = StoredEntity<TelegramBroadcast>;
 export type CreateTelegramBroadcast = Omit<FlattenToIDs<TelegramBroadcastDBModel, 'admin'>, 'id'>;
+export type SearchTelegramBroadcast = Pick<Partial<TelegramBroadcastDBModel>, 'isDeleted'>;
 export type UpdateTelegramBroadcast = { id: string } & Pick<TelegramBroadcastDBModel, 'startDate' | 'endDate'>;

@@ -1,8 +1,8 @@
-import type { UpdateQuery } from "mongoose";
+import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { User } from "../../../../../types/entities/user.js";
 import type { ITelegramBroadcastRepository } from "../../../../../types/contracts/repositories.js";
-import type { CreateTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../../../../../types/entities/telegramBroadcast.js";
+import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, TelegramBroadcastDBModel, UpdateTelegramBroadcast } from "../../../../../types/entities/telegramBroadcast.js";
 
 export class TelegramBroadcastRepository implements ITelegramBroadcastRepository {
     #databaseConnection;
@@ -25,8 +25,30 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         return Boolean(res?._id);
     }
 
+    async getOne(filter: SearchTelegramBroadcast): Promise<TelegramBroadcast | null> {
+        const _filter: FilterQuery<TelegramBroadcastDBModel> = {};
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        const res = await this.#databaseConnection.models.telegramBroadcast.findOne(_filter).populate<{ admin: User; }>('admin' satisfies keyof TelegramBroadcast).lean().exec();
+
+        if(!res)
+            return null;
+
+        return {
+            id: res._id.toString(),
+            admin: res.admin,
+            okCount: res.okCount,
+            startDate: res.startDate,
+            endDate: res.endDate,
+            messageId: res.messageId,
+            pendingTgIds: res.pendingTgIds,
+        };
+    }
+
     async updateById(update: UpdateTelegramBroadcast): Promise<boolean | null> {
-        const _update: UpdateQuery<TelegramBroadcast> = {};
+        const _update: UpdateQuery<TelegramBroadcastDBModel> = {};
 
         if (update.startDate !== undefined)
             _update.startDate = update.startDate;
