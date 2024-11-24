@@ -19,7 +19,7 @@ export default class UserRepository implements IUserRepository {
         return result ? result._id.toString() : null;
     }
 
-    #getFilter(filter: Partial<UserDBModel>) {
+    #getFilter(filter: SearchUserModel) {
         const _filter: FilterQuery<MongoStored<UserDBModel>> = {
             isDeleted: filter.isDeleted ?? false
         };
@@ -32,6 +32,17 @@ export default class UserRepository implements IUserRepository {
 
         if (filter.username !== undefined)
             _filter.username = MongoSearchHelper.exactStringCaseInsensitive(filter.username);
+
+        if (filter.status?.equal || filter.status?.notEqual) {
+            _filter.status = {
+                ...(filter.status.equal ? {
+                    $in: filter.status.equal
+                } : undefined),
+                ...(filter.status.notEqual ? {
+                    $nin: filter.status.notEqual
+                } : undefined),
+            };
+        }
 
         return _filter;
     }
@@ -178,7 +189,8 @@ export default class UserRepository implements IUserRepository {
 
     async getTgIds(filter: SearchUserModel): Promise<number[] | null> {
         const _filter = this.#getFilter(filter);
-        const result = await this.#databaseConnection.models.user.find(_filter)
+        const result = await this.#databaseConnection.models.user
+            .find(_filter)
             .select('tgId' satisfies keyof User)
             .lean().exec();
 
