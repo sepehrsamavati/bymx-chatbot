@@ -1,7 +1,8 @@
+import type { UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { User } from "../../../../../types/entities/user.js";
-import type { CreateTelegramBroadcast } from "../../../../../types/entities/telegramBroadcast.js";
 import type { ITelegramBroadcastRepository } from "../../../../../types/contracts/repositories.js";
+import type { CreateTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../../../../../types/entities/telegramBroadcast.js";
 
 export class TelegramBroadcastRepository implements ITelegramBroadcastRepository {
     #databaseConnection;
@@ -23,6 +24,23 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         return Boolean(res?._id);
     }
 
+    async updateById(update: UpdateTelegramBroadcast): Promise<boolean | null> {
+        const _update: UpdateQuery<TelegramBroadcast> = {};
+
+        if (update.startDate !== undefined)
+            _update.startDate = update.startDate;
+
+        if (update.endDate !== undefined)
+            _update.endDate = update.endDate;
+
+        const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
+            id: update.id,
+            isDeleted: false
+        }, _update);
+
+        return res.modifiedCount === 1;
+    }
+
     async deletePendingUser(id: string, tgId: User["tgId"], increaseOkCount: boolean): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
             _id: id,
@@ -35,18 +53,23 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
                 $inc: {
                     okCount: 1
                 }
-            } : {})
+            } : undefined)
         });
 
         return Boolean(res.modifiedCount !== 0);
     }
 
-    async delete(id: string): Promise<boolean | null> {
+    async delete(id: string, endDate?: Date): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
             _id: id,
             isDeleted: false,
         }, {
-            isDeleted: true
+            isDeleted: true,
+            ...(endDate ? {
+                $set: {
+                    endDate
+                }
+            } : undefined)
         });
 
         return Boolean(res.modifiedCount === 1);

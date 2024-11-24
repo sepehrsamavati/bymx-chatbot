@@ -3,6 +3,7 @@ import type { User } from "../../types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
+import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
@@ -21,7 +22,7 @@ import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTe
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
-import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
+import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
 
 type Constants = {
     mongoDbConnectionStringUri: string;
@@ -40,6 +41,7 @@ type Repositories = {
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
     openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
+    telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
 };
 
 type Applications = {
@@ -114,6 +116,7 @@ export default class CoreServices {
             openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),
             openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
+            telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)

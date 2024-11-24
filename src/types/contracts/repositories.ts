@@ -6,7 +6,7 @@ import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserMod
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
-import { CreateTelegramBroadcast } from "../entities/telegramBroadcast";
+import { CreateTelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -47,8 +47,9 @@ export type IUserSubscriptionRepository = {
 
 export type ITelegramBroadcastRepository = {
     create(telegramBroadcast: CreateTelegramBroadcast): Promise<boolean | null>;
+    updateById(update: UpdateTelegramBroadcast): Promise<boolean | null>;
     deletePendingUser(id: string, tgId: User['tgId'], increaseOkCount: boolean): Promise<boolean | null>;
-    delete(id: string): Promise<boolean | null>;
+    delete(id: string, endDate?: Date): Promise<boolean | null>;
 }
 
 export type IUserTempFileRepository = {
