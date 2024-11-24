@@ -1,0 +1,14 @@
+import type { User } from "./user";
+import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
+
+export type TelegramBroadcast = {
+    id: string;
+    admin: User;
+    okCount: number;
+    startDate: Date | null;
+    endDate: Date | null;
+    pendingTgIds: User['tgId'][];
+}
+
+export type TelegramBroadcastDBModel = StoredEntity<TelegramBroadcast>;
+export type CreateTelegramBroadcast = Omit<FlattenToIDs<TelegramBroadcastDBModel, 'admin'>, 'id'>;

@@ -6,6 +6,7 @@ import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserMod
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
+import { CreateTelegramBroadcast } from "../entities/telegramBroadcast";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -42,6 +43,12 @@ export type IUserSubscriptionRepository = {
     getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
     getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
     countByUserId(userId: User['id'], expiryNotBefore: Date): Promise<number | null>;
+}
+
+export type ITelegramBroadcastRepository = {
+    create(telegramBroadcast: CreateTelegramBroadcast): Promise<boolean | null>;
+    deletePendingUser(id: string, tgId: User['tgId'], increaseOkCount: boolean): Promise<boolean | null>;
+    delete(id: string): Promise<boolean | null>;
 }
 
 export type IUserTempFileRepository = {
