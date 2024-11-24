@@ -21,6 +21,7 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
             okCount: telegramBroadcast.okCount,
             pendingTgIds: telegramBroadcast.pendingTgIds,
             messageId: telegramBroadcast.messageId,
+            isForward: telegramBroadcast.isForward,
         });
         return Boolean(res?._id);
     }
@@ -44,6 +45,7 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
             endDate: res.endDate,
             messageId: res.messageId,
             pendingTgIds: res.pendingTgIds,
+            isForward: res.isForward,
         };
     }
 

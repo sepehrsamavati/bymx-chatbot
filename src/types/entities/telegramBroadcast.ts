@@ -8,6 +8,7 @@ export type TelegramBroadcast = {
     okCount: number;
     startDate: Date | null;
     endDate: Date | null;
+    isForward: boolean;
     pendingTgIds: User['tgId'][];
 }
 

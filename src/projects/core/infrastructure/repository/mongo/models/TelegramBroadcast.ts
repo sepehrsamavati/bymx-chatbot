@@ -46,4 +46,8 @@ const schema = new mongoose.Schema<TelegramBroadcastMongoStored>({
         type: Number,
         required: true
     },
+    isForward: {
+        type: Boolean,
+        required: true
+    },
 }, { versionKey: false, collection: telegramBroadcastModelDefinition.collection });
