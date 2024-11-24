@@ -19,7 +19,8 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
             startDate: telegramBroadcast.startDate,
             endDate: telegramBroadcast.endDate,
             okCount: telegramBroadcast.okCount,
-            pendingTgIds: telegramBroadcast.pendingTgIds
+            pendingTgIds: telegramBroadcast.pendingTgIds,
+            messageId: telegramBroadcast.messageId,
         });
         return Boolean(res?._id);
     }

@@ -4,6 +4,7 @@ import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 export type TelegramBroadcast = {
     id: string;
     admin: User;
+    messageId: number;
     okCount: number;
     startDate: Date | null;
     endDate: Date | null;
