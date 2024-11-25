@@ -185,6 +185,7 @@ export type RequestContext = {
     user: User;
     uiText: UITextLanguage;
     getUit: (keyOrMessage: UITextOptionalKey) => string;
+    readonly broadcastTrigger: () => void;
     readonly callStack: IUpdateHandler[];
 }
 

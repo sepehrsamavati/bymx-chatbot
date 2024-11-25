@@ -14,19 +14,17 @@ export class UpdateProvider {
     #broadcastHandler;
 
     async #dispose() {
-        await Promise.all([
-            this.#services.destroy(),
-            this.#broadcastHandler.dispose(),
-        ]);
+        await this.#broadcastHandler.dispose();
+        await this.#services.destroy();
     }
 
     constructor(services: CoreServices) {
         this.#services = services;
-        this.#handler = new UpdateHandler(this.#services);
         this.#broadcastHandler = new BroadcastHandler(
             services.applications.userApplication,
             services.applications.telegramBroadcastApplication
         );
+        this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler);
 
         services
             .diReady()

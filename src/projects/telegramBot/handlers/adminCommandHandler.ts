@@ -139,6 +139,11 @@ export const adminCommandHandler: IUpdateHandler = {
             && ["/bc", "/fbc"].includes(text)
         ) {
             const res = await context.services.telegramBroadcastApplication.addToQueue(context.user, update.message.reply_to_message.message_id, text === "/fbc");
+
+            if (res.ok) {
+                context.broadcastTrigger();
+            }
+
             return {
                 call: {
                     text: res.message

@@ -1,4 +1,5 @@
 import tgCall from "./helpers/call.js";
+import { errorLogger, logger } from "../core/helpers/logger.js";
 import { UserStatus } from "../../types/enums/userStatus.js";
 import UserApplication from "../core/application/UserApplication.js";
 import type { IDisposable } from "../../types/contracts/disposable.js";
@@ -11,6 +12,8 @@ export default class BroadcastHandler implements IDisposable {
     #intervalRef = setInterval(() => {
         this.#retrieveAndBroadcast();
     }, 2 * 60e3);
+    #disposing = false;
+    #broadcastFinishCallback = () => { };
 
     constructor(
         private userApplication: UserApplication,
@@ -46,6 +49,9 @@ export default class BroadcastHandler implements IDisposable {
             await this.telegramBroadcastApplication.start(telegramBroadcast.id);
 
         for (const chatId of chatIds) {
+            if (this.#disposing)
+                break;
+
             const res = await this.#sendToChat({
                 targetChatId: chatId,
                 sourceChatId: telegramBroadcast.admin.tgId,
@@ -62,10 +68,11 @@ export default class BroadcastHandler implements IDisposable {
         await this.telegramBroadcastApplication.finish(telegramBroadcast.id);
 
         this.#processingBroadcasts.delete(telegramBroadcast.id);
+        this.#broadcastFinishCallback();
     }
 
     async #retrieveAndBroadcast() {
-        if (this.#processingBroadcasts.size !== 0)
+        if (this.#processingBroadcasts.size !== 0 || this.#disposing)
             return;
 
         const telegramBroadcast = await this.telegramBroadcastApplication.getOneUndone();
@@ -76,8 +83,25 @@ export default class BroadcastHandler implements IDisposable {
         await this.broadcast(telegramBroadcast);
     }
 
+    trigger() {
+        this.#retrieveAndBroadcast()
+            .catch(err => errorLogger("Broadcast manual 'retrieveAndBroadcast' trigger", err));
+    }
+
     dispose(): Promise<void> {
+        logger.debug("⌛ Disposing broadcast handler...");
+
+        this.#disposing = true;
         clearInterval(this.#intervalRef);
-        throw new Error("Method not implemented.");
+
+        return new Promise(resolve => {
+            this.#broadcastFinishCallback = () => {
+                if (this.#processingBroadcasts.size === 0) {
+                    logger.debug("✅ Broadcast handler disposed.");
+                    resolve();
+                }
+            };
+            this.#broadcastFinishCallback();
+        });
     }
 }

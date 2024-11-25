@@ -2,7 +2,9 @@ import tgCall from "./helpers/call.js";
 import CoreServices from "../core/Container.js";
 import UIText, { getUit } from "../core/i18n/UIText.js";
 import { panelHandler } from "./handlers/panelHandler.js";
+import type BroadcastHandler from "./BroadcastHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
+import { UserStatus } from "../../types/enums/userStatus.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
@@ -13,7 +15,6 @@ import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
-import { UserStatus } from "../../types/enums/userStatus.js";
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
@@ -41,7 +42,8 @@ Object
 
 export class UpdateHandler {
     constructor(
-        private services: CoreServices
+        private services: CoreServices,
+        private broadcastHandler: BroadcastHandler
     ) { }
 
     async handle(update: TelegramUpdateObject) {
@@ -111,6 +113,7 @@ export class UpdateHandler {
             callStack: callStack,
             getUit: keyOrMessage => getUit(requestContext.uiText, keyOrMessage),
             services: container.applications,
+            broadcastTrigger: () => this.broadcastHandler.trigger()
         };
 
         for (const handlerCtx of _handlers) {
