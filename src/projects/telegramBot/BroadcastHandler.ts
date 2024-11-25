@@ -6,6 +6,7 @@ import type { IDisposable } from "../../types/contracts/disposable.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import type { TelegramBroadcast } from "../../types/entities/telegramBroadcast.js";
 import type TelegramBroadcastApplication from "../core/application/TelegramBroadcastApplication.js";
+import emojiIcon from "./helpers/emojiIcon.js";
 
 export default class BroadcastHandler implements IDisposable {
     #processingBroadcasts = new Set<string>;
@@ -66,6 +67,17 @@ export default class BroadcastHandler implements IDisposable {
         }
 
         await this.telegramBroadcastApplication.finish(telegramBroadcast.id);
+
+        const sentCount = await this.telegramBroadcastApplication.getSentCountById(telegramBroadcast.id);
+
+        await tgCall(TelegramMethods.SendMessage, {
+            chat_id: telegramBroadcast.admin.tgId,
+            text: `✅ Broadcast finished\n\n${emojiIcon.users} Sent to ${sentCount.data ?? '-'} chat(s)`,
+            reply_parameters: {
+                allow_sending_without_reply: true,
+                message_id: telegramBroadcast.messageId
+            }
+        });
 
         this.#processingBroadcasts.delete(telegramBroadcast.id);
         this.#broadcastFinishCallback();

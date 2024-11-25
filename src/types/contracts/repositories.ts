@@ -50,6 +50,7 @@ export type IUserSubscriptionRepository = {
 
 export type ITelegramBroadcastRepository = {
     create(telegramBroadcast: CreateTelegramBroadcast): Promise<boolean | null>;
+    getById(id: string): Promise<TelegramBroadcast | null>;
     getOne(filter: SearchTelegramBroadcast): Promise<TelegramBroadcast | null>;
     updateById(update: UpdateTelegramBroadcast): Promise<boolean | null>;
     deletePendingUser(id: string, tgId: User['tgId'], increaseOkCount: boolean): Promise<boolean | null>;

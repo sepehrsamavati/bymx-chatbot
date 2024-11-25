@@ -26,6 +26,30 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         return Boolean(res?._id);
     }
 
+    async getById(id: string): Promise<TelegramBroadcast | null> {
+        const res = await this.#databaseConnection.models.telegramBroadcast
+            .findOne({
+                _id: id,
+                isDeleted: false
+            })
+            .populate<{ admin: User; }>('admin' satisfies keyof TelegramBroadcast)
+            .lean().exec();
+
+        if (!res)
+            return null;
+
+        return {
+            id: res._id.toString(),
+            admin: res.admin,
+            okCount: res.okCount,
+            startDate: res.startDate,
+            endDate: res.endDate,
+            messageId: res.messageId,
+            pendingTgIds: res.pendingTgIds,
+            isForward: res.isForward,
+        };
+    }
+
     async getOne(filter: SearchTelegramBroadcast): Promise<TelegramBroadcast | null> {
         const _filter: FilterQuery<TelegramBroadcastDBModel> = {};
 

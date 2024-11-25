@@ -1,7 +1,7 @@
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
-import { OperationResult } from "../common/dto/OperationResult.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
 export default class TelegramBroadcastApplication {
     #userRepository;
@@ -55,6 +55,17 @@ export default class TelegramBroadcastApplication {
 
         if (await this.#telegramBroadcastRepository.delete(id))
             result.succeeded();
+
+        return result;
+    }
+
+    async getSentCountById(id: string) {
+        const result = new OperationResultWithData<number>();
+
+        const tgBc = await this.#telegramBroadcastRepository.getById(id);
+
+        if (tgBc)
+            result.succeeded().setData(tgBc.okCount);
 
         return result;
     }
