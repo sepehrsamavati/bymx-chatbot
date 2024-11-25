@@ -27,7 +27,12 @@ export class UpdateProvider {
             services.applications.userApplication,
             services.applications.telegramBroadcastApplication
         );
-        this.#startBot();
+
+        services
+            .diReady()
+            .then(() => {
+                this.#startBot();
+            });
     }
 
     async #startBot() {
