@@ -1,13 +1,14 @@
 import tgCall from "../helpers/call.js";
-import { getGivePhoneNumberPanel, getPanel } from "../helpers/messages.js";
 import { setTimeout } from 'node:timers/promises';
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
-import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import isContactSupported from "../../core/helpers/isContactSupported.js";
+import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
+import { getGivePhoneNumberPanel, getPanel } from "../helpers/messages.js";
+import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const termsOfServiceHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: [
         TelegramUpdateType.Message,
         TelegramUpdateType.CallbackQuery

@@ -1,12 +1,13 @@
 import tgCall from "../helpers/call.js";
 import { UserMode } from "../../../types/enums/userMode.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel, getModelListPanel } from "../helpers/messages.js";
-import stringHelper from "../../core/helpers/stringHelper.js";
 
 export const chatManageHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: [
         TelegramUpdateType.CallbackQuery,
         TelegramUpdateType.TextMessage

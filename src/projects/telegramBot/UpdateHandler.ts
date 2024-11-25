@@ -14,7 +14,8 @@ import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
-import type { IUpdateHandler, RequestContext, TelegramUpdateObject } from "../../types/telegram.js";
+import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject } from "../../types/telegram.js";
+import { errorLogger } from "../core/helpers/logger.js";
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
@@ -117,7 +118,21 @@ export class UpdateHandler {
         };
 
         for (const handlerCtx of _handlers) {
-            const responseCtx = await handlerCtx.handler(requestContext, update);
+            let responseCtx: ResponseContext | null = null;
+
+            try {
+                responseCtx = await handlerCtx.handler(requestContext, update);
+            } catch (err) {
+                errorLogger(
+                    `Unhandled exception in handler '${handlerCtx.name}'`
+                    + `\n   - Time (local): ${new Date().toLocaleString()}`
+                    + `\n   - User ID: ${user.id}`
+                    + `\n   - Telegram ID: ${user.tgId}`
+                    + `\n   - Callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name).join(' / ') : '-'}`
+                    + "\n"
+                    , err);
+                break;
+            }
 
             callStack.push(handlerCtx);
 

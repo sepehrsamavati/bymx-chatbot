@@ -13,6 +13,7 @@ import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.j
 import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export const promptHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.TextMessage,
     mode: UserMode.General.Normal,
     async handler(context, update) {

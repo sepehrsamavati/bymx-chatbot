@@ -7,6 +7,7 @@ import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const adminPanelHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.CallbackQuery,
 
     async handler(context, update) {

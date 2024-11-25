@@ -8,6 +8,7 @@ import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.j
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 
 export const createNewChatHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.CallbackQuery,
 
     async handler(context, update) {

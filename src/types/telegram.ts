@@ -212,7 +212,7 @@ type ResponseContextActions = (
     // }
 );
 
-type ResponseContext = (
+export type ResponseContext = (
     {
         /** No action */
         call?: null;
@@ -220,6 +220,7 @@ type ResponseContext = (
     | ResponseContextActions) & ResponseContextBase;
 
 export type IUpdateHandler = {
+    readonly name: string;
     updateType: TelegramUpdateType | TelegramUpdateType[];
     handler: (context: RequestContext, update: TelegramUpdateObject) => Promise<ResponseContext | null>;
     mode?: UserModeType | UserModeType[];

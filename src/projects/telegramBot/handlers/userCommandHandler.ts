@@ -1,13 +1,14 @@
 import tgCall from "../helpers/call.js";
+import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { UserStatus } from "../../../types/enums/userStatus.js";
-import emojiIcon from "../helpers/emojiIcon.js";
 
 export const userCommandHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.TextMessage,
 
     async handler(context, update) {

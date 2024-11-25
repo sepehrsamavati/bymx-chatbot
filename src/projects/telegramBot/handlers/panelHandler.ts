@@ -6,6 +6,7 @@ import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.j
 import { getChatListPanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.CallbackQuery,
     mode: UserMode.General.Normal,
     async handler(context, update) {

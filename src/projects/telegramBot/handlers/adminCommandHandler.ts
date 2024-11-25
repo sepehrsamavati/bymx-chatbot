@@ -10,6 +10,7 @@ import { getPanel, getModelUsageListPanel, getUserManagementText } from "../help
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const adminCommandHandler: IUpdateHandler = {
+    name: import.meta.filename,
     updateType: TelegramUpdateType.TextMessage,
 
     async handler(context, update) {
