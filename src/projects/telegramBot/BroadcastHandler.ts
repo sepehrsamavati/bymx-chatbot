@@ -15,7 +15,9 @@ export default class BroadcastHandler implements IDisposable {
     constructor(
         private userApplication: UserApplication,
         private telegramBroadcastApplication: TelegramBroadcastApplication,
-    ) { }
+    ) {
+        setTimeout(() => this.#retrieveAndBroadcast(), 2e3)
+    }
 
     async #sendToChat(opts: {
         targetChatId: number;

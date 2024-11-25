@@ -1,16 +1,29 @@
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 
 export default class TelegramBroadcastApplication {
+    #userRepository;
     #telegramBroadcastRepository;
 
     constructor(container: ServicesType) {
+        this.#userRepository = container.userRepository;
         this.#telegramBroadcastRepository = container.telegramBroadcastRepository;
     }
 
     async addToQueue(admin: User, messageId: number, isForward: boolean) {
         const result = new OperationResult();
+
+        const tgIds = await this.#userRepository.getTgIds({
+            isDeleted: false,
+            status: {
+                notEqual: [UserStatus.Banned, UserStatus.Blocked]
+            }
+        });
+
+        if (!tgIds)
+            return result.failed();
 
         if (await this.#telegramBroadcastRepository.create({
             isForward,
@@ -21,7 +34,7 @@ export default class TelegramBroadcastApplication {
             insertDate: new Date(),
             isDeleted: false,
             okCount: 0,
-            pendingTgIds: []
+            pendingTgIds: tgIds
         }))
             result.succeeded();
 
@@ -31,7 +44,7 @@ export default class TelegramBroadcastApplication {
     async getOneUndone() {
         return await this.#telegramBroadcastRepository.getOne({
             isDeleted: false,
-            notNull: {
+            isNull: {
                 endDate: true // is not finished
             }
         });

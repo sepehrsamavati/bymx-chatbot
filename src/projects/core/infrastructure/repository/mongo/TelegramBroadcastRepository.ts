@@ -32,6 +32,12 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         if (filter.isDeleted !== undefined)
             _filter.isDeleted = filter.isDeleted;
 
+        if (filter.isNull?.endDate) {
+            _filter.endDate = {
+                $eq: null
+            };
+        }
+
         if (filter.notNull?.endDate) {
             _filter.endDate = {
                 $ne: null
@@ -65,7 +71,7 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
             _update.endDate = update.endDate;
 
         const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
-            id: update.id,
+            _id: update.id,
             isDeleted: false
         }, _update);
 

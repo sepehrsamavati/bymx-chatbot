@@ -135,6 +135,15 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: res.ok ? emojiIcon.ok : emojiIcon.failed
                 }
             };
+        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.tgId
+            && ["/bc", "/fbc"].includes(text)
+        ) {
+            const res = await context.services.telegramBroadcastApplication.addToQueue(context.user, update.message.reply_to_message.message_id, text === "/fbc");
+            return {
+                call: {
+                    text: res.message
+                },
+            };
         }
 
         return { shouldContinue: true };
