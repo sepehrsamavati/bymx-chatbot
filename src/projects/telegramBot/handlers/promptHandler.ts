@@ -11,6 +11,7 @@ import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
+import { getDocumentInfo } from "../helpers/fileHelper.js";
 
 export const promptHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -50,15 +51,9 @@ export const promptHandler: IUpdateHandler = {
                 };
             }
 
-            const mimeType = update.message.reply_to_message.document.mime_type ?? "";
-            let tempExtension = openAiSupportedFileExtensions.mimeTypeFileExtensionMap[mimeType] ?? "";
-            if (!tempExtension) // read extension from file name
-                tempExtension = update.message.reply_to_message.document.file_name?.split('.').pop() as string;
+            const { fileExtension: tempExtension, isFileSearch, isSupported } = getDocumentInfo(update.message.reply_to_message.document);
 
-            const isFileSearch = openAiSupportedFileExtensions.fileSearch.includes(tempExtension);
-            const isPlainText = openAiSupportedFileExtensions.plainTexts.includes(tempExtension);
-
-            if (!(isFileSearch || isPlainText)) {
+            if (!isSupported) {
                 unlockFileProcessing();
                 return {
                     call: {
