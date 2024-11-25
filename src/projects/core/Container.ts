@@ -15,6 +15,7 @@ import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
 import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
@@ -52,6 +53,7 @@ type Applications = {
     openAIChatApplication: OpenAIChatApplication;
     openAIModelApplication: OpenAIModelApplication;
     fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
+    telegramBroadcastApplication: TelegramBroadcastApplication;
 };
 
 type Services = {
@@ -103,6 +105,7 @@ export default class CoreServices {
             openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
             openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
+            telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),

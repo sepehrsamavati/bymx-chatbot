@@ -40,7 +40,9 @@ Object
     });
 
 export class UpdateHandler {
-    #services = new CoreServices();
+    constructor(
+        private services: CoreServices
+    ) { }
 
     async handle(update: TelegramUpdateObject) {
 
@@ -66,7 +68,7 @@ export class UpdateHandler {
             return;
 
         // user root container (do not create scope)
-        const user = await this.#services.applications.userApplication.upsert({
+        const user = await this.services.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
@@ -80,7 +82,7 @@ export class UpdateHandler {
         if (user.status === UserStatus.Banned)
             return;
 
-        const container = this.#services.createApplicationScope();
+        const container = this.services.createApplicationScope();
 
         let _handlers: IUpdateHandler[] = [];
 
@@ -135,9 +137,5 @@ export class UpdateHandler {
 
         await container.dispose();
 
-    }
-
-    dispose() {
-        return this.#services.destroy();
     }
 }

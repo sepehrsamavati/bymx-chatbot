@@ -106,6 +106,18 @@ export default class UserApplication {
         return result;
     }
 
+    async setStatusByTelegramId(tgId: User['tgId'], status: UserStatus) {
+        const user = await this.#userRepository.getBy({
+            tgId,
+            isDeleted: false,
+        });
+
+        if (!user)
+            return new OperationResult().failed();
+
+        return this.setUserStatus(user.id, status);
+    }
+
     async setUserPhoneNumber(userId: User['id'], phoneNumber: string, setStatus = false) {
         const result = new OperationResult();
 

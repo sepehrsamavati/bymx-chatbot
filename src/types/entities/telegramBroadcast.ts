@@ -7,6 +7,7 @@ export type TelegramBroadcast = {
     messageId: number;
     okCount: number;
     startDate: Date | null;
+    /** if not null -> not finished */
     endDate: Date | null;
     isForward: boolean;
     pendingTgIds: User['tgId'][];
@@ -14,5 +15,9 @@ export type TelegramBroadcast = {
 
 export type TelegramBroadcastDBModel = StoredEntity<TelegramBroadcast>;
 export type CreateTelegramBroadcast = Omit<FlattenToIDs<TelegramBroadcastDBModel, 'admin'>, 'id'>;
-export type SearchTelegramBroadcast = Pick<Partial<TelegramBroadcastDBModel>, 'isDeleted'>;
-export type UpdateTelegramBroadcast = { id: string } & Pick<TelegramBroadcastDBModel, 'startDate' | 'endDate'>;
+export type SearchTelegramBroadcast = Pick<Partial<TelegramBroadcastDBModel>, 'isDeleted'> & {
+    notNull?: {
+        endDate?: true;
+    }
+};
+export type UpdateTelegramBroadcast = { id: string } & Pick<Partial<TelegramBroadcastDBModel>, 'startDate' | 'endDate'>;

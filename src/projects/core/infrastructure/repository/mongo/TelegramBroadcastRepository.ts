@@ -32,9 +32,15 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         if (filter.isDeleted !== undefined)
             _filter.isDeleted = filter.isDeleted;
 
+        if (filter.notNull?.endDate) {
+            _filter.endDate = {
+                $ne: null
+            };
+        }
+
         const res = await this.#databaseConnection.models.telegramBroadcast.findOne(_filter).populate<{ admin: User; }>('admin' satisfies keyof TelegramBroadcast).lean().exec();
 
-        if(!res)
+        if (!res)
             return null;
 
         return {
@@ -84,17 +90,12 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         return Boolean(res.modifiedCount !== 0);
     }
 
-    async delete(id: string, endDate?: Date): Promise<boolean | null> {
+    async delete(id: string): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
             _id: id,
             isDeleted: false,
         }, {
-            isDeleted: true,
-            ...(endDate ? {
-                $set: {
-                    endDate
-                }
-            } : undefined)
+            isDeleted: true
         });
 
         return Boolean(res.modifiedCount === 1);

@@ -1,15 +1,32 @@
 import tgCall from "./helpers/call.js";
 import { logger } from "../core/helpers/logger.js";
 import { UpdateHandler } from "./UpdateHandler.js";
+import type CoreServices from "../core/Container.js";
+import BroadcastHandler from "./BroadcastHandler.js";
 import exitHelper from "../core/helpers/exitHelper.js";
 import { ExitCode } from "../../types/enums/exitCodes.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
-    #handler = new UpdateHandler();
+    #handler;
+    #services
+    #broadcastHandler;
 
-    constructor() {
+    async #dispose() {
+        await Promise.all([
+            this.#services.destroy(),
+            this.#broadcastHandler.dispose(),
+        ]);
+    }
+
+    constructor(services: CoreServices) {
+        this.#services = services;
+        this.#handler = new UpdateHandler(this.#services);
+        this.#broadcastHandler = new BroadcastHandler(
+            services.applications.userApplication,
+            services.applications.telegramBroadcastApplication
+        );
         this.#startBot();
     }
 
@@ -18,7 +35,7 @@ export class UpdateProvider {
 
         if (!bot?.ok) {
             console.log("Telegram connection issue!");
-            await this.#handler.dispose();
+            await this.#dispose();
             exitHelper(ExitCode.TelegramConnectionIssue);
             return;
         }
