@@ -84,6 +84,9 @@ export class UpdateHandler {
 
         const container = this.services.createApplicationScope();
 
+        if (user.status === UserStatus.Blocked)
+            await container.applications.userApplication.setUserStatus(user.id, UserStatus.EULA);
+
         let _handlers: IUpdateHandler[] = [];
 
         // consider message type

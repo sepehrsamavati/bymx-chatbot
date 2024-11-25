@@ -93,7 +93,7 @@ export default async function tgCall<Method extends TelegramMethods>(method: Met
                 }
             }
 
-            if ((result as any).error_code === 400)
+            if (result.error_code === 400 || result.error_code === 403)
                 return result;
             else {
                 await setTimeout(5e3);

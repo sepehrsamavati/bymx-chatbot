@@ -157,6 +157,8 @@ type TelegramResponseBase<T, OK = boolean> = OK extends true ? {
     result: T;
 } : {
     ok: false;
+    error_code: number;
+    description?: string;
     result: null;
 }
 

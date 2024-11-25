@@ -30,7 +30,7 @@ export default class BroadcastHandler implements IDisposable {
         });
         return {
             ok: res?.ok ?? false,
-            botIsBlocked: !res?.ok
+            botIsBlocked: !res?.ok && res?.error_code === 403 && res.description?.includes('bot was blocked')
         };
     }
 
@@ -55,7 +55,7 @@ export default class BroadcastHandler implements IDisposable {
 
             await Promise.all([
                 this.telegramBroadcastApplication.removeTgIdFromQueue(telegramBroadcast.id, chatId, res.ok),
-                this.userApplication.setStatusByTelegramId(chatId, UserStatus.Blocked)
+                res.botIsBlocked ? this.userApplication.setStatusByTelegramId(chatId, UserStatus.Blocked) : undefined
             ]);
         }
 
