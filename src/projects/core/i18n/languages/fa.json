@@ -34,6 +34,7 @@
     "models": "مدل‌ها",
     "help": "راهنما",
     "errorOccurred": "خطایی رخ داد!",
+    "operationSuccessful": "عملیات با موفقیت انجام شد.",
     "operationFailed": "عملیات با خطا مواجه شد!",
     "reachedChatCountLimit": "امکان ساخت بیشتر از %s1 چت وجود ندارد!",
     "modelsAndCosts": "مدل‌ها و هزینه‌ها",
@@ -77,5 +78,10 @@
     "todaysRequests": "درخواست‌های امروز",
     "todaysPointUsage": "مصرف امتیاز امروز",
     "todaysCost": "هزینه امروز",
-    "userNotFound": "کاربر یافت نشد"
+    "userNotFound": "کاربر یافت نشد",
+    "noAccessToBan": "دسترسی بن کردن ندارید!",
+    "userAlreadyBanned": "کاربر از قبل بن بوده است!",
+    "cantModifyOwner": "امکان ویرایش مالک وجود ندارد!",
+    "cantBanYourself": "امکان بن کردن خود را ندارید!",
+    "userIsNotBanned": "کاربر بن نشده است!"
 }

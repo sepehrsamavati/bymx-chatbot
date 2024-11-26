@@ -45,7 +45,7 @@ export const adminCommandHandler: IUpdateHandler = {
                 return {
                     shouldContinue: false,
                     call: {
-                        text: "noAccessToBlock"
+                        text: "noAccessToBan"
                     }
                 };
 

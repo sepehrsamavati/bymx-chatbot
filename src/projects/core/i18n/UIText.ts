@@ -85,6 +85,14 @@ const keys = [
     "todaysPointUsage",
     "todaysCost",
     "userNotFound",
+    "noAccessToBan",
+    "userAlreadyBanned",
+    "cantModifyOwner",
+    "cantBanYourself",
+    "noAccessToBan",
+    "userIsNotBanned",
+    "operationSuccessful",
+    "operationFailed",
 ] as const;
 
 export type UITextKey = typeof keys[number];
