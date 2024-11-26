@@ -174,6 +174,7 @@ type TelegramResponseMap = {
     [TelegramMethods.SetWebhook]: TelegramResponseBase<null>;
     [TelegramMethods.CopyMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.ForwardMessage]: TelegramResponseBase<TelegramMessage>;
+    [TelegramMethods.GetChatMember]: TelegramResponseBase<ChatMember>;
 }
 
 export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;
