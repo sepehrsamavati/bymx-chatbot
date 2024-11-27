@@ -56,7 +56,7 @@ export const chatManageHandler: IUpdateHandler = {
 
             return {
                 call: {
-                    text: context.uiText.sendNewTitle
+                    text: "sendNewTitle"
                 }
             };
         } else if (queryData === "changeChatModel" && context.user.selectedChat) {
@@ -183,7 +183,7 @@ export const chatManageHandler: IUpdateHandler = {
             } else {
                 return {
                     call: {
-                        text: context.uiText.titleTooLong
+                        text: "titleTooLong"
                     }
                 };
             }

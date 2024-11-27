@@ -56,7 +56,7 @@ export const adminCommandHandler: IUpdateHandler = {
                 return {
                     shouldContinue: false,
                     call: {
-                        text: context.uiText.userNotFound
+                        text: "userNotFound"
                     }
                 };
 
@@ -108,7 +108,7 @@ export const adminCommandHandler: IUpdateHandler = {
                 return {
                     shouldContinue: false,
                     call: {
-                        text: context.uiText.userNotFound
+                        text: "userNotFound"
                     }
                 };
 
