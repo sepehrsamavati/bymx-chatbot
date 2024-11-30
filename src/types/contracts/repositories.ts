@@ -5,8 +5,9 @@ import type { OpenAIMessage, OpenAIMessageDBModel } from "../entities/openAIMess
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
-import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
+import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
+import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -93,4 +94,10 @@ export type IOpenAIMessageRepository = {
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
+}
+
+export type ITelegramJoinRequiredChatRepository = {
+    create(chat: TelegramJoinRequiredChat): Promise<boolean | null>;
+    getMany(filter: SearchTelegramJoinRequiredChat): Promise<boolean | null>;
+    updateOne(update: UpdateTelegramJoinRequiredChat): Promise<boolean | null>;
 }
