@@ -10,6 +10,7 @@ import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
 import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
 import { telegramBroadcastModelDefinition } from "../models/TelegramBroadcast.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
+import { telegramJoinRequiredChatModelDefinition } from "../models/TelegramJoinRequiredChat.js";
 
 export class MongoDBTransaction implements ITransaction {
     #session: mongoose.ClientSession | null = null;
@@ -147,6 +148,7 @@ class MongooseModels {
             openAIMessage: openAIMessageModelDefinition.createModel(this.connection),
             userTempFile: userTempFileModelDefinition.createModel(this.connection),
             telegramBroadcast: telegramBroadcastModelDefinition.createModel(this.connection),
+            telegramJoinRequiredChat: telegramJoinRequiredChatModelDefinition.createModel(this.connection),
         });
     }
 }

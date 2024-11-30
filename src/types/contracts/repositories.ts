@@ -98,6 +98,6 @@ export type IOpenAIMessageRepository = {
 
 export type ITelegramJoinRequiredChatRepository = {
     create(chat: TelegramJoinRequiredChat): Promise<boolean | null>;
-    getMany(filter: SearchTelegramJoinRequiredChat): Promise<boolean | null>;
+    getMany(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat[] | null>;
     updateOne(update: UpdateTelegramJoinRequiredChat): Promise<boolean | null>;
 }
