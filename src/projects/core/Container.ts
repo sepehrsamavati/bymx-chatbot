@@ -21,9 +21,11 @@ import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPl
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
+import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequiredChatApplication.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
 import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
+import { TelegramJoinRequiredChatRepository } from "./infrastructure/repository/mongo/TelegramJoinRequiredChatRepository.js";
 
 type Constants = {
     mongoDbConnectionStringUri: string;
@@ -43,6 +45,7 @@ type Repositories = {
     openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
     telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
+    telegramJoinRequiredChatRepository: RepoInterfaces.ITelegramJoinRequiredChatRepository;
 };
 
 type Applications = {
@@ -54,6 +57,7 @@ type Applications = {
     openAIModelApplication: OpenAIModelApplication;
     fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     telegramBroadcastApplication: TelegramBroadcastApplication;
+    telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
 };
 
 type Services = {
@@ -106,6 +110,7 @@ export default class CoreServices {
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
             openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
+            telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
@@ -120,6 +125,7 @@ export default class CoreServices {
             openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
             telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),
+            telegramJoinRequiredChatRepository: asClass(errorCatcher(TelegramJoinRequiredChatRepository), { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)

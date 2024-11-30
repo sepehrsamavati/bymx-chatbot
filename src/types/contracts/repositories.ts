@@ -7,7 +7,7 @@ import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat 
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
-import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
+import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -97,7 +97,7 @@ export type IOpenAIMessageRepository = {
 }
 
 export type ITelegramJoinRequiredChatRepository = {
-    create(chat: TelegramJoinRequiredChat): Promise<boolean | null>;
+    create(chat: CreateTelegramJoinRequiredChat): Promise<boolean | null>;
     getMany(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat[] | null>;
     updateOne(update: UpdateTelegramJoinRequiredChat): Promise<boolean | null>;
 }
