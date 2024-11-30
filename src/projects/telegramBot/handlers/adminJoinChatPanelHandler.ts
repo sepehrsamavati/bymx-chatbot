@@ -112,6 +112,21 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
             if (!link && chat.username)
                 link = `https://t.me/${chat.username}`;
 
+            const getChatMemberResult = await tgCall(
+                TelegramMethods.GetChatMember,
+                {
+                    chat_id: chatId,
+                    user_id: context.user.tgId
+                }
+            );
+
+            if (!getChatMemberResult?.ok)
+                return {
+                    call: {
+                        text: "botIsNotAdmin"
+                    }
+                };
+
             const res = await context.services.telegramJoinRequiredChatApplication.add({
                 title, chatId, link
             });

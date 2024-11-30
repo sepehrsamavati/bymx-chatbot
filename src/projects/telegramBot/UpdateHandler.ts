@@ -6,6 +6,7 @@ import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { UserStatus } from "../../types/enums/userStatus.js";
+import { joinChatHandler } from "./handlers/joinChatHandler.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
@@ -20,6 +21,7 @@ import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObj
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
+    joinChatHandler,
     userCommandHandler,
     panelHandler,
     adminPanelHandler,

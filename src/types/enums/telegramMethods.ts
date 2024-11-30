@@ -17,5 +17,6 @@ export enum TelegramMethods {
     SetWebhook = "setWebhook",
     SetMessageReaction = "setMessageReaction",
     GetFile = "getFile",
+    GetChat = "getChat",
     GetChatMember = "getChatMember",
 }

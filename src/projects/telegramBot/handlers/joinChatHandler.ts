@@ -15,25 +15,32 @@ export const joinChatHandler: IUpdateHandler = {
         if (update.message?.chat.type !== "private")
             return null;
 
-        for (const chat of []) {
+        const chats = await context.services.telegramJoinRequiredChatApplication.getActives();
+
+        for (const chat of chats) {
             const res = await tgCall(
                 TelegramMethods.GetChatMember,
                 {
-                    chat_id: 0,
+                    chat_id: chat.chatId,
                     user_id: context.user.tgId
                 }
             );
+
             if (res?.ok) {
                 if (["member", "administrator", "creator"].includes(res.result.status)) {
                     // ok
                 } else {
                     // not a member
                 }
-            } else {
-                // not admin or no access to target chat/channel
+            } else { // not admin or no access to target chat/channel
+                if (res?.error_code === 400 && res.description?.includes("member list is inaccessible")) {
+                    // not admin
+                } else {
+                    // there is an error
+                }
             }
         }
 
-        return { shouldContinue: false };
+        return { shouldContinue: true };
     }
 }

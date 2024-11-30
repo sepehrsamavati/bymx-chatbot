@@ -101,6 +101,7 @@ const keys = [
     "cancel",
     "chatAlreadyExists",
     "chatIsPrivateReplyLink",
+    "botIsNotAdmin",
 ] as const;
 
 export type UITextKey = typeof keys[number];
