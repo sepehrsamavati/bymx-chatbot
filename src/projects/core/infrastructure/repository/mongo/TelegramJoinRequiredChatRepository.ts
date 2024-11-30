@@ -12,11 +12,43 @@ export class TelegramJoinRequiredChatRepository implements ITelegramJoinRequired
 
     async create(chat: CreateTelegramJoinRequiredChat): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramJoinRequiredChat.create(chat);
-        return Boolean(typeof res?._id === "string");
+        return Boolean(typeof res?._id !== "string");
+    }
+
+    async getOne(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat | null> {
+        const _filter: FilterQuery<TelegramJoinRequiredChat> = {};
+
+        if (filter.id !== undefined)
+            _filter._id = filter.id;
+
+        if (filter.chatId !== undefined)
+            _filter.chatId = filter.chatId;
+
+        if (filter.isActive !== undefined)
+            _filter.isActive = filter.isActive;
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        const res = await this.#databaseConnection.models.telegramJoinRequiredChat
+            .findOne(_filter)
+            .lean()
+            .exec();
+
+        return res ? {
+            id: res._id.toString(),
+            chatId: res.chatId,
+            isActive: res.isActive,
+            link: res.link,
+            title: res.title,
+        } : null;
     }
 
     async getMany(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat[] | null> {
         const _filter: FilterQuery<TelegramJoinRequiredChat> = {};
+
+        if (filter.id !== undefined)
+            _filter._id = filter.id;
 
         if (filter.chatId !== undefined)
             _filter.chatId = filter.chatId;

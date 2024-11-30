@@ -93,6 +93,13 @@ const keys = [
     "userIsNotBanned",
     "operationSuccessful",
     "operationFailed",
+    "noJoinRequiredChat",
+    "joinRequiredChats",
+    "joinRequired",
+    "add",
+    "forwardMessageFromChannel",
+    "cancel",
+    "chatAlreadyExists",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -111,7 +111,41 @@ export const getAdminPanel = async (context: RequestContext) => {
         ),
         reply_markup: {
             inline_keyboard: [
+                [{ text: `${emojiIcon.channel} ${context.uiText.joinRequired}`, callback_data: "joinRequiredChatsPanel" }],
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getJoinRequiredChatsPanel = async (context: RequestContext) => {
+    const chats = await context.services.telegramJoinRequiredChatApplication.getActives();
+
+    return {
+        text: chats.length === 0 ? context.uiText.noJoinRequiredChat : `${context.uiText.joinRequiredChats}:`,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "adminPanel" }, { text: `${emojiIcon.plus} ${context.uiText.add}`, callback_data: "newJoinRequiredChat" }],
+                ...(chats.map(chat => [{ text: chat.title, callback_data: `manageJoinChat_${chat.id}` }])),
+            ]
+        }
+    };
+};
+
+export const getJoinRequiredChatPanel = async (context: RequestContext, id: string) => {
+    const chat = await context.services.telegramJoinRequiredChatApplication.getById(id);
+
+    if (!chat)
+        return null;
+
+    return {
+        text: chat.title
+            + `\nlink: ${chat.link}`
+            + `\nisActive: ${chat.isActive}`,
+        reply_markup: {
+            inline_keyboard: [
+                // ...(chats.map(chat => [{ text: chat.title, callback_data: `manageJoinChat_${chat.id}` }])),
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "joinRequiredChatsPanel" }],
             ]
         }
     };

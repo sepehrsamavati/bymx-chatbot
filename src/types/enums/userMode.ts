@@ -10,9 +10,14 @@ const ChatManagement = Object.freeze({
     ChangeTitle: 20
 });
 
+const JoinRequiredChatManagement = Object.freeze({
+    AddNew: 30
+});
+
 const Enums = Object.freeze({
     General,
-    ChatManagement
+    ChatManagement,
+    JoinRequiredChatManagement
 });
 
 type UnifiedEnums = typeof Enums[keyof typeof Enums];

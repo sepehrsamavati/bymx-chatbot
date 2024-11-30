@@ -83,5 +83,12 @@
     "userAlreadyBanned": "کاربر از قبل بن بوده است!",
     "cantModifyOwner": "امکان ویرایش مالک وجود ندارد!",
     "cantBanYourself": "امکان بن کردن خود را ندارید!",
-    "userIsNotBanned": "کاربر بن نشده است!"
+    "userIsNotBanned": "کاربر بن نشده است!",
+    "noJoinRequiredChat": "عضویت اجباری وجود ندارد",
+    "joinRequiredChats": "چت‌های عضویت اجباری",
+    "joinRequired": "عضویت اجباری",
+    "add": "افزودن",
+    "forwardMessageFromChannel": "پیامی از کانال مورد نظر ارسال کنید",
+    "cancel": "لغو",
+    "chatAlreadyExists": "این چت قبلا به لیست عضویت اجباری اضافه شده است!"
 }

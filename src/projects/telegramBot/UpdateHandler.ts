@@ -1,5 +1,6 @@
 import tgCall from "./helpers/call.js";
 import CoreServices from "../core/Container.js";
+import { errorLogger } from "../core/helpers/logger.js";
 import UIText, { getUit } from "../core/i18n/UIText.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
@@ -14,14 +15,15 @@ import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
+import { adminJoinChatPanelHandler } from "./handlers/adminJoinChatPanelHandler.js";
 import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject } from "../../types/telegram.js";
-import { errorLogger } from "../core/helpers/logger.js";
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
     userCommandHandler,
     panelHandler,
     adminPanelHandler,
+    adminJoinChatPanelHandler,
     termsOfServiceHandler,
     chatManageHandler,
     createNewChatHandler,

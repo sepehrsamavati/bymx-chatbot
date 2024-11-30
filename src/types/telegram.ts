@@ -13,6 +13,7 @@ export type Chat = {
     id: ChatID;
     type: "private" | "group" | "supergroup" | "channel";
     username?: string;
+    title?: string;
     first_name?: string;
     last_name?: string;
     is_forum?: true;
@@ -61,6 +62,35 @@ type File = {
     file_path?: string;
 }
 
+export type MessageOriginUser = {
+    type: "user";
+    date: number;
+    sender_user: TelegramUser;
+}
+
+export type MessageOriginHiddenUser = {
+    type: "hidden_user";
+    date: number;
+    sender_user_name: string;
+}
+
+export type MessageOriginChat = {
+    type: "chat";
+    date: number;
+    sender_chat: Chat;
+    author_signature?: string;
+}
+
+export type MessageOriginChannel = {
+    type: "channel";
+    date: number;
+    chat: Chat;
+    message_id: MessageID;
+    author_signature?: string;
+}
+
+type MessageOrigin = MessageOriginUser | MessageOriginHiddenUser | MessageOriginChat | MessageOriginChannel;
+
 export type TelegramMessage = {
     text?: string;
     date: number;
@@ -80,7 +110,7 @@ export type TelegramMessage = {
     document?: Document;
     audio?: unknown;
     photo?: PhotoSize[];
-    forward_origin?: object;
+    forward_origin?: MessageOrigin;
     reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;
 };
 

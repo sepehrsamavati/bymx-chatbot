@@ -41,6 +41,13 @@ export default class TelegramJoinRequiredChatApplication {
         }) ?? [];
     }
 
+    async getById(id: string) {
+        return this.#telegramJoinRequiredChatRepository.getOne({
+            id,
+            isDeleted: false
+        });
+    }
+
     async delete(id: string) {
         const result = new OperationResult();
 

@@ -11,5 +11,5 @@ export type TelegramJoinRequiredChat = {
 export type TelegramJoinRequiredChatDBModel = StoredEntity<TelegramJoinRequiredChat>;
 
 export type CreateTelegramJoinRequiredChat = Omit<TelegramJoinRequiredChatDBModel, 'id'>;
-export type SearchTelegramJoinRequiredChat = Pick<Partial<TelegramJoinRequiredChatDBModel>, 'isDeleted' | 'chatId' | 'isActive'>;
+export type SearchTelegramJoinRequiredChat = Pick<Partial<TelegramJoinRequiredChatDBModel>, 'id' | 'isDeleted' | 'chatId' | 'isActive'>;
 export type UpdateTelegramJoinRequiredChat = { id: string } & Pick<Partial<TelegramJoinRequiredChatDBModel>, 'isDeleted' | 'isActive'>;

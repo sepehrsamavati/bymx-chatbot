@@ -15,7 +15,9 @@ const emojiIcon = Object.freeze({
     forbidden: '🚫',
     contact: '☎',
     ok: '✅',
-    failed: '❌'
+    failed: '❌',
+    plus: '➕',
+    channel: '📣',
 });
 
 export default emojiIcon;

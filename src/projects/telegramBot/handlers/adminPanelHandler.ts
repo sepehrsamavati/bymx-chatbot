@@ -14,7 +14,7 @@ export const adminPanelHandler: IUpdateHandler = {
         if (!accessHelper(UserType.Admin, context.user.type))
             return { shouldContinue: true };
 
-        const queryData = update.callback_query?.data;
+        const queryData = update.callback_query?.data as string;
 
         switch (queryData) {
             case "adminPanel": {
