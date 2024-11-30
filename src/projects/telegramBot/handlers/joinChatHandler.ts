@@ -1,10 +1,6 @@
 import tgCall from "../helpers/call.js";
-import emojiIcon from "../helpers/emojiIcon.js";
-import { UserMode } from "../../../types/enums/userMode.js";
-import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const joinChatHandler: IUpdateHandler = {
@@ -18,17 +14,24 @@ export const joinChatHandler: IUpdateHandler = {
         const chats = await context.services.telegramJoinRequiredChatApplication.getActives();
 
         for (const chat of chats) {
+            const chatId = chat.chatId;
+            const userId = context.user.id;
+            const chatMemberTempId = `u${userId}_c${chatId}`;
+
+            if (context.services.chatMemberCacheStorage.exists(chatMemberTempId))
+                continue;
+
             const res = await tgCall(
                 TelegramMethods.GetChatMember,
                 {
-                    chat_id: chat.chatId,
-                    user_id: context.user.tgId
+                    chat_id: chatId,
+                    user_id: userId
                 }
             );
 
             if (res?.ok) {
                 if (["member", "administrator", "creator"].includes(res.result.status)) {
-                    // ok
+                    context.services.chatMemberCacheStorage.set(chatMemberTempId, new Date());
                 } else {
                     // not a member
                 }

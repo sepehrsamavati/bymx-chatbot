@@ -53,4 +53,5 @@ export type ICacheStorage<T> = {
     set(key: string, value: T): void;
     unset(key: string): boolean;
     exists(key: string): boolean;
+    getAllKeys(): string[];
 }

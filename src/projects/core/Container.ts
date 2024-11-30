@@ -4,8 +4,10 @@ import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
+import CacheStorage from "./infrastructure/services/CacheStorage.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
+import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
 import OpenAIChatApplication from "./application/OpenAIChatApplication.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
@@ -55,9 +57,12 @@ type Applications = {
     openAIPlanApplication: OpenAIPlanApplication;
     openAIChatApplication: OpenAIChatApplication;
     openAIModelApplication: OpenAIModelApplication;
-    fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     telegramBroadcastApplication: TelegramBroadcastApplication;
     telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
+
+    fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
+    /** Cache chat members to prevent spamming Telegram */
+    chatMemberCacheStorage: ServiceInterfaces.ICacheStorage<Date>;
 };
 
 type Services = {
@@ -92,8 +97,10 @@ export default class CoreServices {
 
     async #rootInitialize() {
         const userTempFileCleanupJob = new UserTempFileCleanup(this.container.cradle.userTempFileApplication);
+        const chatMemberCacheCleanup = new ChatMemberCacheCleanup(this.container.cradle.chatMemberCacheStorage);
 
         userTempFileCleanupJob.start();
+        chatMemberCacheCleanup.start();
     }
 
     constructor(autoSetup = true) {
@@ -116,6 +123,7 @@ export default class CoreServices {
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
             openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),

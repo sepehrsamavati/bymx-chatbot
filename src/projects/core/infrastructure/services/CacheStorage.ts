@@ -19,4 +19,8 @@ export default class CacheStorage<T> implements ICacheStorage<T> {
     exists(key: string): boolean {
         return this.#storage.has(key);
     }
+
+    getAllKeys(): string[] {
+        return Array.from(this.#storage.keys());
+    }
 }
