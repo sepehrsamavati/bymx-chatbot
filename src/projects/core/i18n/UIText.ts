@@ -100,6 +100,7 @@ const keys = [
     "forwardMessageFromChannel",
     "cancel",
     "chatAlreadyExists",
+    "chatIsPrivateReplyLink",
 ] as const;
 
 export type UITextKey = typeof keys[number];

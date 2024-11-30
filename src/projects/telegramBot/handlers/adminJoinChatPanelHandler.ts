@@ -2,7 +2,7 @@ import tgCall from "../helpers/call.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
-import type { IUpdateHandler, MessageOriginChannel, MessageOriginChat } from "../../../types/telegram.js";
+import type { Chat, IUpdateHandler, MessageOriginChannel, MessageOriginChat } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
@@ -84,45 +84,61 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } else if (context.user.mode === UserMode.JoinRequiredChatManagement.AddNew) {
-            if (update.message?.forward_origin?.type === "channel" || update.message?.forward_origin?.type === "chat") {
-                const chat = (update.message.forward_origin as MessageOriginChat).sender_chat ?? (update.message.forward_origin as MessageOriginChannel).chat;
+        } else if (context.user.mode === UserMode.JoinRequiredChatManagement.AddNew && update.message) {
+            let chat: Chat | null = null, link = "";
+
+            if (update.message.text && update.message.reply_to_message?.forward_origin) {
+                chat = (update.message.reply_to_message.forward_origin as MessageOriginChat).sender_chat ?? (update.message.reply_to_message.forward_origin as MessageOriginChannel).chat;
+                if (update.message.entities?.length === 1 && update.message.entities[0].type === "url")
+                    link = update.message.text;
+            }
+            else if (update.message.forward_origin?.type === "channel" || update.message.forward_origin?.type === "chat") {
+                chat = (update.message.forward_origin as MessageOriginChat).sender_chat ?? (update.message.forward_origin as MessageOriginChannel).chat;
 
                 if (!chat?.username)
-                    return null;
-
-                const chatId = chat.id;
-                const title = chat.title ?? "";
-
-                const res = await context.services.telegramJoinRequiredChatApplication.add({
-                    title, chatId,
-                    link: `https://t.me/${chat.username}`
-                });
-
-                if (!res.ok)
                     return {
                         call: {
-                            text: res.message
+                            text: "chatIsPrivateReplyLink"
                         }
                     };
-
-                await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
-
-                const _joinRequiredChatsPanel = await getJoinRequiredChatsPanel(context);
-
-                if (!_joinRequiredChatsPanel)
-                    return null;
-
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message.chat.id,
-                        ..._joinRequiredChatsPanel
-                    }
-                );
-
-                return { shouldContinue: false };
             }
+
+            if (!chat)
+                return null;
+
+            const chatId = chat.id;
+            const title = chat.title ?? "";
+
+            if (!link && chat.username)
+                link = `https://t.me/${chat.username}`;
+
+            const res = await context.services.telegramJoinRequiredChatApplication.add({
+                title, chatId, link
+            });
+
+            if (!res.ok)
+                return {
+                    call: {
+                        text: res.message
+                    }
+                };
+
+            await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+
+            const _joinRequiredChatsPanel = await getJoinRequiredChatsPanel(context);
+
+            if (!_joinRequiredChatsPanel)
+                return null;
+
+            await tgCall(
+                TelegramMethods.SendMessage,
+                {
+                    chat_id: update.message.chat.id,
+                    ..._joinRequiredChatsPanel
+                }
+            );
+
+            return { shouldContinue: false };
         }
 
         return { shouldContinue: true };

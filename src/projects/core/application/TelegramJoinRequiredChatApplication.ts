@@ -34,6 +34,12 @@ export default class TelegramJoinRequiredChatApplication {
         return result;
     }
 
+    async getAll() {
+        return await this.#telegramJoinRequiredChatRepository.getMany({
+            isDeleted: false,
+        }) ?? [];
+    }
+
     async getActives() {
         return await this.#telegramJoinRequiredChatRepository.getMany({
             isActive: true,

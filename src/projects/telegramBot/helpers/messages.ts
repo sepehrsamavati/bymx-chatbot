@@ -119,7 +119,7 @@ export const getAdminPanel = async (context: RequestContext) => {
 };
 
 export const getJoinRequiredChatsPanel = async (context: RequestContext) => {
-    const chats = await context.services.telegramJoinRequiredChatApplication.getActives();
+    const chats = await context.services.telegramJoinRequiredChatApplication.getAll();
 
     return {
         text: chats.length === 0 ? context.uiText.noJoinRequiredChat : `${context.uiText.joinRequiredChats}:`,
