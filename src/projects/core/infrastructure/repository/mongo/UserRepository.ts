@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import MongoSearchHelper from "./lib/SearchHelper.js";
 import type { ServicesType } from "../../../Container.js";
 import { openAIModelModelDefinition } from "./models/OpenAIModel.js";
 import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
@@ -6,7 +8,6 @@ import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../../../../../types/entities/user.js";
-import MongoSearchHelper from "./lib/SearchHelper.js";
 
 export default class UserRepository implements IUserRepository {
     #databaseConnection;
@@ -112,9 +113,9 @@ export default class UserRepository implements IUserRepository {
             phoneNumber: result.phoneNumber
         };
 
-        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>>;
+        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>> | mongoose.Types.ObjectId;
 
-        if (selectedChat && user.id === selectedChat.user.toString()) {
+        if (selectedChat && !(selectedChat instanceof mongoose.Types.ObjectId) && user.id === selectedChat.user.toString()) {
             const chatModel = selectedChat.model as PopulatedProperty<OpenAIChat['model']>;
             user.selectedChat = {
                 id: selectedChat._id.toString(),
@@ -134,6 +135,24 @@ export default class UserRepository implements IUserRepository {
         }
 
         return user;
+    }
+
+    async getRecentlyInserted(count: number): Promise<User[] | null> {
+        const res = await this.#databaseConnection.models.user
+            .find()
+            .sort({ insertDate: -1 })
+            .limit(count);
+
+        return res?.map(user => this.#storedToView(user) as User) ?? null;
+    }
+
+    async countRecentlyInserted(fromDate: Date): Promise<number | null> {
+        const res = await this.#databaseConnection.models.user.countDocuments({
+            insertDate: {
+                $gte: fromDate
+            }
+        });
+        return res;
     }
 
     async getBy(filter: SearchUserModel): Promise<User | null> {

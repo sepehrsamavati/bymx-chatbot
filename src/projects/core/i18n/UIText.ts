@@ -106,6 +106,8 @@ const keys = [
     "clickCheckAfterJoin",
     "shouldJoinChatBeforeUse",
     "notJoinedToTheseChats",
+    "newUsers",
+    "todayJoinedUsersCount",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -218,14 +218,20 @@ export default class UserApplication {
 
         const [
             usersCount,
-            usages
+            usages,
+            recentlyJoinedUsers,
+            todayJoinedUsersCount,
         ] = await Promise.all([
             this.#userRepository.countAll(),
             this.#openAIMessageRepository.getUsage(todayStart, todayEnd),
+            this.#userRepository.getRecentlyInserted(10),
+            this.#userRepository.countRecentlyInserted(todayStart),
         ]);
 
         return {
             usersCount,
+            recentlyJoinedUsers,
+            todayJoinedUsersCount,
             messageUsage: {
                 ...usages,
                 cost: usages?.cost.toFixed(2)

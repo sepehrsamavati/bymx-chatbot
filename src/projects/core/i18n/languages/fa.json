@@ -96,5 +96,7 @@
     "checkJoinChat": "بررسی عضویت",
     "clickCheckAfterJoin": "پس از عضویت دکمه بررسی را بزنید",
     "shouldJoinChatBeforeUse": "برای استفاده از ربات باید در کانال‌های زیر عضو شوید",
-    "notJoinedToTheseChats": "شما هنوز عضو کانال‌های زیر نشده‌اید"
+    "notJoinedToTheseChats": "شما هنوز عضو کانال‌های زیر نشده‌اید",
+    "newUsers": "کاربران جدید",
+    "todayJoinedUsersCount": "تعداد کاربران اضافه شده امروز"
 }

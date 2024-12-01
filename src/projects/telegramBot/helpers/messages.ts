@@ -107,8 +107,11 @@ export const getAdminPanel = async (context: RequestContext) => {
             + `\n\n${emojiIcon.sparkle} ${context.uiText.todaysRequests}: ${statistics.messageUsage?.count ?? '-'}`
             + `\n${emojiIcon.point} ${context.uiText.todaysPointUsage}: ${statistics.messageUsage?.point ?? '-'}`
             + `\n${emojiIcon.cost} ${context.uiText.todaysCost}: ${statistics.messageUsage?.cost ?? '-'}`
+            + `\n\n🔸 ${context.uiText.todayJoinedUsersCount}: ${statistics.todayJoinedUsersCount ?? '-'}`
             , context.user.lang
-        ),
+        )
+            + `\n${emojiIcon.list} ${context.uiText.newUsers}: ${statistics.recentlyJoinedUsers?.length ? "\n" + statistics.recentlyJoinedUsers.map(newUser => `${emojiIcon.user} /find_${newUser.tgId} ${newUser.firstName}`).join('\n') : '-'}`
+        ,
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.channel} ${context.uiText.joinRequired}`, callback_data: "joinRequiredChatsPanel" }],

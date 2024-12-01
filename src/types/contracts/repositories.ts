@@ -28,6 +28,12 @@ export type IUserRepository = {
     /** Returns user on success and null on failure (or non existence user) */
     getBy(filter: SearchUserModel): Promise<User | null>;
 
+    /** Returns users that created recently (`insertDate` sorted) */
+    getRecentlyInserted(count: number): Promise<User[] | null>;
+
+    /** Returns number of users that created after target date */
+    countRecentlyInserted(fromDate: Date): Promise<number | null>;
+
     /** Similar to `getBy` but updates `username`, `lastActivity` and increases `usage` */
     getAndUpdate(update: UpdateUserModel, ...args: Parameters<IUserRepository['getBy']>): ReturnType<IUserRepository['getBy']>;
 
