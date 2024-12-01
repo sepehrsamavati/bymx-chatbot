@@ -8,7 +8,7 @@ test('Open AI plan repository', async helpers => {
     await services.diReady();
 
     await helpers.test('Get many', async () => {
-        const result = await services.repositories.openAIPlanRepository.getMany({});
+        const result = await services.repositories.planRepository.getMany({});
         assert.strictEqual(Array.isArray(result), true);
         assert.strictEqual(result?.every(item => typeof item.id === "string"), true);
     });

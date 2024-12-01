@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { logger } from "../../../../helpers/logger.js";
 import { userModelDefinition } from "../models/User.js";
+import { planModelDefinition } from "../models/Plan.js";
 import type { ServicesType } from "../../../../Container.js";
-import { openAIPlanModelDefinition } from "../models/OpenAIPlan.js";
 import { openAIChatModelDefinition } from "../models/OpenAIChat.js";
 import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
 import { userTempFileModelDefinition } from "../models/UserTempFile.js";
@@ -143,7 +143,7 @@ class MongooseModels {
             user: userModelDefinition.createModel(this.connection),
             userSubscription: userSubscriptionModelDefinition.createModel(this.connection),
             openAIModel: openAIModelModelDefinition.createModel(this.connection),
-            openAIPlan: openAIPlanModelDefinition.createModel(this.connection),
+            plan: planModelDefinition.createModel(this.connection),
             openAIChat: openAIChatModelDefinition.createModel(this.connection),
             openAIMessage: openAIMessageModelDefinition.createModel(this.connection),
             userTempFile: userTempFileModelDefinition.createModel(this.connection),

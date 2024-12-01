@@ -1,6 +1,6 @@
 import type { CaptionOnly } from "./entities";
+import type { Plan, PlanDBModel } from "../entities/plan";
 import type { OpenAIModel } from "../entities/openAIModel";
-import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
 import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
@@ -79,9 +79,9 @@ export type IOpenAIModelRepository = {
     exists(id: OpenAIModel['id']): Promise<boolean | null>;
 }
 
-export type IOpenAIPlanRepository = {
-    getById(id: OpenAIPlan['id']): Promise<OpenAIPlan | null>;
-    getMany(filter: Pick<Partial<OpenAIPlanDBModel>, 'available'>): Promise<OpenAIPlan[] | null>;
+export type IPlanRepository = {
+    getById(id: Plan['id']): Promise<Plan | null>;
+    getMany(filter: Pick<Partial<PlanDBModel>, 'available'>): Promise<Plan[] | null>;
 }
 
 export type IOpenAIChatRepository = {
@@ -95,7 +95,7 @@ export type IOpenAIChatRepository = {
 
 export type IOpenAIMessageRepository = {
     create(message: OpenAIMessageDBModel): Promise<boolean | null>;
-    getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
+    getPlanPointUsage(plan: Plan['id']): Promise<number | null>;
     getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null>;

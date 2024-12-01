@@ -1,7 +1,7 @@
 import type { StoredEntity } from "../contracts/entities";
 import type { UITextOptionalKey } from "../../projects/core/i18n/UIText";
 
-export type OpenAIPlan = {
+export type Plan = {
     id: string;
     title: UITextOptionalKey;
     /** Purchase availability */
@@ -12,4 +12,4 @@ export type OpenAIPlan = {
     days: number;
 }
 
-export type OpenAIPlanDBModel = StoredEntity<OpenAIPlan>;
+export type PlanDBModel = StoredEntity<Plan>;

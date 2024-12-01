@@ -1,7 +1,7 @@
 import type { UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { PopulatedProperty } from "./lib/model.type.js";
-import type { OpenAIPlanDBModel } from "../../../../../types/entities/openAIPlan.js";
+import type { PlanDBModel } from "../../../../../types/entities/plan.js";
 import type { IUserSubscriptionRepository } from "../../../../../types/contracts/repositories.js";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
 
@@ -34,7 +34,7 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             })
             .sort({ expiry: 1 })
             .limit(1)
-            .populate<{ plan: PopulatedProperty<OpenAIPlanDBModel> }>("plan" satisfies keyof UserSubscriptionDBModel)
+            .populate<{ plan: PopulatedProperty<PlanDBModel> }>("plan" satisfies keyof UserSubscriptionDBModel)
             .lean()
             .exec();
 
@@ -74,7 +74,7 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             }
         })
             .populate<{
-                plan: PopulatedProperty<OpenAIPlanDBModel>;
+                plan: PopulatedProperty<PlanDBModel>;
             }>([
                 'plan'
             ])

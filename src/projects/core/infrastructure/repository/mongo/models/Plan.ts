@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
+import type { PlanDBModel } from "../../../../../../types/entities/plan.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
-import type { OpenAIPlanDBModel } from "../../../../../../types/entities/openAIPlan.js";
 
-export const openAIPlanModelDefinition: MongooseModelDefinition<"openAIPlans", "OpenAIPlan", MongoStored<OpenAIPlanDBModel>> = Object.freeze({
-    model: "OpenAIPlan",
-    collection: "openAIPlans",
-    createModel: con => con.models[openAIPlanModelDefinition.model] || con.model(openAIPlanModelDefinition.model, schema)
+export const planModelDefinition: MongooseModelDefinition<"plans", "Plan", MongoStored<PlanDBModel>> = Object.freeze({
+    model: "Plan",
+    collection: "plans",
+    createModel: con => con.models[planModelDefinition.model] || con.model(planModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<MongoStored<OpenAIPlanDBModel>>({
+const schema = new mongoose.Schema<MongoStored<PlanDBModel>>({
     insertDate: {
         type: Date,
         required: true
@@ -42,4 +42,4 @@ const schema = new mongoose.Schema<MongoStored<OpenAIPlanDBModel>>({
         required: true,
         min: 0,
     },
-}, { versionKey: false, collection: openAIPlanModelDefinition.collection });
+}, { versionKey: false, collection: planModelDefinition.collection });

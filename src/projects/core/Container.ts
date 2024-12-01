@@ -5,10 +5,10 @@ import UserApplication from "./application/UserApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import CacheStorage from "./infrastructure/services/CacheStorage.js";
+import OpenAIPlanApplication from "./application/PlanApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
-import OpenAIPlanApplication from "./application/OpenAIPlanApplication.js";
 import OpenAIChatApplication from "./application/OpenAIChatApplication.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
@@ -17,9 +17,9 @@ import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
 import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
-import { OpenAIPlanRepository } from "./infrastructure/repository/mongo/OpenAIPlanRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
 import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
@@ -41,7 +41,7 @@ type Connections = {
 type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
     userSubscriptionRepository: RepoInterfaces.IUserSubscriptionRepository;
-    openAIPlanRepository: RepoInterfaces.IOpenAIPlanRepository;
+    planRepository: RepoInterfaces.IPlanRepository;
     openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
     openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
@@ -129,7 +129,7 @@ export default class CoreServices {
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
             openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
-            openAIPlanRepository: asClass(errorCatcher(OpenAIPlanRepository), { lifetime: "SCOPED" }),
+            planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),
             openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
             telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),

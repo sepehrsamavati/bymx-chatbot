@@ -1,11 +1,11 @@
 import type { User } from "./user";
-import type { OpenAIPlan } from "./openAIPlan"
+import type { Plan } from "./plan";
 import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 
 export type UserSubscription = {
     id: string;
     user: User;
-    plan: OpenAIPlan;
+    plan: Plan;
     /** Plan points used and finished */
     isFinished: boolean;
     expiry: Date;

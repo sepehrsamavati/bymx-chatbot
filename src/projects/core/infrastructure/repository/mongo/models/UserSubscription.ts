@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { userModelDefinition } from "./User.js";
-import { openAIPlanModelDefinition } from "./OpenAIPlan.js";
+import { planModelDefinition } from "./Plan.js";
 import type { UserSubscriptionDBModel } from "../../../../../../types/entities/userSubscription.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
@@ -29,7 +29,7 @@ const schema = new mongoose.Schema<UserSubscriptionMongoStored>({
     },
     plan: {
         type: mongoose.Types.ObjectId,
-        ref: openAIPlanModelDefinition.model,
+        ref: planModelDefinition.model,
         required: true
     },
     expiry: {

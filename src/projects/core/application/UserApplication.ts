@@ -12,14 +12,14 @@ import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entiti
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
-    #openAIPlanRepository;
+    #planRepository;
     #openAIMessageRepository;
     #userSubscriptionRepository;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
-        this.#openAIPlanRepository = container.openAIPlanRepository;
+        this.#planRepository = container.planRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
     }
@@ -148,7 +148,7 @@ export default class UserApplication {
     async purchasePlan(user: User, planId: string) {
         const result = new OperationResult();
 
-        const plan = await this.#openAIPlanRepository.getById(planId);
+        const plan = await this.#planRepository.getById(planId);
 
         if (!plan)
             return result.failed("planNotExist");

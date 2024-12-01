@@ -1,18 +1,18 @@
 import type { FilterQuery } from "mongoose";
 import type { MongoStored } from "./lib/model.type.js";
 import type { ServicesType } from "../../../Container.js";
-import type { IOpenAIPlanRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIPlan, OpenAIPlanDBModel } from "../../../../../types/entities/openAIPlan.js";
+import type { Plan, PlanDBModel } from "../../../../../types/entities/plan.js";
+import type { IPlanRepository } from "../../../../../types/contracts/repositories.js";
 
-export class OpenAIPlanRepository implements IOpenAIPlanRepository {
+export class PlanRepository implements IPlanRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async getById(id: OpenAIPlan["id"]): Promise<OpenAIPlan | null> {
+    async getById(id: Plan["id"]): Promise<Plan | null> {
         const res = (
-            await this.#databaseConnection.models.openAIPlan
+            await this.#databaseConnection.models.plan
                 .findOne({ id, isDeleted: false })
                 .lean()
         );
@@ -26,14 +26,14 @@ export class OpenAIPlanRepository implements IOpenAIPlanRepository {
         } : null;
     }
 
-    async getMany(filter: Pick<Partial<OpenAIPlanDBModel>, "available">): Promise<OpenAIPlan[] | null> {
-        const _filter: FilterQuery<MongoStored<OpenAIPlanDBModel>> = { isDeleted: false };
+    async getMany(filter: Pick<Partial<PlanDBModel>, "available">): Promise<Plan[] | null> {
+        const _filter: FilterQuery<MongoStored<PlanDBModel>> = { isDeleted: false };
 
         if (typeof filter.available === "boolean")
             _filter.available = filter.available;
 
         const res = (
-            await this.#databaseConnection.models.openAIPlan
+            await this.#databaseConnection.models.plan
                 .find(_filter)
                 .lean()
         )
@@ -44,7 +44,7 @@ export class OpenAIPlanRepository implements IOpenAIPlanRepository {
                 days: item.days,
                 points: item.points,
                 price: item.price
-            } as OpenAIPlan));
+            } as Plan));
         return res;
     }
 }
