@@ -111,7 +111,7 @@ export default class OpenAIApplication {
             if (_historyMessages === null)
                 return result.failed();
 
-            historyMessages = _historyMessages;
+            historyMessages = _historyMessages.reverse();
         }
 
         let subscription: Omit<UserSubscription, 'user'> | null = null;
