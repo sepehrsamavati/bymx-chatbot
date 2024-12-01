@@ -37,9 +37,6 @@ export const isCompatibleUserMode = (handler: IUpdateHandler, mode: UserModeType
     const handlerModes = Array.isArray(handler.mode) ? handler.mode : [handler.mode];
     const modes = Array.isArray(mode) ? mode : [mode];
 
-    if (handlerModes.includes(TelegramUpdateType.All))
-        return true;
-
     if (handlerModes.some(t => modes.includes(t)))
         return true;
 
