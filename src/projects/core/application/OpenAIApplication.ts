@@ -7,10 +7,10 @@ import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
-import type { OpenAIMessage } from "../../../types/entities/openAIMessage.js";
 import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
+import type { OpenAIMessageBasicInfo } from "../../../types/entities/openAIMessage.js";
 import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
 import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
@@ -103,7 +103,7 @@ export default class OpenAIApplication {
         if (freePointUsage === null)
             return result.failed();
 
-        let historyMessages: OpenAIMessage[] = [];
+        let historyMessages: OpenAIMessageBasicInfo[] = [];
 
         if (user.memoryAmount && user.saveMessages) {
             const _historyMessages = await this.#openAIMessageRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
@@ -198,7 +198,8 @@ export default class OpenAIApplication {
                 points: userPointCost,
                 model: selectedChat.model.name,
                 saved: user.saveMessages,
-                plan: subscription ? subscription.plan : undefined
+                plan: subscription ? subscription.plan : undefined,
+                promptUser: user
             });
 
             if (subscription && currentPlanUsage + userPointCost >= subscription.plan.points) {
@@ -316,7 +317,8 @@ export default class OpenAIApplication {
             model: selectedChat.model.name,
             saved: user.saveMessages,
             fileId: tempFile.fsId,
-            plan: subscription ? subscription.plan : undefined
+            plan: subscription ? subscription.plan : undefined,
+            promptUser: user
         });
 
         this.#messageLock.unlock(user.id);

@@ -3,6 +3,7 @@ import { openAIChatModelDefinition } from "./OpenAIChat.js";
 import { openAIPlanModelDefinition } from "./OpenAIPlan.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition } from "../lib/model.type.js";
 import type { OpenAIMessageDBModel } from "../../../../../../types/entities/openAIMessage.js";
+import { userModelDefinition } from "./User.js";
 
 type OpenAIMessageMongoStored = FlattenToObjectIDs<OpenAIMessageDBModel, 'chat'>;
 
@@ -44,6 +45,11 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
         type: mongoose.Types.ObjectId,
         ref: openAIPlanModelDefinition.model,
         required: false
+    },
+    promptUser: {
+        type: mongoose.Types.ObjectId,
+        ref: userModelDefinition.model,
+        required: true
     },
     prompt: {
         type: String,

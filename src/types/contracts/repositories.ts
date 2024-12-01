@@ -1,7 +1,7 @@
 import type { CaptionOnly } from "./entities";
 import type { OpenAIModel } from "../entities/openAIModel";
 import type { OpenAIPlan, OpenAIPlanDBModel } from "../entities/openAIPlan";
-import type { OpenAIMessage, OpenAIMessageDBModel } from "../entities/openAIMessage";
+import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
@@ -92,7 +92,7 @@ export type IOpenAIMessageRepository = {
     getPlanPointUsage(plan: OpenAIPlan['id']): Promise<number | null>;
     getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
-    getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null>;
+    getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
 }
 

@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
 import type { ServicesType } from "../../../Container.js";
-import type { PopulatedProperty } from "./lib/model.type.js";
 import { openAIChatModelDefinition } from "./models/OpenAIChat.js";
-import type { OpenAIPlanDBModel } from "../../../../../types/entities/openAIPlan.js";
 import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIMessage, OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
-import { OpenAIChatDBModel } from "../../../../../types/entities/openAIChat.js";
+import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
 
 export class OpenAIMessageRepository implements IOpenAIMessageRepository {
     #databaseConnection;
@@ -25,6 +22,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             prompt: message.prompt,
             saved: message.saved,
             model: message.model,
+            promptUser: message.promptUser.id,
             fileId: message.fileId
         });
         return Boolean(res?._id);
@@ -120,7 +118,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         return _userPointUsage;
     }
 
-    async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessage[] | null> {
+    async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null> {
         const res = await this.#databaseConnection.models.openAIMessage
             .find({
                 isDeleted: false,
@@ -130,13 +128,13 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             })
             .sort({ insertDate: -1 })
             .limit(count)
-            .populate<{
-                chat: PopulatedProperty<OpenAIChatDBModel>;
-                plan: PopulatedProperty<OpenAIPlanDBModel>;
-            }>([
-                "chat",
-                "plan"
-            ] satisfies Array<keyof OpenAIMessage>)
+            // .populate<{
+            //     chat: PopulatedProperty<OpenAIChatDBModel>;
+            //     plan: PopulatedProperty<OpenAIPlanDBModel>;
+            // }>([
+            //     "chat",
+            //     "plan"
+            // ] satisfies Array<keyof OpenAIMessage>)
             .lean()
             .exec();
 
@@ -151,22 +149,22 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             saved: item.saved,
             model: item.model,
             fileId: item.fileId,
-            chat: {
-                id: item.chat._id.toString(),
-                title: item.chat.title,
-                isHidden: item.chat.isHidden,
-                model: item.chat.model,
-                user: item.chat.user,
-                behavior: item.chat.behavior
-            },
-            plan: item.plan ? {
-                id: item.plan._id.toString(),
-                available: item.plan.available,
-                days: item.plan.days,
-                points: item.plan.points,
-                price: item.plan.price,
-                title: item.plan.title,
-            } : undefined
+            // chat: {
+            //     id: item.chat._id.toString(),
+            //     title: item.chat.title,
+            //     isHidden: item.chat.isHidden,
+            //     model: item.chat.model,
+            //     user: item.chat.user,
+            //     behavior: item.chat.behavior
+            // },
+            // plan: item.plan ? {
+            //     id: item.plan._id.toString(),
+            //     available: item.plan.available,
+            //     days: item.plan.days,
+            //     points: item.plan.points,
+            //     price: item.plan.price,
+            //     title: item.plan.title,
+            // } : undefined
         }));
     }
 
@@ -213,7 +211,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         if (res.length > 1)
             throw new Error("OpenAI get message usage by date range errored (multiple aggregation result returned)");
 
-        const usage = res[0];
+        const usage = res.at(0);
 
         return usage ?? {
             cost: 0,
