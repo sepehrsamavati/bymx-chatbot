@@ -74,7 +74,7 @@ export class UpdateHandler {
         if (!userId)
             return;
 
-        // user root container (do not create scope)
+        // use root container (do not create scope)
         const user = await this.services.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
