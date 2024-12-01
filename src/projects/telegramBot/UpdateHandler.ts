@@ -21,8 +21,8 @@ import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObj
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
-    joinChatHandler,
     userCommandHandler,
+    joinChatHandler,
     panelHandler,
     adminPanelHandler,
     adminJoinChatPanelHandler,
