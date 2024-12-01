@@ -102,6 +102,10 @@ const keys = [
     "chatAlreadyExists",
     "chatIsPrivateReplyLink",
     "botIsNotAdmin",
+    "checkJoinChat",
+    "clickCheckAfterJoin",
+    "shouldJoinChatBeforeUse",
+    "notJoinedToTheseChats",
 ] as const;
 
 export type UITextKey = typeof keys[number];

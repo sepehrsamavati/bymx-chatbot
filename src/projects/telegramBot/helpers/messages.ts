@@ -118,6 +118,7 @@ export const getAdminPanel = async (context: RequestContext) => {
     };
 };
 
+/** Admin panel */
 export const getJoinRequiredChatsPanel = async (context: RequestContext) => {
     const chats = await context.services.telegramJoinRequiredChatApplication.getAll();
 
@@ -132,6 +133,7 @@ export const getJoinRequiredChatsPanel = async (context: RequestContext) => {
     };
 };
 
+/** Admin panel */
 export const getJoinRequiredChatPanel = async (context: RequestContext, id: string) => {
     const chat = await context.services.telegramJoinRequiredChatApplication.getById(id);
 
@@ -146,6 +148,21 @@ export const getJoinRequiredChatPanel = async (context: RequestContext, id: stri
             inline_keyboard: [
                 // ...(chats.map(chat => [{ text: chat.title, callback_data: `manageJoinChat_${chat.id}` }])),
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "joinRequiredChatsPanel" }],
+            ]
+        }
+    };
+};
+
+/** User join chats panel */
+export const getJoinChatsPanel = async (context: RequestContext, hideChats: string[], isSecondary = false) => {
+    const chats = (await context.services.telegramJoinRequiredChatApplication.getActives()).filter(chat => !hideChats.includes(chat.id));
+
+    return {
+        text: `${isSecondary ? `${emojiIcon.failed} ${context.uiText.notJoinedToTheseChats}:` : `${emojiIcon.warning} ${context.uiText.shouldJoinChatBeforeUse}:`}\n\n- ${context.uiText.clickCheckAfterJoin}`,
+        reply_markup: {
+            inline_keyboard: [
+                ...(chats.map(chat => [{ text: chat.title, url: chat.link }])),
+                [{ text: `${emojiIcon.ok} ${context.uiText.checkJoinChat}`, callback_data: "checkJoinRequiredChats" }],
             ]
         }
     };
