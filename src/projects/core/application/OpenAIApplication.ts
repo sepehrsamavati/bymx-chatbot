@@ -68,7 +68,7 @@ export default class OpenAIApplication {
                 title: "",
                 user: user,
                 model: defaultModel,
-                behavior: OpenAISystemMessage.Baymax,
+                behavior: OpenAISystemMessage.None,
                 isHidden: true
             } satisfies Partial<OpenAIChat>;
 
