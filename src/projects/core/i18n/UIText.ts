@@ -108,6 +108,11 @@ const keys = [
     "notJoinedToTheseChats",
     "newUsers",
     "todayJoinedUsersCount",
+    "createPicture",
+    "describePictureInText",
+    "cancelImageGeneration",
+    "pointNotEnough",
+    "promptContentNotAllowed",
 ] as const;
 
 export type UITextKey = typeof keys[number];

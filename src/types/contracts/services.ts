@@ -10,6 +10,12 @@ export type IOpenAITextResult = {
     outputTokens: number;
 };
 
+export type IOpenAIImageResult = {
+    url?: string;
+    costUsdCent: number;
+    contentPolicyViolation?: boolean;
+};
+
 export type IOpenAITextResultWithFile = {
     result?: IOpenAITextResult;
     file: {
@@ -36,6 +42,7 @@ export type IOpenAIService = {
     fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;
     deleteVectorById(id: string): Promise<OperationResult>;
+    simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
 }
 
 export type IOpenAIModelCache = {

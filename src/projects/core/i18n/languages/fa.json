@@ -98,5 +98,10 @@
     "shouldJoinChatBeforeUse": "برای استفاده از ربات باید در کانال‌های زیر عضو شوید",
     "notJoinedToTheseChats": "شما هنوز عضو کانال‌های زیر نشده‌اید",
     "newUsers": "کاربران جدید",
-    "todayJoinedUsersCount": "تعداد کاربران اضافه شده امروز"
+    "todayJoinedUsersCount": "تعداد کاربران اضافه شده امروز",
+    "createPicture": "ساخت تصویر",
+    "describePictureInText": "برای ساخت تصویر، به صورت متن تصویر مورد نظر را شرح دهید:",
+    "cancelImageGeneration": "لغو ساخت تصویر",
+    "pointNotEnough": "امتیاز شما کافی نمی‌باشد!",
+    "promptContentNotAllowed": "ورودی غیر مجاز می‌باشد! لطفا ورودی را تغییر دهید."
 }

@@ -13,6 +13,7 @@ import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
+import { imageGenerateHandler } from "./handlers/imageGenerateHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
@@ -29,7 +30,8 @@ const handlers: IUpdateHandler[] = [
     termsOfServiceHandler,
     chatManageHandler,
     createNewChatHandler,
-    promptHandler
+    imageGenerateHandler,
+    promptHandler,
 ];
 
 const handlerTypeFilter: {

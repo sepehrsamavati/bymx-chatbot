@@ -3,6 +3,15 @@ import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 
 const pointsPerDollar = 1_000;
 
+export const calculatePointUsage = (opts: { usd: number; } | { usdCent: number; }) => {
+    if ('usd' in opts) {
+        return pointsPerDollar * opts.usd;
+    } else if ('usdCent' in opts) {
+        return pointsPerDollar * opts.usdCent / 100;
+    }
+    throw new TypeError("Invalid parameter for function 'calculatePointUsage'");
+};
+
 export const modelCostCalculator = (opts: {
     inputUnits: number;
     outputUnits: number;

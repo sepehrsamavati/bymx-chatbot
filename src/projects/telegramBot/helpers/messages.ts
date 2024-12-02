@@ -76,6 +76,7 @@ export const getPanel = async (context: RequestContext) => {
     const inlineKeyboard = [
         [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
         [context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }],
+        [{ text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }],
     ];
 
     if (accessHelper(UserType.Admin, context.user.type))
@@ -116,6 +117,17 @@ export const getAdminPanel = async (context: RequestContext) => {
             inline_keyboard: [
                 [{ text: `${emojiIcon.channel} ${context.uiText.joinRequired}`, callback_data: "joinRequiredChatsPanel" }],
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getImageGenerateModePanel = async (context: RequestContext) => {
+    return {
+        text: context.uiText.describePictureInText,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
             ]
         }
     };

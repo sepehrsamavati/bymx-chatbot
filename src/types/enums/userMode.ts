@@ -14,10 +14,15 @@ const JoinRequiredChatManagement = Object.freeze({
     AddNew: 30
 });
 
+const UserPrompt = Object.freeze({
+    ImageGenerationPrompt: 40
+});
+
 const Enums = Object.freeze({
     General,
+    UserPrompt,
     ChatManagement,
-    JoinRequiredChatManagement
+    JoinRequiredChatManagement,
 });
 
 type UnifiedEnums = typeof Enums[keyof typeof Enums];

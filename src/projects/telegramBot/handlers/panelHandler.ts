@@ -3,32 +3,62 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
+import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
     updateType: TelegramUpdateType.CallbackQuery,
-    mode: UserMode.General.Normal,
+
     async handler(context, update) {
         const queryData = update.callback_query?.data;
 
         switch (queryData) {
             case "panel": {
+                if (context.user.mode !== UserMode.General.Normal)
+                    await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+
                 const _panel = await getPanel(context);
 
                 if (!_panel)
                     return null;
 
-                await tgCall(
-                    TelegramMethods.EditMessageText,
-                    {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
-                        ..._panel
-                    }
-                );
+                if (update.callback_query?.message.text)
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ..._panel
+                        }
+                    );
+                else
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            reply_parameters: {
+                                allow_sending_without_reply: true,
+                                message_id: update.callback_query?.message.message_id,
+                            },
+                            ..._panel
+                        }
+                    );
 
                 return { shouldContinue: false };
+            };
+            case "generateImage": {
+                if ((await context.services.userApplication.setUserMode(context.user.id, UserMode.UserPrompt.ImageGenerationPrompt)).ok) {
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ...await getImageGenerateModePanel(context)
+                        }
+                    );
+                }
+
+                return null;
             };
             case "usedPointsForMessage": {
 

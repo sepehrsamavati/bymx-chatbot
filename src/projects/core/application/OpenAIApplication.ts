@@ -11,10 +11,14 @@ import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 import type { UserSubscription } from "../../../types/entities/userSubscription.js";
 import type { OpenAIMessageBasicInfo } from "../../../types/entities/openAIMessage.js";
-import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
-import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
+import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
+import type { IOpenAIImageResult, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
+    pointUsage: number;
+}
+
+export type IOpenAIGeneratedImageResponse = Pick<IOpenAIImageResult, 'url'> & {
     pointUsage: number;
 }
 
@@ -45,7 +49,7 @@ export default class OpenAIApplication {
         this.#messageLock = container.openAIMessageLockCache;
     }
 
-    async #middleware(user: User, message: string) {
+    async #middleware(user: User) {
         const result = new OperationResultWithData<any>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
@@ -150,7 +154,7 @@ export default class OpenAIApplication {
         imageUrl?: string;
         plainTextTempFile?: UserTempFile;
     }): Promise<OperationResultWithData<IOpenAITextResponse>> {
-        const _middlewareResult = await this.#middleware(user, textMessage);
+        const _middlewareResult = await this.#middleware(user);
 
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
@@ -257,6 +261,63 @@ export default class OpenAIApplication {
         return result;
     }
 
+    async imageGenerate(user: User, message: string): Promise<OperationResultWithData<IOpenAIGeneratedImageResponse>> {
+        const _middlewareResult = await this.#middleware(user);
+
+        if (_middlewareResult instanceof OperationResultWithData)
+            return _middlewareResult;
+
+        const { selectedChat, currentPlanUsage, remainingPoints, subscription } = _middlewareResult;
+
+        const result = new OperationResultWithData<IOpenAIGeneratedImageResponse>().failed("errorOccurred");
+
+        if (remainingPoints < 20)
+            return result.failed("pointNotEnough");
+
+        if (this.#messageLock.isLocked(user.id))
+            return result.failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const res = await this.#openAI.simpleImageGenerate(user.id, message);
+
+        if (res?.url) {
+            const userPointCost = calculatePointUsage({ usdCent: res.costUsdCent });
+
+            result.succeeded().setData({
+                url: res.url,
+                pointUsage: userPointCost
+            });
+
+            await this.#openAIMessageRepository.create({
+                chat: selectedChat,
+                cost: res.costUsdCent / 100,
+                insertDate: new Date(),
+                isDeleted: false,
+                prompt: message,
+                output: res.url,
+                points: userPointCost,
+                model: "dall-e-2",
+                saved: false,
+                plan: subscription ? subscription.plan : undefined,
+                promptUser: user
+            });
+
+            if (subscription && currentPlanUsage + userPointCost >= subscription.plan.points) {
+                await this.#userSubscriptionRepository.updateById({
+                    id: subscription.id,
+                    isFinished: true
+                });
+            }
+        } else if(res?.contentPolicyViolation) {
+            result.failed("promptContentNotAllowed");
+        }
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
     async fileWithMessage(opts: {
         tempFile: UserTempFile;
         message: string;
@@ -272,7 +333,7 @@ export default class OpenAIApplication {
 
         this.#messageLock.lock(user.id);
 
-        const _middlewareResult = await this.#middleware(user, message);
+        const _middlewareResult = await this.#middleware(user);
 
         if (_middlewareResult instanceof OperationResultWithData) {
             this.#messageLock.unlock(user.id);

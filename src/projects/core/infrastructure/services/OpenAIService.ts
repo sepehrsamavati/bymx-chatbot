@@ -225,4 +225,43 @@ export default class OpenAIService implements IOpenAIService {
 
         return result;
     }
+
+    async simpleImageGenerate(userId: string | undefined, prompt: string) {
+        try {
+            const res = await this.#client.images.generate({
+                model: "dall-e-2",
+                prompt: prompt,
+                n: 1,
+                size: "1024x1024",
+                response_format: "url",
+                user: userId
+            });
+
+            if (res.data.length) {
+                const url = res.data.at(0)?.url;
+                if (!url)
+                    return null;
+                return {
+                    url,
+                    costUsdCent: 2
+                };
+            } else {
+                logger.warn(`Invalid OpenAI image generate result for prompt ('${prompt}')`);
+            }
+
+            return null;
+        } catch (err) {
+
+            if (err instanceof Error) {
+                if ('code' in err && err.code === 'content_policy_violation')
+                    return {
+                        costUsdCent: 0,
+                        contentPolicyViolation: true,
+                    };
+            }
+
+            errorLogger("OpenAI simpleImageGenerate", err);
+            return null;
+        }
+    }
 }
