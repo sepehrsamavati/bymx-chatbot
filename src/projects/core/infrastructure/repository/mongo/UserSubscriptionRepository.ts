@@ -1,9 +1,9 @@
-import type { UpdateQuery } from "mongoose";
+import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { PopulatedProperty } from "./lib/model.type.js";
 import type { PlanDBModel } from "../../../../../types/entities/plan.js";
 import type { IUserSubscriptionRepository } from "../../../../../types/contracts/repositories.js";
-import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
+import type { SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
 
 export class UserSubscriptionRepository implements IUserSubscriptionRepository {
     #databaseConnection;
@@ -15,7 +15,13 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         const res = await this.#databaseConnection.models.userSubscription.create({
             insertDate: userSubscription.insertDate,
             isDeleted: userSubscription.isDeleted,
-            plan: userSubscription.plan.id,
+            plan: {
+                id: userSubscription.plan.id,
+                title: userSubscription.plan.title,
+                type: userSubscription.plan.type,
+                price: userSubscription.plan.price,
+                points: userSubscription.plan.points
+            },
             user: userSubscription.user.id,
             expiry: userSubscription.expiry,
             isFinished: userSubscription.isFinished
@@ -34,7 +40,7 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             })
             .sort({ expiry: 1 })
             .limit(1)
-            .populate<{ plan: PopulatedProperty<PlanDBModel> }>("plan" satisfies keyof UserSubscriptionDBModel)
+            // .populate<{ plan: PopulatedProperty<PlanDBModel> }>("plan" satisfies keyof UserSubscriptionDBModel)
             .lean()
             .exec();
 
@@ -54,14 +60,57 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             expiry: subscription.expiry,
             isFinished: subscription.isFinished,
             plan: {
-                id: subscription.plan._id.toString(),
-                available: subscription.plan.available,
-                days: subscription.plan.days,
+                id: subscription.plan.id,
                 points: subscription.plan.points,
                 price: subscription.plan.price,
                 title: subscription.plan.title,
+                type: subscription.plan.type
             }
         };
+    }
+
+    async getMany(filter: SearchUserSubscription): Promise<Omit<UserSubscription, 'user'>[] | null> {
+        const _filter: FilterQuery<UserSubscription> = {};
+
+        if (filter.expiryNotBefore !== undefined)
+            _filter.expiry = {
+                $gt: filter.expiryNotBefore
+            };
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        if (filter.isFinished !== undefined)
+            _filter.isFinished = filter.isFinished;
+
+        if (filter.user !== undefined)
+            _filter.user = typeof filter.user === "string" ? filter.user : filter.user.id;
+
+        if (filter.planId !== undefined)
+            _filter.planId = filter.planId;
+
+        if (filter.planType !== undefined)
+            _filter.planType = filter.planType;
+
+        const res = await this.#databaseConnection.models.userSubscription.find(_filter);
+
+        if (!res)
+            return null;
+
+        return res.map(subscription => (
+            {
+                id: subscription._id.toString(),
+                expiry: subscription.expiry,
+                isFinished: subscription.isFinished,
+                plan: {
+                    id: subscription.plan.id,
+                    points: subscription.plan.points,
+                    price: subscription.plan.price,
+                    title: subscription.plan.title,
+                    type: subscription.plan.type
+                }
+            }
+        ));
     }
 
     async getAllActives(userId: string, expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null> {
@@ -70,14 +119,9 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             isFinished: false,
             user: userId,
             expiry: {
-                $lte: expiryNotBefore
+                $gte: expiryNotBefore
             }
         })
-            .populate<{
-                plan: PopulatedProperty<PlanDBModel>;
-            }>([
-                'plan'
-            ])
             .orFail()
             .lean();
 
@@ -92,12 +136,11 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
                 isFinished: item.isFinished,
                 expiry: item.expiry,
                 plan: {
-                    id: plan._id.toString(),
+                    id: plan.id,
                     title: plan.title,
-                    available: plan.available,
-                    days: plan.days,
                     points: plan.points,
-                    price: plan.price
+                    price: plan.price,
+                    type: plan.type,
                 }
             };
         });

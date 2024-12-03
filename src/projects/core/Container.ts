@@ -27,6 +27,7 @@ import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequi
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
 import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
+import { UserSubscriptionUsageRepository } from "./infrastructure/repository/mongo/UserSubscriptionUsageRepository.js";
 import { TelegramJoinRequiredChatRepository } from "./infrastructure/repository/mongo/TelegramJoinRequiredChatRepository.js";
 
 type Constants = {
@@ -41,6 +42,7 @@ type Connections = {
 type Repositories = {
     userRepository: RepoInterfaces.IUserRepository;
     userSubscriptionRepository: RepoInterfaces.IUserSubscriptionRepository;
+    userSubscriptionUsageRepository: RepoInterfaces.IUserSubscriptionUsageRepository;
     planRepository: RepoInterfaces.IPlanRepository;
     openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
@@ -127,6 +129,7 @@ export default class CoreServices {
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
+            userSubscriptionUsageRepository: asClass(errorCatcher(UserSubscriptionUsageRepository), { lifetime: "SCOPED" }),
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
             openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
             planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),

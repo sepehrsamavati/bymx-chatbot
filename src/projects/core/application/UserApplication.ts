@@ -3,6 +3,7 @@ import type { ServicesType } from "../Container.js";
 import { getTodayRange } from "../helpers/dateHelper.js";
 import { accessHelper } from "../helpers/accessHelper.js";
 import { UserType } from "../../../types/enums/userTypes.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
@@ -15,6 +16,7 @@ export default class UserApplication {
     #planRepository;
     #openAIMessageRepository;
     #userSubscriptionRepository;
+    #userSubscriptionUsageRepository;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
@@ -22,6 +24,7 @@ export default class UserApplication {
         this.#planRepository = container.planRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
+        this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
     }
 
     async upsert(user: UpsertUserModel) {
@@ -175,11 +178,31 @@ export default class UserApplication {
         return await this.#userSubscriptionRepository.getActive(userId, new Date());
     }
 
+    async #getCurrentDailyFreeSubscription(userId: string) {
+        const activeDailyFreeSubscriptions = await this.#userSubscriptionRepository.getMany({
+            planType: PlanType.DailyFree,
+            user: userId,
+            isDeleted: false,
+            expiryNotBefore: new Date()
+        });
+
+        if (activeDailyFreeSubscriptions?.length !== 1)
+            return null;
+
+        const [activeDailyFreeSubscription] = activeDailyFreeSubscriptions;
+
+        return activeDailyFreeSubscription;
+    }
+
     async getFreePointStatus(userId: string) {
-        const [start, end] = getTodayRange();
+        // const [start, end] = getTodayRange();
 
-        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
+        const activeDailyFreeSubscription = await this.#getCurrentDailyFreeSubscription(userId);
 
+        if (!activeDailyFreeSubscription)
+            return null;
+
+        const freePointUsage = await this.#userSubscriptionUsageRepository.getPointUsageById(activeDailyFreeSubscription.id);
 
         if (freePointUsage === null)
             return null;
@@ -187,6 +210,7 @@ export default class UserApplication {
         const { dailyFreePoints } = config;
 
         return {
+            activeDailyFreeSubscription,
             used: freePointUsage,
             remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
             total: dailyFreePoints

@@ -10,6 +10,7 @@ import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
 import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
 import { telegramBroadcastModelDefinition } from "../models/TelegramBroadcast.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
+import { userSubscriptionUsageModelDefinition } from "../models/UserSubscriptionUsage.js";
 import { telegramJoinRequiredChatModelDefinition } from "../models/TelegramJoinRequiredChat.js";
 
 export class MongoDBTransaction implements ITransaction {
@@ -142,6 +143,7 @@ class MongooseModels {
         this.models = Object.freeze({
             user: userModelDefinition.createModel(this.connection),
             userSubscription: userSubscriptionModelDefinition.createModel(this.connection),
+            userSubscriptionUsage: userSubscriptionUsageModelDefinition.createModel(this.connection),
             openAIModel: openAIModelModelDefinition.createModel(this.connection),
             plan: planModelDefinition.createModel(this.connection),
             openAIChat: openAIChatModelDefinition.createModel(this.connection),

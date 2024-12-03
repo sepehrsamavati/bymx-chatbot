@@ -1,10 +1,11 @@
 import type { CaptionOnly } from "./entities";
 import type { Plan, PlanDBModel } from "../entities/plan";
 import type { OpenAIModel } from "../entities/openAIModel";
+import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUsage";
 import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
-import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
+import type { SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
@@ -53,6 +54,12 @@ export type IUserSubscriptionRepository = {
     getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
     getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
     countByUserId(userId: User['id'], expiryNotBefore: Date): Promise<number | null>;
+    getMany(filter: SearchUserSubscription): Promise<Omit<UserSubscription, 'user'>[] | null>;
+}
+
+export type IUserSubscriptionUsageRepository = {
+    createMany(userSubscriptionUsages: CreateUserSubscriptionUsage[]): Promise<boolean | null>;
+    getPointUsageById(userSubscriptionId: UserSubscription['id']): Promise<number | null>;
 }
 
 export type ITelegramBroadcastRepository = {
@@ -95,8 +102,6 @@ export type IOpenAIChatRepository = {
 
 export type IOpenAIMessageRepository = {
     create(message: OpenAIMessageDBModel): Promise<boolean | null>;
-    getPlanPointUsage(plan: Plan['id']): Promise<number | null>;
-    getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;

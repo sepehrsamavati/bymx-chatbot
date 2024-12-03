@@ -4,7 +4,7 @@ import { planModelDefinition } from "./Plan.js";
 import type { UserSubscriptionDBModel } from "../../../../../../types/entities/userSubscription.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
-type UserSubscriptionMongoStored = MongoStored<FlattenToObjectIDs<UserSubscriptionDBModel, 'user' | 'plan'>>;
+type UserSubscriptionMongoStored = MongoStored<FlattenToObjectIDs<UserSubscriptionDBModel, 'user'>>;
 
 export const userSubscriptionModelDefinition: MongooseModelDefinition<"userSubscriptions", "UserSubscription", UserSubscriptionMongoStored> = Object.freeze({
     model: "UserSubscription",
@@ -28,9 +28,27 @@ const schema = new mongoose.Schema<UserSubscriptionMongoStored>({
         required: true
     },
     plan: {
-        type: mongoose.Types.ObjectId,
-        ref: planModelDefinition.model,
-        required: true
+        id: {
+            type: mongoose.Types.ObjectId,
+            ref: planModelDefinition.model,
+            required: true
+        },
+        type: {
+            type: Number,
+            required: true,
+        },
+        title: {
+            type: String,
+            required: true,
+        },
+        price: {
+            type: Number,
+            required: true,
+        },
+        points: {
+            type: Number,
+            required: true,
+        },
     },
     expiry: {
         type: Date,

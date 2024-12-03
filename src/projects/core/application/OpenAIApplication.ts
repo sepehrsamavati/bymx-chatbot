@@ -31,8 +31,9 @@ export default class OpenAIApplication {
     #openAIChatRepository;
     #openAIMessageRepository;
     #userSubscriptionRepository;
-    #userRepository;
+    #userSubscriptionUsageRepository;
     #userApplication;
+    #userRepository;
     #userTempFileApplication;
     #openAIModelCache;
     #messageLock;
@@ -42,8 +43,9 @@ export default class OpenAIApplication {
         this.#openAIChatRepository = container.openAIChatRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionRepository = container.userSubscriptionRepository;
-        this.#userRepository = container.userRepository;
+        this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
         this.#userApplication = container.userApplication;
+        this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#openAIModelCache = container.openAIModelCache;
         this.#messageLock = container.openAIMessageLockCache;
@@ -118,17 +120,19 @@ export default class OpenAIApplication {
             historyMessages = _historyMessages.reverse();
         }
 
-        let subscription: Omit<UserSubscription, 'user'> | null = null;
+        let subscription: Omit<UserSubscription, 'user'> = freePointUsage.activeDailyFreeSubscription;
         let currentPlanUsage = 0;
         let remainingPoints = freePointUsage.remaining;
 
         if (remainingPoints <= 0) {
-            subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
+            const _subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
 
-            if (!subscription)
+            if (!_subscription)
                 return result.failed("noPointAvailable");
 
-            const _currentPlanUsage = await this.#openAIMessageRepository.getPlanPointUsage(subscription.plan.id);
+            subscription = _subscription;
+
+            const _currentPlanUsage = await this.#userSubscriptionUsageRepository.getPointUsageById(subscription.id);
 
             if (_currentPlanUsage === null)
                 return result.failed();
@@ -145,7 +149,10 @@ export default class OpenAIApplication {
             selectedChat,
             remainingPoints,
             historyMessages,
-            subscription,
+            subscription: {
+                user,
+                ...subscription,
+            },
             currentPlanUsage,
         };
     }
@@ -202,7 +209,7 @@ export default class OpenAIApplication {
                 points: userPointCost,
                 model: selectedChat.model.name,
                 saved: user.saveMessages,
-                plan: subscription ? subscription.plan : undefined,
+                subscription: subscription,
                 promptUser: user
             });
 
@@ -299,7 +306,7 @@ export default class OpenAIApplication {
                 points: userPointCost,
                 model: "dall-e-2",
                 saved: false,
-                plan: subscription ? subscription.plan : undefined,
+                subscription: subscription,
                 promptUser: user
             });
 
@@ -309,7 +316,7 @@ export default class OpenAIApplication {
                     isFinished: true
                 });
             }
-        } else if(res?.contentPolicyViolation) {
+        } else if (res?.contentPolicyViolation) {
             result.failed("promptContentNotAllowed");
         }
 
@@ -378,7 +385,7 @@ export default class OpenAIApplication {
             model: selectedChat.model.name,
             saved: user.saveMessages,
             fileId: tempFile.fsId,
-            plan: subscription ? subscription.plan : undefined,
+            subscription: subscription,
             promptUser: user
         });
 

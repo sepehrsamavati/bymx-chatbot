@@ -19,6 +19,7 @@ export class PlanRepository implements IPlanRepository {
         return res ? {
             id: res._id.toString(),
             available: res.available,
+            type: res.type,
             days: res.days,
             points: res.points,
             price: res.price,
@@ -43,8 +44,9 @@ export class PlanRepository implements IPlanRepository {
                 available: item.available,
                 days: item.days,
                 points: item.points,
-                price: item.price
-            } as Plan));
+                price: item.price,
+                type: item.type,
+            } satisfies Plan));
         return res;
     }
 }

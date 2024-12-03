@@ -16,7 +16,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             insertDate: message.insertDate,
             isDeleted: message.isDeleted,
             chat: message.chat.id,
-            plan: message.plan?.id,
+            subscription: message.subscription.id,
             points: message.points,
             output: message.output,
             prompt: message.prompt,
@@ -61,62 +61,62 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         return _userPointUsage;
     }
 
-    async getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
-        type AggregationResult = { _id: null; sum: number; }[] | undefined;
-        const res = (
-            await this.#databaseConnection.models.openAIMessage
-                .aggregate([
-                    {
-                        $match: {
-                            isDeleted: false,
-                            plan: {
-                                $exists: false,
-                            },
-                            insertDate: {
-                                $gte: fromDate,
-                                $lte: toDate
-                            }
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: openAIChatModelDefinition.collection,
-                            localField: "chat" satisfies keyof OpenAIMessageDBModel,
-                            foreignField: "_id",
-                            as: "_chat",
-                            pipeline: [
-                                {
-                                    $match: {
-                                        user: new mongoose.Types.ObjectId(userId),
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        $unwind: "$_chat"
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            sum: {
-                                $sum: "$points"
-                            }
-                        }
-                    }
-                ])
-        ) as AggregationResult;
+    // async getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
+    //     type AggregationResult = { _id: null; sum: number; }[] | undefined;
+    //     const res = (
+    //         await this.#databaseConnection.models.openAIMessage
+    //             .aggregate([
+    //                 {
+    //                     $match: {
+    //                         isDeleted: false,
+    //                         plan: {
+    //                             $exists: false,
+    //                         },
+    //                         insertDate: {
+    //                             $gte: fromDate,
+    //                             $lte: toDate
+    //                         }
+    //                     }
+    //                 },
+    //                 {
+    //                     $lookup: {
+    //                         from: openAIChatModelDefinition.collection,
+    //                         localField: "chat" satisfies keyof OpenAIMessageDBModel,
+    //                         foreignField: "_id",
+    //                         as: "_chat",
+    //                         pipeline: [
+    //                             {
+    //                                 $match: {
+    //                                     user: new mongoose.Types.ObjectId(userId),
+    //                                 }
+    //                             }
+    //                         ]
+    //                     }
+    //                 },
+    //                 {
+    //                     $unwind: "$_chat"
+    //                 },
+    //                 {
+    //                     $group: {
+    //                         _id: null,
+    //                         sum: {
+    //                             $sum: "$points"
+    //                         }
+    //                     }
+    //                 }
+    //             ])
+    //     ) as AggregationResult;
 
-        if (!res || res.length === 0)
-            return 0;
+    //     if (!res || res.length === 0)
+    //         return 0;
 
-        if (res.length !== 1)
-            throw new Error("Invalid aggregation result");
+    //     if (res.length !== 1)
+    //         throw new Error("Invalid aggregation result");
 
-        const _userPointUsage = res[0].sum;
+    //     const _userPointUsage = res[0].sum;
 
-        return _userPointUsage;
-    }
+    //     return _userPointUsage;
+    // }
 
     async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null> {
         const res = await this.#databaseConnection.models.openAIMessage

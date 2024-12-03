@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { planModelDefinition } from "./Plan.js";
 import { userModelDefinition } from "./User.js";
 import { openAIChatModelDefinition } from "./OpenAIChat.js";
+import { userSubscriptionModelDefinition } from "./UserSubscription.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition } from "../lib/model.type.js";
 import type { OpenAIMessageDBModel } from "../../../../../../types/entities/openAIMessage.js";
 
-type OpenAIMessageMongoStored = FlattenToObjectIDs<OpenAIMessageDBModel, 'chat'>;
+type OpenAIMessageMongoStored = FlattenToObjectIDs<OpenAIMessageDBModel, 'chat' | 'subscription' | 'promptUser'>;
 
 export const openAIMessageModelDefinition: MongooseModelDefinition<"openAIMessages", "OpenAIMessage", OpenAIMessageMongoStored> = Object.freeze({
     model: "OpenAIMessage",
@@ -41,10 +41,10 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
         ref: openAIChatModelDefinition.model,
         required: true
     },
-    plan: {
+    subscription: {
         type: mongoose.Types.ObjectId,
-        ref: planModelDefinition.model,
-        required: false
+        ref: userSubscriptionModelDefinition.model,
+        required: true
     },
     promptUser: {
         type: mongoose.Types.ObjectId,
