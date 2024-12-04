@@ -8,6 +8,7 @@ import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
 
 export default class UserApplication {
     #userRepository;
@@ -206,18 +207,30 @@ export default class UserApplication {
         if (!user)
             return null;
 
-        const [
-            activePlans,
-            dailyFreePointStatus
-        ] = await Promise.all([
-            this.#userSubscriptionApplication.countUserActivePaidSubscriptions(user.id),
-            this.#userSubscriptionApplication.getDailyFreePointStatus(user.id),
-        ]);
+        const result = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id);
+
+        if (!result)
+            return {
+                user: user,
+                dailyFreePoints: null,
+                activePurchasedPlans: null,
+                paidSubscriptionsRemainingPoints: null,
+            };
+
+        const dailyFreeSubscription = result.subscriptions.find(s => s.plan.type === PlanType.DailyFree) ?? null;
+        const activePlans = result.subscriptions.filter(s => s.plan.type !== PlanType.DailyFree).length;
+
+        const dailyFreePointStatus = await this.#userSubscriptionApplication.getDailyFreePointStatus(user.id, dailyFreeSubscription);
 
         return {
             user: user,
-            activePlans: activePlans,
-            remainingDailyFreePoints: dailyFreePointStatus?.remaining ?? null,
+            dailyFreePoints: dailyFreePointStatus ? {
+                used: dailyFreePointStatus?.used,
+                remaining: dailyFreePointStatus?.remaining,
+                total: dailyFreePointStatus?.total,
+            } : null,
+            activePurchasedPlans: activePlans,
+            paidSubscriptionsRemainingPoints: result.totalRemainingPoints - (dailyFreePointStatus?.remaining ?? 0),
         };
     }
 

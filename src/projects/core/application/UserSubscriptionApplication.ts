@@ -19,7 +19,8 @@ export default class UserSubscriptionApplication {
         this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
     }
 
-    async countUserActivePaidSubscriptions(userId: string) {
+    /** @deprecated */
+    async #_countUserActivePaidSubscriptions(userId: string) {
         return await this.#userSubscriptionRepository.count({
             user: userId,
             expiryNotBefore: new Date(),
@@ -27,7 +28,7 @@ export default class UserSubscriptionApplication {
         });
     }
 
-    async getActiveSubscriptions(userId: string, upsertDailyFree = false): Promise<SubscriptionWithUsage[] | null> {
+    async getActiveSubscriptions(userId: string, upsertDailyFree = false) {
         const subscriptions = await this.#userSubscriptionRepository.getAllActive(userId, new Date());
 
         if (!subscriptions)
@@ -74,7 +75,10 @@ export default class UserSubscriptionApplication {
         // if (result.length < subscriptions.length)
         //     logger.warn(`Couldn't get all subscriptions usages of user #${userId} at ${new Date().toISOString()}`);
 
-        return result;
+        return {
+            subscriptions: result,
+            totalRemainingPoints: result.map(s => s.plan.points).reduce((a, b) => a + b, 0) - result.map(s => s._usage).reduce((a, b) => a + b, 0)
+        };
     }
 
     async upsertCurrentDailyFreeSubscription(userId: string) {
@@ -133,9 +137,12 @@ export default class UserSubscriptionApplication {
         return activeDailyFreeSubscription ?? null;
     }
 
-    async getDailyFreePointStatus(userId: string) {
-        // const [start, end] = getTodayRange();
-        const activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
+    /**
+     * @param activeDailyFreeSubscription Passing subscription object or null will use cache / passing undefined will get from repository
+     */
+    async getDailyFreePointStatus(userId: string, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
+        if (activeDailyFreeSubscription === undefined)
+            activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
 
         if (!activeDailyFreeSubscription) // daily free subscription not created
             return {

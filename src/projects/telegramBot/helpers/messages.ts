@@ -62,13 +62,7 @@ export const getChatListPanel = async (context: RequestContext) => {
 };
 
 export const getPanel = async (context: RequestContext) => {
-    const [
-        freePointUsage,
-        userInfo
-    ] = await Promise.all([
-        context.services.userSubscriptionApplication.getDailyFreePointStatus(context.user.id),
-        context.services.userApplication.getUserInfo(context.user.tgId),
-    ]);
+    const userInfo = await context.services.userApplication.getUserInfo(context.user.tgId);
 
     const inlineKeyboard = [
         [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
@@ -81,8 +75,13 @@ export const getPanel = async (context: RequestContext) => {
 
     return {
         text: stringHelper.digitLocalization(
-            `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage?.remaining}/${freePointUsage?.total}`
-            + `\n\n🔹 ${context.uiText.subscription}: ${userInfo ? userInfo.activePlans : context.uiText.noActiveSubscription}`
+            `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}`
+            + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
+            + (
+                userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
+                    ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${userInfo?.paidSubscriptionsRemainingPoints?.toLocaleString("en-US")}`
+                    : ""
+            )
             + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `🔵 ${context.uiText.disabled}`}`
             , context.user.lang
         ),
@@ -251,9 +250,9 @@ export const getUserManagementText = (context: RequestContext, userInfo: UserInf
     return (
         `${emojiIcon.identifier} ${userInfo.user.tgId}`
         + `\n${userInfo.user.firstName}${userInfo.user.lastName ? ` ${userInfo.user.lastName}` : ""}`
-        + `\n\n${userInfo.activePlans}`
+        + `\n\n${userInfo.activePurchasedPlans}`
         + `\n${new Date(userInfo.user.lastActivity).toLocaleString()}`
-        + `\n${emojiIcon.free} ${userInfo.remainingDailyFreePoints}`
+        + `\n${emojiIcon.free} ${userInfo.dailyFreePoints?.remaining ?? '-'}`
         + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
         + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
     )

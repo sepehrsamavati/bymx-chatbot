@@ -103,11 +103,11 @@ export default class OpenAIApplication {
             }
         }
 
-        const subscriptions = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true);
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
 
         const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
 
-        if (!(subscriptions && dailyFreeSubscription))
+        if (!(subscriptions && dailyFreeSubscription && totalRemainingPoints !== undefined))
             return result.failed();
 
         let historyMessages: OpenAIMessageBasicInfo[] = [];
@@ -120,8 +120,6 @@ export default class OpenAIApplication {
 
             historyMessages = _historyMessages.reverse();
         }
-
-        const totalRemainingPoints = subscriptions.map(s => s.plan.points).reduce((a, b) => a + b, 0) - subscriptions.map(s => s._usage).reduce((a, b) => a + b, 0);
 
         if (totalRemainingPoints <= 0) {
             return result.failed("noPointAvailable");

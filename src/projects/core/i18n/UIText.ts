@@ -113,6 +113,14 @@ const keys = [
     "cancelImageGeneration",
     "pointNotEnough",
     "promptContentNotAllowed",
+    "noItemToShow",
+    "pointPackage",
+    "pointPackages",
+    "purchasedPackages",
+    "viewPackages",
+    "activePackages",
+    "errorWhileFetchingData",
+    "remainingPackagesPoints",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -39,8 +39,13 @@ export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDele
 };
 export type UserInfoModel = {
     user: User;
-    remainingDailyFreePoints: number | null;
-    activePlans: number | null;
+    dailyFreePoints: {
+        used: number;
+        remaining: number;
+        total: number;
+    } | null;
+    paidSubscriptionsRemainingPoints: number | null;
+    activePurchasedPlans: number | null;
     /** @todo Requires join */
     // totalOpenAiCost: number | null;
     // totalOpenAiPointUsage: number | null;

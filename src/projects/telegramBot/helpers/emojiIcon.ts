@@ -6,6 +6,7 @@ const emojiIcon = Object.freeze({
     panel: '📱',
     return: '🔙',
     point: '⚡',
+    extraPoint: '🌟',
     statistics: '📊',
     list: '📃',
     user: '👤',

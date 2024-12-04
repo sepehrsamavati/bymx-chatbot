@@ -103,5 +103,13 @@
     "describePictureInText": "برای ساخت تصویر، به صورت متن تصویر مورد نظر را شرح دهید:",
     "cancelImageGeneration": "لغو ساخت تصویر",
     "pointNotEnough": "امتیاز شما کافی نمی‌باشد!",
-    "promptContentNotAllowed": "ورودی غیر مجاز می‌باشد! لطفا ورودی را تغییر دهید."
+    "promptContentNotAllowed": "ورودی غیر مجاز می‌باشد! لطفا ورودی را تغییر دهید.",
+    "noItemToShow": "موردی جهت نمایش وجود ندارد!",
+    "pointPackage": "بسته امتیاز",
+    "pointPackages": "بسته‌های امتیاز",
+    "purchasedPackages": "بسته‌های خریداری شده",
+    "viewPackages": "مشاهده بسته‌های امتیاز",
+    "activePackages": "بسته‌های فعال",
+    "errorWhileFetchingData": "خطا در دریافت اطلاعات",
+    "remainingPackagesPoints": "امتیاز بسته‌ها"
 }
