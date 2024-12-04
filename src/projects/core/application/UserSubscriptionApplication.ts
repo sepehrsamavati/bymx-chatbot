@@ -78,18 +78,7 @@ export default class UserSubscriptionApplication {
     }
 
     async upsertCurrentDailyFreeSubscription(userId: string) {
-        const activeDailyFreeSubscriptions = await this.#userSubscriptionRepository.getMany({
-            planType: PlanType.DailyFree,
-            user: userId,
-            isDeleted: false,
-            expiryNotBefore: new Date()
-        });
-
-        if (!activeDailyFreeSubscriptions || activeDailyFreeSubscriptions.length > 1)
-            return null;
-
-        let activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null | undefined = null;
-        activeDailyFreeSubscription = activeDailyFreeSubscriptions.at(0);
+        let activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null | undefined = await this.#getActiveDailyFreeSubscription(userId);
 
         if (!activeDailyFreeSubscription) {
             const [, todayEnd] = getTodayRange();
@@ -127,20 +116,26 @@ export default class UserSubscriptionApplication {
         return activeDailyFreeSubscription;
     }
 
-    async getDailyFreePointStatus(userId: string) {
-        // const [start, end] = getTodayRange();
-
+    async #getActiveDailyFreeSubscription(userId: string) {
         const activeDailyFreeSubscriptions = await this.#userSubscriptionRepository.getMany({
             planType: PlanType.DailyFree,
             user: userId,
             isDeleted: false,
-            expiryNotBefore: new Date()
+            expiryNotBefore: new Date(),
+            // should not affect `isFinished`
         });
 
         if (!activeDailyFreeSubscriptions || activeDailyFreeSubscriptions.length > 1)
             return null;
 
         const activeDailyFreeSubscription = activeDailyFreeSubscriptions.at(0);
+
+        return activeDailyFreeSubscription ?? null;
+    }
+
+    async getDailyFreePointStatus(userId: string) {
+        // const [start, end] = getTodayRange();
+        const activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
 
         if (!activeDailyFreeSubscription) // daily free subscription not created
             return {
