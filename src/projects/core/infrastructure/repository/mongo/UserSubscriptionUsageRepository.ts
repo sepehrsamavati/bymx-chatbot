@@ -10,7 +10,7 @@ export class UserSubscriptionUsageRepository implements IUserSubscriptionUsageRe
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async createMany(usages: CreateUserSubscriptionUsage[]): Promise<boolean | null> {
+    async createMany(usages: CreateUserSubscriptionUsage[]): Promise<string[] | null> {
         const res = await this.#databaseConnection.models.userSubscriptionUsage.insertMany(
             usages.map(
                 usage => ({
@@ -21,23 +21,25 @@ export class UserSubscriptionUsageRepository implements IUserSubscriptionUsageRe
                 })
             )
         );
-        return Boolean(res.length === usages.length);
+        return res.map(item => item._id.toString());
     }
 
-    async getPointUsageById(userSubscriptionId: UserSubscription["id"]): Promise<number | null> {
-        type AggregationResult = { _id: null; sum: number; }[] | undefined;
+    async getPointUsageByIds(userSubscriptionIds: UserSubscription["id"][]): Promise<{ userSubscriptionId: string; amount: number; }[] | null> {
+        type AggregationResult = { _id: string; sum: number; }[] | undefined;
         const res = (
             await this.#databaseConnection.models.userSubscriptionUsage
                 .aggregate([
                     {
                         $match: {
                             isDeleted: false,
-                            userSubscription: new mongoose.Types.ObjectId(userSubscriptionId)
+                            userSubscription: {
+                                $in: userSubscriptionIds.map(id => new mongoose.Types.ObjectId(id))
+                            }
                         }
                     },
                     {
                         $group: {
-                            _id: null,
+                            _id: "$userSubscription",
                             sum: {
                                 $sum: "$points"
                             }
@@ -46,14 +48,28 @@ export class UserSubscriptionUsageRepository implements IUserSubscriptionUsageRe
                 ])
         ) as AggregationResult;
 
+        if (!res)
+            return null;
+
+        return res.map(item => (
+            {
+                userSubscriptionId: item._id.toString(),
+                amount: item.sum,
+            }
+        ));
+    }
+
+    async getPointUsageById(userSubscriptionId: UserSubscription["id"]): Promise<number | null> {
+        const res = await this.getPointUsageByIds([userSubscriptionId]);
+
         if (!res || res.length === 0)
             return 0;
 
-        if (res.length !== 1)
+        const item = res[0];
+
+        if (res.length !== 1 || item.userSubscriptionId !== userSubscriptionId)
             throw new Error("Invalid aggregation result");
 
-        const _userPointUsage = res[0].sum;
-
-        return _userPointUsage;
+        return item.amount;
     }
 }

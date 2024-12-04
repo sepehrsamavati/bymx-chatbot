@@ -18,6 +18,7 @@ import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
+import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
@@ -59,6 +60,7 @@ type Applications = {
     openAIPlanApplication: OpenAIPlanApplication;
     openAIChatApplication: OpenAIChatApplication;
     openAIModelApplication: OpenAIModelApplication;
+    userSubscriptionApplication: UserSubscriptionApplication;
     telegramBroadcastApplication: TelegramBroadcastApplication;
     telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
 
@@ -118,6 +120,7 @@ export default class CoreServices {
             openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
             openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
+            userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
 

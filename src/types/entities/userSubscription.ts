@@ -14,7 +14,7 @@ export type UserSubscription = {
 
 export type UserSubscriptionDBModel = StoredEntity<UserSubscription>;
 
-export type CreateUserSubscription = FlattenToIDs<UserSubscriptionDBModel, 'user'>;
+export type CreateUserSubscription = FlattenToIDs<Omit<UserSubscriptionDBModel, 'id'>, 'user'>;
 export type UpdateUserSubscription = { id: string } & Pick<UserSubscriptionDBModel, 'isFinished'>;
 export type SearchUserSubscription = {
     user: UserSubscription['user'] | UserSubscription['user']['id'];

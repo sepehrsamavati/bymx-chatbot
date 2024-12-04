@@ -13,6 +13,7 @@ import type { UserSubscription } from "../../../types/entities/userSubscription.
 import type { OpenAIMessageBasicInfo } from "../../../types/entities/openAIMessage.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
 import type { IOpenAIImageResult, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -30,11 +31,10 @@ export default class OpenAIApplication {
     #openAI;
     #openAIChatRepository;
     #openAIMessageRepository;
-    #userSubscriptionRepository;
-    #userSubscriptionUsageRepository;
     #userApplication;
     #userRepository;
     #userTempFileApplication;
+    #userSubscriptionApplication;
     #openAIModelCache;
     #messageLock;
 
@@ -42,11 +42,10 @@ export default class OpenAIApplication {
         this.#openAI = container.openAI;
         this.#openAIChatRepository = container.openAIChatRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
-        this.#userSubscriptionRepository = container.userSubscriptionRepository;
-        this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
         this.#userApplication = container.userApplication;
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
+        this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#openAIModelCache = container.openAIModelCache;
         this.#messageLock = container.openAIMessageLockCache;
     }
@@ -104,9 +103,11 @@ export default class OpenAIApplication {
             }
         }
 
-        const freePointUsage = await this.#userApplication.getFreePointStatus(user.id);
+        const subscriptions = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true);
 
-        if (freePointUsage === null)
+        const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
+
+        if (!(subscriptions && dailyFreeSubscription))
             return result.failed();
 
         let historyMessages: OpenAIMessageBasicInfo[] = [];
@@ -120,40 +121,18 @@ export default class OpenAIApplication {
             historyMessages = _historyMessages.reverse();
         }
 
-        let subscription: Omit<UserSubscription, 'user'> = freePointUsage.activeDailyFreeSubscription;
-        let currentPlanUsage = 0;
-        let remainingPoints = freePointUsage.remaining;
+        const totalRemainingPoints = subscriptions.map(s => s.plan.points).reduce((a, b) => a + b, 0) - subscriptions.map(s => s._usage).reduce((a, b) => a + b, 0);
 
-        if (remainingPoints <= 0) {
-            const _subscription = await this.#userSubscriptionRepository.getActive(user.id, new Date());
-
-            if (!_subscription)
-                return result.failed("noPointAvailable");
-
-            subscription = _subscription;
-
-            const _currentPlanUsage = await this.#userSubscriptionUsageRepository.getPointUsageById(subscription.id);
-
-            if (_currentPlanUsage === null)
-                return result.failed();
-
-            if (_currentPlanUsage > subscription.plan.points)
-                return result.failed("planPointsFinished");
-
-            currentPlanUsage = _currentPlanUsage;
-            remainingPoints = subscription.plan.points - _currentPlanUsage;
+        if (totalRemainingPoints <= 0) {
+            return result.failed("noPointAvailable");
         }
 
         return {
             result,
             selectedChat,
-            remainingPoints,
+            subscriptions,
             historyMessages,
-            subscription: {
-                user,
-                ...subscription,
-            },
-            currentPlanUsage,
+            totalRemainingPoints,
         };
     }
 
@@ -166,12 +145,12 @@ export default class OpenAIApplication {
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
 
-        const { selectedChat, currentPlanUsage, historyMessages, remainingPoints, result, subscription } = _middlewareResult;
+        const { selectedChat, historyMessages, totalRemainingPoints, result, subscriptions } = _middlewareResult;
 
         const predictedCost = modelCostPredication({
             inputUnits: textMessage.split(' ').length + (opts?.imageUrl ? 500 : 0),
             model: selectedChat.model,
-            pointUsageLimit: remainingPoints
+            pointUsageLimit: totalRemainingPoints
         });
 
         if (predictedCost.inputLimit)
@@ -199,6 +178,8 @@ export default class OpenAIApplication {
                 outputUnits: res.outputTokens,
             });
 
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
             await this.#openAIMessageRepository.create({
                 chat: selectedChat,
                 cost: cost,
@@ -209,16 +190,9 @@ export default class OpenAIApplication {
                 points: userPointCost,
                 model: selectedChat.model.name,
                 saved: user.saveMessages,
-                subscription: subscription,
+                usages: savedUsageIds ?? [],
                 promptUser: user
             });
-
-            if (subscription && currentPlanUsage + userPointCost >= subscription.plan.points) {
-                await this.#userSubscriptionRepository.updateById({
-                    id: subscription.id,
-                    isFinished: true
-                });
-            }
 
             return result.succeeded().setData({
                 ...res,
@@ -274,11 +248,11 @@ export default class OpenAIApplication {
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
 
-        const { selectedChat, currentPlanUsage, remainingPoints, subscription } = _middlewareResult;
+        const { selectedChat, totalRemainingPoints, subscriptions } = _middlewareResult;
 
         const result = new OperationResultWithData<IOpenAIGeneratedImageResponse>().failed("errorOccurred");
 
-        if (remainingPoints < 20)
+        if (totalRemainingPoints < 20)
             return result.failed("pointNotEnough");
 
         if (this.#messageLock.isLocked(user.id))
@@ -296,6 +270,8 @@ export default class OpenAIApplication {
                 pointUsage: userPointCost
             });
 
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
             await this.#openAIMessageRepository.create({
                 chat: selectedChat,
                 cost: res.costUsdCent / 100,
@@ -306,16 +282,9 @@ export default class OpenAIApplication {
                 points: userPointCost,
                 model: "dall-e-2",
                 saved: false,
-                subscription: subscription,
+                usages: savedUsageIds ?? [],
                 promptUser: user
             });
-
-            if (subscription && currentPlanUsage + userPointCost >= subscription.plan.points) {
-                await this.#userSubscriptionRepository.updateById({
-                    id: subscription.id,
-                    isFinished: true
-                });
-            }
         } else if (res?.contentPolicyViolation) {
             result.failed("promptContentNotAllowed");
         }
@@ -347,7 +316,7 @@ export default class OpenAIApplication {
             return _middlewareResult;
         }
 
-        const { selectedChat, historyMessages, result, subscription } = _middlewareResult;
+        const { selectedChat, historyMessages, result, subscriptions } = _middlewareResult;
 
         const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
             inputMessage: message,
@@ -374,6 +343,8 @@ export default class OpenAIApplication {
             outputUnits: res.outputTokens,
         });
 
+        const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
         await this.#openAIMessageRepository.create({
             chat: selectedChat,
             cost: cost,
@@ -385,7 +356,7 @@ export default class OpenAIApplication {
             model: selectedChat.model.name,
             saved: user.saveMessages,
             fileId: tempFile.fsId,
-            subscription: subscription,
+            usages: savedUsageIds ?? [],
             promptUser: user
         });
 

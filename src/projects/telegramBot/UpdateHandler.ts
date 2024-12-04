@@ -134,7 +134,8 @@ export class UpdateHandler {
                     + `\n   - Time (local): ${new Date().toLocaleString()}`
                     + `\n   - User ID: ${user.id}`
                     + `\n   - Telegram ID: ${user.tgId}`
-                    + `\n   - Callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name).join(' / ') : '-'}`
+                    + `\n   - Handler callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name.split(/\\|\//).pop()?.split('.').shift()).join(' / ') : '-'}`
+                    + `\n   - Callstack: ${err instanceof Error ? err.stack ?? "-" : "-"}`
                     + "\n"
                     , err);
                 break;

@@ -1,12 +1,12 @@
 import type { User } from "./user";
 import type { OpenAIChat } from "./openAIChat";
 import type { StoredEntity } from "../contracts/entities";
-import type { UserSubscription } from "./userSubscription";
+import type { UserSubscriptionUsage } from "./userSubscriptionUsage";
 
 export type OpenAIMessage = {
     /** NOTE: Chat's model can be changed by user; Use message `model` field instead */
     chat: OpenAIChat;
-    subscription: UserSubscription;
+    usages: UserSubscriptionUsage[];
     promptUser: User;
     prompt: string;
     output: string;
@@ -21,4 +21,4 @@ export type OpenAIMessage = {
 }
 
 export type OpenAIMessageDBModel = StoredEntity<OpenAIMessage>;
-export type OpenAIMessageBasicInfo = Omit<OpenAIMessage, 'chat' | 'promptUser' | 'subscription'>;
+export type OpenAIMessageBasicInfo = Omit<OpenAIMessage, 'chat' | 'promptUser' | 'usages'>;

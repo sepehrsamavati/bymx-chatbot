@@ -15,3 +15,5 @@ export type Plan = {
 }
 
 export type PlanDBModel = StoredEntity<Plan>;
+
+export type SearchPlan = Partial<Pick<PlanDBModel, 'available' | 'type' | 'isDeleted'>>;

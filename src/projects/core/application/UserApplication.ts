@@ -3,7 +3,6 @@ import type { ServicesType } from "../Container.js";
 import { getTodayRange } from "../helpers/dateHelper.js";
 import { accessHelper } from "../helpers/accessHelper.js";
 import { UserType } from "../../../types/enums/userTypes.js";
-import { PlanType } from "../../../types/enums/planTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
@@ -13,18 +12,14 @@ import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entiti
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
-    #planRepository;
     #openAIMessageRepository;
-    #userSubscriptionRepository;
-    #userSubscriptionUsageRepository;
+    #userSubscriptionApplication;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
-        this.#planRepository = container.planRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
-        this.#userSubscriptionRepository = container.userSubscriptionRepository;
-        this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
+        this.#userSubscriptionApplication = container.userSubscriptionApplication;
     }
 
     async upsert(user: UpsertUserModel) {
@@ -148,75 +143,6 @@ export default class UserApplication {
         return result;
     }
 
-    async purchasePlan(user: User, planId: string) {
-        const result = new OperationResult();
-
-        const plan = await this.#planRepository.getById(planId);
-
-        if (!plan)
-            return result.failed("planNotExist");
-
-        if (!plan.available)
-            return result.failed("planNotAvailable");
-
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + plan.days);
-
-        const res = await this.#userSubscriptionRepository.create({
-            user: user,
-            plan: plan,
-            expiry: expiry,
-            insertDate: new Date(),
-            isDeleted: false,
-            isFinished: false
-        });
-
-        return res ? result.succeeded() : result.failed();
-    }
-
-    async getActiveSubscription(userId: string) {
-        return await this.#userSubscriptionRepository.getActive(userId, new Date());
-    }
-
-    async #getCurrentDailyFreeSubscription(userId: string) {
-        const activeDailyFreeSubscriptions = await this.#userSubscriptionRepository.getMany({
-            planType: PlanType.DailyFree,
-            user: userId,
-            isDeleted: false,
-            expiryNotBefore: new Date()
-        });
-
-        if (activeDailyFreeSubscriptions?.length !== 1)
-            return null;
-
-        const [activeDailyFreeSubscription] = activeDailyFreeSubscriptions;
-
-        return activeDailyFreeSubscription;
-    }
-
-    async getFreePointStatus(userId: string) {
-        // const [start, end] = getTodayRange();
-
-        const activeDailyFreeSubscription = await this.#getCurrentDailyFreeSubscription(userId);
-
-        if (!activeDailyFreeSubscription)
-            return null;
-
-        const freePointUsage = await this.#userSubscriptionUsageRepository.getPointUsageById(activeDailyFreeSubscription.id);
-
-        if (freePointUsage === null)
-            return null;
-
-        const { dailyFreePoints } = config;
-
-        return {
-            activeDailyFreeSubscription,
-            used: freePointUsage,
-            remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
-            total: dailyFreePoints
-        };
-    }
-
     async getUserFileProcessingStatus(userId: string) {
         const result = new OperationResult();
 
@@ -284,8 +210,8 @@ export default class UserApplication {
             activePlans,
             dailyFreePointStatus
         ] = await Promise.all([
-            this.#userSubscriptionRepository.countByUserId(user.id, new Date()),
-            this.getFreePointStatus(user.id)
+            this.#userSubscriptionApplication.countUserActivePaidSubscriptions(user.id),
+            this.#userSubscriptionApplication.getDailyFreePointStatus(user.id),
         ]);
 
         return {

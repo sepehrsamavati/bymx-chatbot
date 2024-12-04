@@ -64,14 +64,11 @@ export const getChatListPanel = async (context: RequestContext) => {
 export const getPanel = async (context: RequestContext) => {
     const [
         freePointUsage,
-        activeSubscription
+        userInfo
     ] = await Promise.all([
-        context.services.userApplication.getFreePointStatus(context.user.id),
-        context.services.userApplication.getActiveSubscription(context.user.id),
+        context.services.userSubscriptionApplication.getDailyFreePointStatus(context.user.id),
+        context.services.userApplication.getUserInfo(context.user.tgId),
     ]);
-
-    if (!freePointUsage)
-        return null;
 
     const inlineKeyboard = [
         [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
@@ -84,8 +81,8 @@ export const getPanel = async (context: RequestContext) => {
 
     return {
         text: stringHelper.digitLocalization(
-            `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage.remaining}/${freePointUsage.total}`
-            + `\n\n🔹 ${context.uiText.subscription}: ${activeSubscription ? activeSubscription.plan.title : context.uiText.noActiveSubscription}`
+            `⚡ ${context.uiText.dailyFreePoints}: ${freePointUsage?.remaining}/${freePointUsage?.total}`
+            + `\n\n🔹 ${context.uiText.subscription}: ${userInfo ? userInfo.activePlans : context.uiText.noActiveSubscription}`
             + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `🔵 ${context.uiText.disabled}`}`
             , context.user.lang
         ),

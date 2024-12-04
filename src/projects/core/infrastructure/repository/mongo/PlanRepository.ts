@@ -1,8 +1,8 @@
 import type { FilterQuery } from "mongoose";
 import type { MongoStored } from "./lib/model.type.js";
 import type { ServicesType } from "../../../Container.js";
-import type { Plan, PlanDBModel } from "../../../../../types/entities/plan.js";
 import type { IPlanRepository } from "../../../../../types/contracts/repositories.js";
+import type { Plan, PlanDBModel, SearchPlan } from "../../../../../types/entities/plan.js";
 
 export class PlanRepository implements IPlanRepository {
     #databaseConnection;
@@ -27,11 +27,17 @@ export class PlanRepository implements IPlanRepository {
         } : null;
     }
 
-    async getMany(filter: Pick<Partial<PlanDBModel>, "available">): Promise<Plan[] | null> {
+    async getMany(filter: SearchPlan): Promise<Plan[] | null> {
         const _filter: FilterQuery<MongoStored<PlanDBModel>> = { isDeleted: false };
 
         if (typeof filter.available === "boolean")
             _filter.available = filter.available;
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        if (filter.type !== undefined)
+            _filter.type = filter.type;
 
         const res = (
             await this.#databaseConnection.models.plan

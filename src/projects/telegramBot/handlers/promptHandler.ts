@@ -172,16 +172,16 @@ export const promptHandler: IUpdateHandler = {
 
             unlockFileProcessing();
 
-            const textResult = (isFileSearch ? (res.data as IOpenAITextResultWithFile).result : res.data) as IOpenAITextResult;
+            const result = res.ok ? ((isFileSearch ? (res.data as IOpenAITextResultWithFile).result : res.data) as IOpenAITextResult) : null;
 
-            if (res.ok && textResult)
+            if (result)
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
-                        text: convertToTelegramMarkdown(textResult.output),
-                        parse_mode: textResult.isComplete ? "Markdown" : undefined,
+                        text: convertToTelegramMarkdown(result.output),
+                        parse_mode: result.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
                                 [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
