@@ -6,7 +6,7 @@ import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/o
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
-import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription } from "../entities/userSubscription";
+import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
 
@@ -52,7 +52,7 @@ export type IUserSubscriptionRepository = {
     create(userSubscription: CreateUserSubscription): Promise<string | null>;
     updateById(userSubscription: UpdateUserSubscription): Promise<boolean | null>;
     getAllActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
-    getById(id: string): Promise<Omit<UserSubscription, 'user'> | null>;
+    getById(id: string): Promise<UserSubscriptionDBModel | null>;
     getMany(filter: SearchUserSubscription): Promise<Omit<UserSubscription, 'user'>[] | null>;
     count(filter: SearchUserSubscription): Promise<number | null>;
 }

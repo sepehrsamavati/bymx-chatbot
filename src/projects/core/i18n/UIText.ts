@@ -116,11 +116,16 @@ const keys = [
     "noItemToShow",
     "pointPackage",
     "pointPackages",
+    "purchasePackage",
     "purchasedPackages",
     "viewPackages",
     "activePackages",
     "errorWhileFetchingData",
     "remainingPackagesPoints",
+    "remainingPoints",
+    "comingSoon",
+    "totalPoints",
+    "expireDate",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -28,6 +28,32 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
     };
 };
 
+export const getSubscriptionInfoPanel = async (context: RequestContext, subscriptionId: string) => {
+    const info = await context.services.userSubscriptionApplication.getSubscriptionInfo(context.user.id, subscriptionId);
+
+    if (!info)
+        return null;
+
+    const { remainingPoints, subscription } = info;
+
+    return {
+        text: (
+            `${emojiIcon.extraPoint} ${context.uiText.pointPackage}`
+            + `\n\nℹ ${context.uiText.title}: ${context.getUit(subscription.plan.title)}`
+            + stringHelper.digitLocalization(
+                `\n\n${emojiIcon.point} ${context.uiText.remainingPoints}: ${remainingPoints}/${subscription.plan.points}`,
+                context.user.lang
+                + `📅 ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`
+            )
+        ),
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `↩ ${context.uiText.return}`, callback_data: "mySubscriptions" }]
+            ]
+        }
+    };
+};
+
 export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId: string) => {
     return {
         text: `⚠ ${context.uiText.confirmToDelete}`,
@@ -61,13 +87,47 @@ export const getChatListPanel = async (context: RequestContext) => {
     };
 };
 
+export const getUserSubscriptionsList = async (context: RequestContext) => {
+    const result = await context.services.userSubscriptionApplication.getActivePaidSubscriptions(context.user.id);
+
+    if (!result)
+        return null;
+
+    const { subscriptions, totalRemainingPoints } = result;
+
+    return {
+        text: (
+            `${emojiIcon.point} ${context.uiText.pointPackages}`
+            + `\n\n${context.uiText.activePackages}: ${subscriptions.length === 0 ? context.uiText.savedChats : context.uiText.noActiveSubscription}`
+            + `\n${emojiIcon.extraPoint} ${context.uiText.totalPoints}: ${totalRemainingPoints}`
+            + (subscriptions.length > 0 ? `\n\n${context.uiText.activePackages} 👇` : "")
+        ),
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.purchasePackage}`, callback_data: "comingSoon" }],
+                ...subscriptions.map(subscription => [
+                    { text: `${context.getUit(subscription.plan.title)}`, callback_data: `manageSubscription_${subscription.id}` }
+                ])
+            ]
+        }
+    };
+};
+
 export const getPanel = async (context: RequestContext) => {
     const userInfo = await context.services.userApplication.getUserInfo(context.user.tgId);
 
     const inlineKeyboard = [
-        [{ text: context.uiText.chats, callback_data: "chats" }, { text: context.uiText.models, callback_data: "modelsUsage" }],
-        [context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }],
-        [{ text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }],
+        [
+            { text: context.uiText.chats, callback_data: "chats" },
+            { text: context.uiText.models, callback_data: "modelsUsage" },
+            { text: `${emojiIcon.extraPoint} ${context.uiText.pointPackages}`, callback_data: "mySubscriptions" },
+        ],
+        [
+            (
+                context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }
+            ),
+            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }
+        ],
     ];
 
     if (accessHelper(UserType.Admin, context.user.type))

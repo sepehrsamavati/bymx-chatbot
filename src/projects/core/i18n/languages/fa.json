@@ -107,9 +107,14 @@
     "noItemToShow": "موردی جهت نمایش وجود ندارد!",
     "pointPackage": "بسته امتیاز",
     "pointPackages": "بسته‌های امتیاز",
+    "purchasePackage": "خرید بسته",
     "purchasedPackages": "بسته‌های خریداری شده",
     "viewPackages": "مشاهده بسته‌های امتیاز",
     "activePackages": "بسته‌های فعال",
     "errorWhileFetchingData": "خطا در دریافت اطلاعات",
-    "remainingPackagesPoints": "امتیاز بسته‌ها"
+    "remainingPackagesPoints": "امتیاز بسته‌ها",
+    "remainingPoints": "امتیاز باقی مانده",
+    "comingSoon": "به زودی",
+    "totalPoints": "مجموع امتیاز‌ها",
+    "expireDate": ""
 }

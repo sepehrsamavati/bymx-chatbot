@@ -81,6 +81,33 @@ export default class UserSubscriptionApplication {
         };
     }
 
+    async getSubscriptionInfo(userId: string, subscriptionId: string) {
+        const subscription = await this.#userSubscriptionRepository.getById(subscriptionId);
+
+        if (!subscription)
+            return null;
+
+        if (subscription.isDeleted || subscription.user.id !== userId)
+            return null;
+
+        const [usage] = await this.#userSubscriptionUsageRepository
+            .getPointUsageByIds([subscription.id]) ?? [];
+
+        return {
+            subscription: subscription as UserSubscription,
+            remainingPoints: subscription.plan.points - (usage?.amount ?? 0)
+        };
+    }
+
+    async getActivePaidSubscriptions(userId: string) {
+        const result = await this.getActiveSubscriptions(userId, false);
+
+        if (result?.subscriptions)
+            result.subscriptions = result.subscriptions.filter(subscription => subscription.plan.type !== PlanType.DailyFree);
+
+        return result;
+    }
+
     async upsertCurrentDailyFreeSubscription(userId: string) {
         let activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null | undefined = await this.#getActiveDailyFreeSubscription(userId);
 

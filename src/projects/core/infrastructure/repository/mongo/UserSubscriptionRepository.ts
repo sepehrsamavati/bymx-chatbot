@@ -1,7 +1,9 @@
 import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
+import type { User } from "../../../../../types/entities/user.js";
 import type { IUserSubscriptionRepository } from "../../../../../types/contracts/repositories.js";
 import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
+import { PopulatedProperty } from "./lib/model.type.js";
 
 export class UserSubscriptionRepository implements IUserSubscriptionRepository {
     #databaseConnection;
@@ -58,8 +60,12 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         return count;
     }
 
-    async getById(id: string): Promise<Omit<UserSubscription, 'user'> | null> {
-        const res = await this.#databaseConnection.models.userSubscription.findById(id);
+    async getById(id: string): Promise<UserSubscriptionDBModel | null> {
+        const res = await this.#databaseConnection.models.userSubscription
+            .findById(id)
+            .populate<{ user: PopulatedProperty<User> }>('user' satisfies keyof UserSubscription)
+            .lean()
+            .exec();
 
         if (!res)
             return null;
@@ -68,8 +74,14 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
 
         return {
             id: subscription._id.toString(),
+            user: {
+                ...subscription.user,
+                id: subscription.user._id.toString()
+            },
             expiry: subscription.expiry,
+            isDeleted: subscription.isDeleted,
             isFinished: subscription.isFinished,
+            insertDate: subscription.insertDate,
             plan: {
                 id: subscription.plan.id,
                 points: subscription.plan.points,

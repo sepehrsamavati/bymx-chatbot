@@ -18,6 +18,7 @@ import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import { adminJoinChatPanelHandler } from "./handlers/adminJoinChatPanelHandler.js";
+import { subscriptionManageHandler } from "./handlers/subscriptionManageHandler.js";
 import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject } from "../../types/telegram.js";
 
 const handlers: IUpdateHandler[] = [
@@ -29,6 +30,7 @@ const handlers: IUpdateHandler[] = [
     adminJoinChatPanelHandler,
     termsOfServiceHandler,
     chatManageHandler,
+    subscriptionManageHandler,
     createNewChatHandler,
     imageGenerateHandler,
     promptHandler,
