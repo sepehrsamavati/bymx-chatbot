@@ -10,6 +10,7 @@ const config = {
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
+    staticPaymentReceiptTgChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
     chatCountLimit: 5,
     cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
@@ -86,6 +87,11 @@ configError(
 configError(
     `USD to IRT multiplier is not valid (${config.usdToIrtMultiplier})`,
     Number.isNaN(config.usdToIrtMultiplier) || config.usdToIrtMultiplier <= 0
+);
+
+configError(
+    "Define receipt chat ID for static payments",
+    !config.staticPaymentReceiptTgChatId
 );
 
 if (!fs.existsSync(config.cacheDirectory))

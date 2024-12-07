@@ -3,7 +3,8 @@ import configError from "../../projects/core/helpers/configError.js";
 const General = Object.freeze({
     Normal: 0,
     // AcceptEULA: 1,
-    EnterPhoneNumber: 2
+    EnterPhoneNumber: 2,
+    StaticPayment: 10,
 });
 
 const ChatManagement = Object.freeze({
