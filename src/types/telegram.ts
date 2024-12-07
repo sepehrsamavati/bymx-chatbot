@@ -2,6 +2,7 @@ import type { User } from "./entities/user";
 import type { UserModeType } from "./enums/userMode";
 import type CoreServices from "../projects/core/Container";
 import type { TelegramMethods } from "./enums/telegramMethods";
+import type PaymentServices from "../projects/staticPayment/Container";
 import type { TelegramUpdateType } from "./enums/telegramUpdateHandler";
 import type { UITextLanguage, UITextOptionalKey } from "../projects/core/i18n/UIText";
 
@@ -213,7 +214,7 @@ export type TelegramResponse<Method extends TelegramMethods> = Method extends ke
 
 
 export type RequestContext = {
-    services: CoreServices['applications'];
+    services: CoreServices['applications'] & PaymentServices['applications'];
     user: User;
     uiText: UITextLanguage;
     getUit: (keyOrMessage: UITextOptionalKey) => string;

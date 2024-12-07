@@ -4,29 +4,34 @@ import { UpdateHandler } from "./UpdateHandler.js";
 import type CoreServices from "../core/Container.js";
 import BroadcastHandler from "./BroadcastHandler.js";
 import exitHelper from "../core/helpers/exitHelper.js";
+import type { IServices } from "../../types/services.js";
 import { ExitCode } from "../../types/enums/exitCodes.js";
+import type PaymentServices from "../staticPayment/Container.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
     #handler;
-    #services
+    #services: IServices;
     #broadcastHandler;
 
     async #dispose() {
         await this.#broadcastHandler.dispose();
-        await this.#services.destroy();
+        await this.#services.core.destroy();
     }
 
-    constructor(services: CoreServices) {
-        this.#services = services;
+    constructor(coreServices: CoreServices, paymentServices: PaymentServices) {
+        this.#services = {
+            core: coreServices,
+            payment: paymentServices,
+        };
         this.#broadcastHandler = new BroadcastHandler(
-            services.applications.userApplication,
-            services.applications.telegramBroadcastApplication
+            coreServices.applications.userApplication,
+            coreServices.applications.telegramBroadcastApplication
         );
         this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler);
 
-        services
+        coreServices
             .diReady()
             .then(() => {
                 this.#startBot();

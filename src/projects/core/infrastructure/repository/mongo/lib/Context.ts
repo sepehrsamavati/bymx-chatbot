@@ -1,17 +1,8 @@
 import mongoose from "mongoose";
+import MongooseModels from "./MongooseModels.js";
 import { logger } from "../../../../helpers/logger.js";
-import { userModelDefinition } from "../models/User.js";
-import { planModelDefinition } from "../models/Plan.js";
 import type { ServicesType } from "../../../../Container.js";
-import { openAIChatModelDefinition } from "../models/OpenAIChat.js";
-import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
-import { userTempFileModelDefinition } from "../models/UserTempFile.js";
-import { openAIMessageModelDefinition } from "../models/OpenAIMessage.js";
-import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
-import { telegramBroadcastModelDefinition } from "../models/TelegramBroadcast.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
-import { userSubscriptionUsageModelDefinition } from "../models/UserSubscriptionUsage.js";
-import { telegramJoinRequiredChatModelDefinition } from "../models/TelegramJoinRequiredChat.js";
 
 export class MongoDBTransaction implements ITransaction {
     #session: mongoose.ClientSession | null = null;
@@ -128,29 +119,9 @@ export class MongoDBConnection {
         return;
     }
 
-
     #mongooseModels?: MongooseModels;
 
     get models() {
         return this.#mongooseModels?.models as NonNullable<MongooseModels['models']>;
-    }
-}
-
-class MongooseModels {
-    readonly models;
-
-    constructor(private connection: mongoose.Connection) {
-        this.models = Object.freeze({
-            user: userModelDefinition.createModel(this.connection),
-            userSubscription: userSubscriptionModelDefinition.createModel(this.connection),
-            userSubscriptionUsage: userSubscriptionUsageModelDefinition.createModel(this.connection),
-            openAIModel: openAIModelModelDefinition.createModel(this.connection),
-            plan: planModelDefinition.createModel(this.connection),
-            openAIChat: openAIChatModelDefinition.createModel(this.connection),
-            openAIMessage: openAIMessageModelDefinition.createModel(this.connection),
-            userTempFile: userTempFileModelDefinition.createModel(this.connection),
-            telegramBroadcast: telegramBroadcastModelDefinition.createModel(this.connection),
-            telegramJoinRequiredChat: telegramJoinRequiredChatModelDefinition.createModel(this.connection),
-        });
     }
 }

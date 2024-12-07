@@ -1,7 +1,7 @@
 import tgCall from "./helpers/call.js";
-import CoreServices from "../core/Container.js";
 import { errorLogger } from "../core/helpers/logger.js";
 import UIText, { getUit } from "../core/i18n/UIText.js";
+import type { IServices } from "../../types/services.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
@@ -51,7 +51,7 @@ Object
 
 export class UpdateHandler {
     constructor(
-        private services: CoreServices,
+        private services: IServices,
         private broadcastHandler: BroadcastHandler
     ) { }
 
@@ -79,7 +79,7 @@ export class UpdateHandler {
             return;
 
         // use root container (do not create scope)
-        const user = await this.services.applications.userApplication.upsert({
+        const user = await this.services.core.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
@@ -93,7 +93,7 @@ export class UpdateHandler {
         if (user.status === UserStatus.Banned)
             return;
 
-        const container = this.services.createApplicationScope();
+        const container = this.services.core.createApplicationScope();
 
         if (user.status === UserStatus.Blocked)
             await container.applications.userApplication.setUserStatus(user.id, UserStatus.EULA);
@@ -121,7 +121,10 @@ export class UpdateHandler {
             uiText: UIText.fa,
             callStack: callStack,
             getUit: keyOrMessage => getUit(requestContext.uiText, keyOrMessage),
-            services: container.applications,
+            services: {
+                ...container.applications,
+                ...this.services.payment.applications
+            },
             broadcastTrigger: () => this.broadcastHandler.trigger()
         };
 
