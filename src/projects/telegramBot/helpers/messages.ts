@@ -349,7 +349,7 @@ export const getPlanInfoPanel = async (context: RequestContext, planId: string) 
         text: (
             `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
             + `\n\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
-            + `\n\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${plan.days} ${context.uiText.days}`
+            + `\n\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${stringHelper.digitLocalization(plan.days, context.user.lang)} ${context.uiText.days}`
             + `\n\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)}`
         ),
         reply_markup: {
