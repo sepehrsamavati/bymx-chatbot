@@ -1,6 +1,7 @@
 import tgCall from "./helpers/call.js";
 import { errorLogger } from "../core/helpers/logger.js";
 import UIText, { getUit } from "../core/i18n/UIText.js";
+import { planHandler } from "./handlers/planHandler.js";
 import type { IServices } from "../../types/services.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
@@ -23,9 +24,10 @@ import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObj
 
 const handlers: IUpdateHandler[] = [
     adminCommandHandler,
+    planHandler,
     userCommandHandler,
-    joinChatHandler,
     panelHandler,
+    joinChatHandler,
     adminPanelHandler,
     adminJoinChatPanelHandler,
     termsOfServiceHandler,

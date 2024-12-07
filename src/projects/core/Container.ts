@@ -2,10 +2,10 @@ import config from "./config.js";
 import type { User } from "../../types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
 import UserApplication from "./application/UserApplication.js";
+import PlanApplication from "./application/PlanApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import CacheStorage from "./infrastructure/services/CacheStorage.js";
-import OpenAIPlanApplication from "./application/PlanApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
@@ -57,7 +57,7 @@ type Applications = {
     userApplication: UserApplication;
     userTempFileApplication: UserTempFileApplication;
     openAIApplication: OpenAIApplication;
-    openAIPlanApplication: OpenAIPlanApplication;
+    planApplication: PlanApplication;
     openAIChatApplication: OpenAIChatApplication;
     openAIModelApplication: OpenAIModelApplication;
     userSubscriptionApplication: UserSubscriptionApplication;
@@ -117,7 +117,7 @@ export default class CoreServices {
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
             userTempFileApplication: asClass(UserTempFileApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
-            openAIPlanApplication: asClass(OpenAIPlanApplication, { lifetime: "SCOPED" }),
+            planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
             openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),

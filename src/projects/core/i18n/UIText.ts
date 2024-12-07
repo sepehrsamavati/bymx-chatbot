@@ -126,6 +126,7 @@ const keys = [
     "comingSoon",
     "totalPoints",
     "expireDate",
+    "purchase",
 ] as const;
 
 export type UITextKey = typeof keys[number];

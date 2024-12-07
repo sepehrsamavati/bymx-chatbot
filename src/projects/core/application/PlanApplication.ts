@@ -12,4 +12,8 @@ export default class PlanApplication {
             available: true
         });
     }
+
+    async getInfo(id: string) {
+        return await this.#planRepository.getById(id);
+    }
 }

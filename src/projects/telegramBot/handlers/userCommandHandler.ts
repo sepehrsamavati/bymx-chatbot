@@ -139,25 +139,6 @@ export const userCommandHandler: IUpdateHandler = {
                 );
 
                 return { shouldContinue: false };
-            case "/plans":
-                const plans = await context.services.openAIPlanApplication.getAllAvailable();
-
-                if (!plans)
-                    return null;
-
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        text: "📃",
-                        reply_markup: {
-                            inline_keyboard: plans.map(plan => [{ text: plan.title, callback_data: `purchasePlan${plan.id}` }])
-                        }
-                    }
-                );
-
-                return { shouldContinue: false };
         }
 
         return { shouldContinue: !isCommand };

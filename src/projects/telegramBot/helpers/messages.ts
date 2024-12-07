@@ -105,7 +105,7 @@ export const getUserSubscriptionsList = async (context: RequestContext) => {
         ),
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.purchasePackage}`, callback_data: "comingSoon" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.purchasePackage}`, callback_data: "planList" }],
                 ...subscriptions.map(subscription => [
                     { text: `${context.getUit(subscription.plan.title)}`, callback_data: `manageSubscription_${subscription.id}` }
                 ])
@@ -317,4 +317,60 @@ export const getUserManagementText = (context: RequestContext, userInfo: UserInf
         + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
         + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
     )
+};
+
+export const getPlanList = async (context: RequestContext) => {
+    const plans = await context.services.planApplication.getAllAvailable();
+
+    if (!plans)
+        return null;
+
+    if (plans.length === 0)
+        return "noPlanAvailable";
+
+    return {
+        text: `${emojiIcon.list} ${context.uiText.pointPackage}`,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "mySubscriptions" }],
+                ...plans.map(plan => [{ text: context.getUit(plan.title), callback_data: `viewPlan_${plan.id}` }])
+            ]
+        }
+    };
+};
+
+export const getPlanInfoPanel = async (context: RequestContext, planId: string) => {
+    const plan = await context.services.planApplication.getInfo(planId);
+
+    if (!plan)
+        return null;
+
+    return {
+        text: `${emojiIcon.list} ${context.uiText.pointPackage}`,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.ok} ${context.uiText.purchase}`, callback_data: `buyPlan_${plan.id}` }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "planList" }],
+            ]
+        }
+    };
+};
+
+export const getPlanBuyPanel = async (context: RequestContext, planId: string) => {
+    const paymentLink = await context.services.paymentLinkApplication.getLinkByProductId(planId);
+
+    if (!paymentLink)
+        return null;
+
+    return {
+        text: (
+            `${emojiIcon.list} ${context.uiText.pointPackage}`
+            + `\n\n${paymentLink.url}`
+        ),
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: `viewPlan_${planId}` }]
+            ]
+        }
+    };
 };

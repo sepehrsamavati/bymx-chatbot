@@ -3,11 +3,13 @@ import { createContainer, asClass, asValue } from "awilix";
 import PaymentApplication from "./application/PaymentApplication.js";
 import type * as RepoInterfaces from "./types/contracts/repositories.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
+import PaymentLinkApplication from "./application/PaymentLinkApplication.js";
 import type * as CoreRepoInterfaces from "../../types/contracts/repositories.js";
 import ActionLockCache from "../core/infrastructure/services/ActionLockCache.js";
 import { MongoDBConnection } from "./infrastructure/repository/mongo/lib/Context.js";
 import { PaymentRepository } from "./infrastructure/repository/mongo/PaymentRepository.js";
 import { MongoDBTransaction } from "../core/infrastructure/repository/mongo/lib/Context.js";
+import { PaymentLinkRepository } from "./infrastructure/repository/mongo/PaymentLinkRepository.js";
 
 type Constants = {
     mongoDbConnectionStringUri: string;
@@ -20,10 +22,12 @@ type Connections = {
 
 type Repositories = {
     paymentRepository: RepoInterfaces.IPaymentRepository;
+    paymentLinkRepository: RepoInterfaces.IPaymentLinkRepository;
 };
 
 type Applications = {
     paymentApplication: PaymentApplication;
+    paymentLinkApplication: PaymentLinkApplication;
 };
 
 type Services = {
@@ -62,10 +66,12 @@ export default class PaymentServices {
             databaseTransaction: asClass(MongoDBTransaction, { lifetime: "SCOPED", dispose: async ctx => await ctx.end() }),
 
             paymentApplication: asClass(PaymentApplication, { lifetime: "SCOPED" }),
+            paymentLinkApplication: asClass(PaymentLinkApplication, { lifetime: "SCOPED" }),
 
             paymentLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
 
             paymentRepository: asClass(PaymentRepository, { lifetime: "SCOPED" }),
+            paymentLinkRepository: asClass(PaymentLinkRepository, { lifetime: "SCOPED" }),
         });
 
         if (autoSetup)
