@@ -23,7 +23,7 @@ export const planHandler: IUpdateHandler = {
         if (context.user.mode === UserMode.General.StaticPayment && !queryData?.startsWith("viewPlan_")) {
             const isValid = Boolean(update.message?.text || update.message?.photo || update.message?.document);
 
-            if (!isValid)
+            if (!isValid || !update.message)
                 return {
                     call: {
                         text: "sendReceiptTextOrScreenshot"
