@@ -25,6 +25,9 @@ const emojiIcon = Object.freeze({
     channel: '📣',
     warning: '⚠',
     picture: '🖼',
+    calendar: '📅',
+    price: '💳',
+    link: '🔗',
 });
 
 export default emojiIcon;

@@ -117,5 +117,12 @@
     "comingSoon": "به زودی",
     "totalPoints": "مجموع امتیاز‌ها",
     "expireDate": "تاریخ انقضا",
-    "purchase": "خرید"
+    "purchase": "خرید",
+    "pointsAmount": "مقدار امتیاز",
+    "subscriptionPeriod": "مدت زمان",
+    "days": "روز",
+    "staticPaymentHelpText": "از طریق لینک زیر پرداخت خود را انجام دهید و شناسه پرداخت یا اسکرین شات رسید را ارسال کنید",
+    "purchaseLink": "لینک خرید",
+    "price": "قیمت",
+    "irt": "تومان"
 }

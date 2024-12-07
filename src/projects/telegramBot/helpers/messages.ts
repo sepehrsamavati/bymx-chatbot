@@ -42,7 +42,7 @@ export const getSubscriptionInfoPanel = async (context: RequestContext, subscrip
             + `\n\n${emojiIcon.info} ${context.uiText.title}: ${context.getUit(subscription.plan.title)}`
             + stringHelper.digitLocalization(
                 `\n\n${emojiIcon.point} ${context.uiText.remainingPoints}: ${remainingPoints}/${subscription.plan.points}`
-                + `\n📅 ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`,
+                + `\n${emojiIcon.calendar} ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`,
                 context.user.lang
             )
         ),
@@ -346,7 +346,12 @@ export const getPlanInfoPanel = async (context: RequestContext, planId: string) 
         return null;
 
     return {
-        text: `${emojiIcon.list} ${context.uiText.pointPackage}`,
+        text: (
+            `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
+            + `\n\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
+            + `\n\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${plan.days} ${context.uiText.days}`
+            + `\n\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)}`
+        ),
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.ok} ${context.uiText.purchase}`, callback_data: `buyPlan_${plan.id}` }],
@@ -364,11 +369,11 @@ export const getPlanBuyPanel = async (context: RequestContext, planId: string) =
 
     return {
         text: (
-            `${emojiIcon.list} ${context.uiText.pointPackage}`
-            + `\n\n${paymentLink.url}`
+            `${emojiIcon.warning} ${context.uiText.staticPaymentHelpText}`
         ),
         reply_markup: {
             inline_keyboard: [
+                [{ text: `${emojiIcon.link} ${context.uiText.purchaseLink}`, url: paymentLink.url }],
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: `viewPlan_${planId}` }]
             ]
         }

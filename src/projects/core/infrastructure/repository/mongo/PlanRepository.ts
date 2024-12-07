@@ -13,7 +13,7 @@ export class PlanRepository implements IPlanRepository {
     async getById(id: Plan["id"]): Promise<Plan | null> {
         const res = (
             await this.#databaseConnection.models.plan
-                .findOne({ id, isDeleted: false })
+                .findOne({ _id: id, isDeleted: false })
                 .lean()
         );
         return res ? {
