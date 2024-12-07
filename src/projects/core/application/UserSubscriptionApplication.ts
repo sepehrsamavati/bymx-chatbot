@@ -34,12 +34,15 @@ export default class UserSubscriptionApplication {
         if (!subscriptions)
             return null;
 
-        if (upsertDailyFree && !subscriptions.some(subscription => subscription.plan.type === PlanType.DailyFree)) {
+        let hasDailyFree = subscriptions.some(subscription => subscription.plan.type === PlanType.DailyFree);
+
+        if (upsertDailyFree && !hasDailyFree) {
             const dailyFreeSubscription = await this.upsertCurrentDailyFreeSubscription(userId);
 
             if (!dailyFreeSubscription)
                 return null;
 
+            hasDailyFree = true;
             subscriptions.unshift(dailyFreeSubscription);
         }
 
@@ -76,6 +79,7 @@ export default class UserSubscriptionApplication {
         //     logger.warn(`Couldn't get all subscriptions usages of user #${userId} at ${new Date().toISOString()}`);
 
         return {
+            hasDailyFree,
             subscriptions: result,
             totalRemainingPoints: result.map(s => s.plan.points).reduce((a, b) => a + b, 0) - result.map(s => s._usage).reduce((a, b) => a + b, 0)
         };

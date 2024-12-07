@@ -230,7 +230,7 @@ export default class UserApplication {
                 total: dailyFreePointStatus?.total,
             } : null,
             activePurchasedPlans: activePlans,
-            paidSubscriptionsRemainingPoints: result.totalRemainingPoints - (dailyFreePointStatus?.remaining ?? 0),
+            paidSubscriptionsRemainingPoints: result.totalRemainingPoints - ((result.hasDailyFree ? dailyFreePointStatus?.remaining : 0) ?? 0),
         };
     }
 

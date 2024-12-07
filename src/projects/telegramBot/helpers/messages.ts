@@ -20,9 +20,9 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
             + `\n\n🤖 ${context.uiText.model}: ${chat.model.title}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }],
                 [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }, { text: `🤖 ${context.uiText.changeModel}`, callback_data: "changeChatModel" }],
-                [{ text: `❌ ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
+                [{ text: `${emojiIcon.delete} ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
             ]
         }
     };
@@ -39,16 +39,16 @@ export const getSubscriptionInfoPanel = async (context: RequestContext, subscrip
     return {
         text: (
             `${emojiIcon.extraPoint} ${context.uiText.pointPackage}`
-            + `\n\nℹ ${context.uiText.title}: ${context.getUit(subscription.plan.title)}`
+            + `\n\n${emojiIcon.info} ${context.uiText.title}: ${context.getUit(subscription.plan.title)}`
             + stringHelper.digitLocalization(
-                `\n\n${emojiIcon.point} ${context.uiText.remainingPoints}: ${remainingPoints}/${subscription.plan.points}`,
+                `\n\n${emojiIcon.point} ${context.uiText.remainingPoints}: ${remainingPoints}/${subscription.plan.points}`
+                + `\n📅 ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`,
                 context.user.lang
-                + `📅 ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`
             )
         ),
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "mySubscriptions" }]
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "mySubscriptions" }]
             ]
         }
     };
@@ -59,8 +59,8 @@ export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId:
         text: `⚠ ${context.uiText.confirmToDelete}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat_${chatId}` }],
-                [{ text: `✅ ${context.uiText.confirm}`, callback_data: `deleteChat_${chatId}` }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${chatId}` }],
+                [{ text: `${emojiIcon.ok} ${context.uiText.confirm}`, callback_data: `deleteChat_${chatId}` }],
             ]
         }
     };
@@ -76,10 +76,10 @@ export const getChatListPanel = async (context: RequestContext) => {
         text: chats.length > 0 ? context.uiText.savedChats : context.uiText.noSavedChats,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : '➕'} ${context.uiText.newChat}`, callback_data: "newChat" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
-                        ? { text: `✅ ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
+                        ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
                         : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ])
             ]
@@ -96,11 +96,12 @@ export const getUserSubscriptionsList = async (context: RequestContext) => {
     const { subscriptions, totalRemainingPoints } = result;
 
     return {
-        text: (
+        text: stringHelper.digitLocalization(
             `${emojiIcon.point} ${context.uiText.pointPackages}`
-            + `\n\n${context.uiText.activePackages}: ${subscriptions.length === 0 ? context.uiText.savedChats : context.uiText.noActiveSubscription}`
+            + `\n\n${context.uiText.activePackages}: ${subscriptions.length === 0 ? context.uiText.noActiveSubscription : subscriptions.length}`
             + `\n${emojiIcon.extraPoint} ${context.uiText.totalPoints}: ${totalRemainingPoints}`
-            + (subscriptions.length > 0 ? `\n\n${context.uiText.activePackages} 👇` : "")
+            + (subscriptions.length > 0 ? `\n\n${context.uiText.activePackages} 👇` : ""),
+            context.user.lang
         ),
         reply_markup: {
             inline_keyboard: [
@@ -278,7 +279,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
             ).join('\n\n'),
         reply_markup: {
             inline_keyboard: [
-                [{ text: `↩ ${context.uiText.return}`, callback_data: "panel" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }],
             ]
         }
     };
@@ -295,8 +296,8 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
         reply_markup: {
             inline_keyboard: [
                 (changeChatModel
-                    ? [{ text: `↩ ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
-                    : [{ text: `↩ ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]),
+                    ? [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
+                    : [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]),
                 ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }])
             ]
         }
