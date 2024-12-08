@@ -90,18 +90,18 @@ export const getChatListPanel = async (context: RequestContext) => {
 };
 
 export const getUserSubscriptionsList = async (context: RequestContext) => {
-    const result = await context.services.userSubscriptionApplication.getActivePaidSubscriptions(context.user.id);
+    const result = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user.id);
 
     if (!result)
         return null;
 
-    const { subscriptions, totalRemainingPoints } = result;
+    const { paidSubscriptions: subscriptions, paidSubscriptionsTotalRemainingPoints } = result;
 
     return {
         text: stringHelper.digitLocalization(
             `${emojiIcon.point} ${context.uiText.pointPackages}`
             + `\n\n${context.uiText.activePackages}: ${subscriptions.length === 0 ? context.uiText.noActiveSubscription : subscriptions.length}`
-            + `\n${emojiIcon.extraPoint} ${context.uiText.totalPoints}: ${totalRemainingPoints}`
+            + `\n${emojiIcon.extraPoint} ${context.uiText.totalPoints}: ${paidSubscriptionsTotalRemainingPoints}`
             + (subscriptions.length > 0 ? `\n\n${context.uiText.activePackages} 👇` : ""),
             context.user.lang
         ),
@@ -364,6 +364,11 @@ export const getPlanInfoPanel = async (context: RequestContext, planId: string) 
 };
 
 export const getPlanBuyPanel = async (context: RequestContext, planId: string) => {
+    const plan = await context.services.planApplication.getInfo(planId);
+
+    if (!plan?.available)
+        return null;
+
     const paymentLink = await context.services.paymentLinkApplication.getLinkByProductId(planId);
 
     if (!paymentLink)

@@ -103,13 +103,23 @@ export default class UserSubscriptionApplication {
         };
     }
 
-    async getActivePaidSubscriptions(userId: string) {
+    /** Extended `getActiveSubscriptions` */
+    async getActiveSubscriptionsExtendedInfo(userId: string) {
         const result = await this.getActiveSubscriptions(userId, false);
 
-        if (result?.subscriptions)
-            result.subscriptions = result.subscriptions.filter(subscription => subscription.plan.type !== PlanType.DailyFree);
+        if (!result)
+            return result;
 
-        return result;
+        const dailyFreeSubscription = result.subscriptions.find(s => s.plan.type === PlanType.DailyFree) ?? null;
+        const dailyFreePointStatus = await this.#getDailyFreePointStatus(userId, dailyFreeSubscription);
+        const paidSubscriptions = result.subscriptions.filter(subscription => subscription.plan.type !== PlanType.DailyFree);
+
+        return {
+            ...result,
+            paidSubscriptions,
+            dailyFreePointStatus,
+            paidSubscriptionsTotalRemainingPoints: paidSubscriptions.map(s => s.plan.points).reduce((a, b) => a + b, 0),
+        };
     }
 
     async upsertCurrentDailyFreeSubscription(userId: string) {
@@ -171,7 +181,7 @@ export default class UserSubscriptionApplication {
     /**
      * @param activeDailyFreeSubscription Passing subscription object or null will use cache / passing undefined will get from repository
      */
-    async getDailyFreePointStatus(userId: string, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
+    async #getDailyFreePointStatus(userId: string, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
         if (activeDailyFreeSubscription === undefined)
             activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
 

@@ -207,7 +207,7 @@ export default class UserApplication {
         if (!user)
             return null;
 
-        const result = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id);
+        const result = await this.#userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(user.id);
 
         if (!result)
             return {
@@ -217,10 +217,7 @@ export default class UserApplication {
                 paidSubscriptionsRemainingPoints: null,
             };
 
-        const dailyFreeSubscription = result.subscriptions.find(s => s.plan.type === PlanType.DailyFree) ?? null;
-        const activePlans = result.subscriptions.filter(s => s.plan.type !== PlanType.DailyFree).length;
-
-        const dailyFreePointStatus = await this.#userSubscriptionApplication.getDailyFreePointStatus(user.id, dailyFreeSubscription);
+        const { dailyFreePointStatus } = result;
 
         return {
             user: user,
@@ -229,8 +226,8 @@ export default class UserApplication {
                 remaining: dailyFreePointStatus?.remaining,
                 total: dailyFreePointStatus?.total,
             } : null,
-            activePurchasedPlans: activePlans,
-            paidSubscriptionsRemainingPoints: result.totalRemainingPoints - ((result.hasDailyFree ? dailyFreePointStatus?.remaining : 0) ?? 0),
+            activePurchasedPlans: result.paidSubscriptions.length,
+            paidSubscriptionsRemainingPoints: result.paidSubscriptionsTotalRemainingPoints,
         };
     }
 

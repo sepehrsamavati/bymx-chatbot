@@ -7,6 +7,7 @@ import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getPlanBuyPanel, getPlanInfoPanel, getPlanList } from "../helpers/messages.js";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
+import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 
 export const planHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -33,7 +34,10 @@ export const planHandler: IUpdateHandler = {
 
             const submitErrorMessage = `${context.uiText.staticPaymentSubmitErrored}\n\n${emojiIcon.contact} ${context.uiText.support}: /support`;
 
-            await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+            await Promise.all([
+                context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
+                paymentMessageCache.delete(context.user.id),
+            ]);
 
             const savePaymentResult = await context.services.paymentApplication.approveByUser(context.user.id);
             if (!savePaymentResult.ok)
@@ -91,7 +95,7 @@ export const planHandler: IUpdateHandler = {
                         callback_query_id: update.callback_query?.id,
                         text: context.uiText.noItemToShow,
                         show_alert: true,
-                        cache_time: 600,
+                        cache_time: 20,
                     }
                 );
             } else {
@@ -108,6 +112,7 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         } else if (queryData?.startsWith("viewPlan_")) {
             if (context.user.mode !== UserMode.General.Normal) {
+                paymentMessageCache.unset(context.user.id);
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 context.user.mode = UserMode.General.Normal;
             }
@@ -135,6 +140,8 @@ export const planHandler: IUpdateHandler = {
             if (!planBuyPanel)
                 return null;
 
+            await paymentMessageCache.delete(context.user.id);
+
             const createdPayment = await context.services.paymentApplication.open(context.user.id, planId);
 
             if (!createdPayment.ok)
@@ -153,7 +160,7 @@ export const planHandler: IUpdateHandler = {
                         }
                     };
 
-                await tgCall(
+                const res = await tgCall(
                     TelegramMethods.EditMessageText,
                     {
                         chat_id: update.callback_query?.message.chat.id,
@@ -161,6 +168,14 @@ export const planHandler: IUpdateHandler = {
                         ...planBuyPanel
                     }
                 );
+
+                if (res?.ok) {
+                    paymentMessageCache.set(context.user.id, {
+                        date: new Date(),
+                        chatId: res.result.chat.id,
+                        messageId: res.result.message_id,
+                    });
+                }
             }
 
             return { shouldContinue: false };
