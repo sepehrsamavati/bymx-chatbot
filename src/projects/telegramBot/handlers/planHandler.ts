@@ -6,6 +6,7 @@ import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getPlanBuyPanel, getPlanInfoPanel, getPlanList } from "../helpers/messages.js";
+import startLinkGenerator from "../helpers/startLinkGenerator.js";
 
 export const planHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -50,7 +51,7 @@ export const planHandler: IUpdateHandler = {
                     message_id: update.message.message_id,
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: `${emojiIcon.identifier} User`, url: `https://t.me` }],
+                            [{ text: `${emojiIcon.identifier} ${context.user.tgId}`, url: startLinkGenerator(context, "getUser_" + context.user.tgId) }],
                         ]
                     }
                 }

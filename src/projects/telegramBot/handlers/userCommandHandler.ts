@@ -14,13 +14,15 @@ export const userCommandHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        const isCommand = update.message?.entities?.at(0)?.type === "bot_command";
+        let isCommand = update.message?.entities?.at(0)?.type === "bot_command";
 
         let command = "";
         if (isCommand) {
             command = text;
-            if (command.startsWith("/start"))
+            if (command.startsWith("/start")) {
+                // const startParameter = command.replace("/start", "").trimStart();
                 command = "/start"; // remove start parameters
+            }
         }
 
         switch (command) {

@@ -1,12 +1,9 @@
-import tgCall from "../helpers/call.js";
 import emojiIcon from "../helpers/emojiIcon.js";
-import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
+import { getUserManagementText } from "../helpers/messages.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
-import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { getPanel, getModelUsageListPanel, getUserManagementText } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const adminCommandHandler: IUpdateHandler = {
@@ -17,9 +14,18 @@ export const adminCommandHandler: IUpdateHandler = {
         if (!accessHelper(UserType.Admin, context.user.type))
             return { shouldContinue: true };
 
+        const startParameter = update.message?.text?.replace("/start", "").trimStart() ?? "";
+
+        if (update.message && startParameter.startsWith("getUser_")) {
+            const targetTgId = Number.parseInt(startParameter.replace("getUser_", ""));
+            if (!Number.isNaN(targetTgId)) {
+                update.message.text = `/find_${targetTgId}`;
+            }
+        }
+
         const text = update.message?.text as string;
 
-        const isCommand = update.message?.entities?.at(0)?.type === "bot_command" && !text.includes('\n');
+        let isCommand = update.message?.entities?.at(0)?.type === "bot_command" && !text.includes('\n');
 
         if (!isCommand)
             return { shouldContinue: true };
