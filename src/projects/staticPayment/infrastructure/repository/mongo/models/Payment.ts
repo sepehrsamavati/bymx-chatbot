@@ -32,4 +32,13 @@ const schema = new mongoose.Schema<PaymentMongoStored>({
         required: false,
         index: true,
     },
+    productId: {
+        type: String,
+        required: true,
+        index: true,
+    },
+    rejectReason: {
+        type: String,
+        required: false,
+    },
 }, { versionKey: false, collection: paymentModelDefinition.collection });

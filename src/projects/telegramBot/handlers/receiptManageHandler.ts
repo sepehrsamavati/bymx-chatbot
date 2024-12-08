@@ -1,4 +1,6 @@
 import tgCall from "../helpers/call.js";
+import emojiIcon from "../helpers/emojiIcon.js";
+import { logger } from "../../core/helpers/logger.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
@@ -6,7 +8,6 @@ import { accessHelper } from "../../core/helpers/accessHelper.js";
 import { getStaticPaymentReceiptPanel } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import emojiIcon from "../helpers/emojiIcon.js";
 
 export const receiptManageHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -37,21 +38,38 @@ export const receiptManageHandler: IUpdateHandler = {
                     }
                 };
 
-            const result = await context.services.paymentApplication.approveById(paymentId);
+            const approvePayment = await context.services.paymentApplication.approveById(paymentId);
 
             await tgCall(
                 TelegramMethods.AnswerCallbackQuery,
                 {
                     callback_query_id: update.callback_query?.id,
-                    text: context.getUit(result.message),
-                    show_alert: !result.ok,
+                    text: context.getUit(approvePayment.message),
+                    show_alert: !approvePayment.ok,
                     cache_time: 2,
                 }
             );
 
-            if (result.ok) {
-                const receiptPanel = await getStaticPaymentReceiptPanel(context, paymentId);
+            if (approvePayment.ok) {
+                const purchase = await context.services.userSubscriptionApplication.purchasePlan(payment.userId, payment.productId);
 
+                if (!purchase.ok) {
+                    const rollbackStatus = await context.services.paymentApplication.unsetValidityStatus(paymentId);
+
+                    if (!rollbackStatus.ok)
+                        logger.error(`Couldn't rollback approve payment '${paymentId}': ${rollbackStatus.message}`);
+
+                    return {
+                        shouldContinue: false,
+                        call: {
+                            text: `${emojiIcon.failed}`
+                                + `\nApprove rollback: ${rollbackStatus.ok} ${context.getUit(rollbackStatus.message)}`
+                                + `\nPurchase: ${context.getUit(purchase.message)}`
+                        }
+                    };
+                }
+
+                const receiptPanel = await getStaticPaymentReceiptPanel(context, paymentId);
                 if (receiptPanel && typeof receiptPanel === "object")
                     await tgCall(
                         TelegramMethods.EditMessageText,
@@ -61,9 +79,7 @@ export const receiptManageHandler: IUpdateHandler = {
                             ...receiptPanel
                         }
                     );
-            }
 
-            if (result.ok) {
                 const user = await context.services.userApplication.getUserById(payment.userId);
                 if (user)
                     await tgCall(

@@ -194,7 +194,7 @@ export default class UserSubscriptionApplication {
         };
     }
 
-    async purchasePlan(user: User, planId: string) {
+    async purchasePlan(userId: User['id'], planId: string) {
         const result = new OperationResult();
 
         const plan = await this.#planRepository.getById(planId);
@@ -209,12 +209,12 @@ export default class UserSubscriptionApplication {
         expiry.setDate(expiry.getDate() + plan.days);
 
         const res = await this.#userSubscriptionRepository.create({
-            user: user.id,
+            user: userId,
             plan: plan,
             expiry: expiry,
             insertDate: new Date(),
             isDeleted: false,
-            isFinished: false
+            isFinished: false,
         });
 
         return res ? result.succeeded() : result.failed();

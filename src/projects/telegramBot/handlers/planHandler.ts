@@ -135,7 +135,7 @@ export const planHandler: IUpdateHandler = {
             if (!planBuyPanel)
                 return null;
 
-            const createdPayment = await context.services.paymentApplication.open(context.user.id);
+            const createdPayment = await context.services.paymentApplication.open(context.user.id, planId);
 
             if (!createdPayment.ok)
                 return {

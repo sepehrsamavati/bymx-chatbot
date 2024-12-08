@@ -77,6 +77,7 @@ export class PaymentRepository implements IPaymentRepository {
                 status: item.status,
                 userId: item.userId,
                 rejectReason: item.rejectReason,
+                productId: item.productId,
             };
         } catch (err) {
             errorLogger("PaymentRepository / getOne", err);
@@ -115,6 +116,8 @@ export class PaymentRepository implements IPaymentRepository {
                 status: item.status,
                 userId: item.userId,
                 rejectReason: item.rejectReason,
+                productId: item.productId,
+                gatewayPaymentId: item.gatewayPaymentId,
             }));
         } catch (err) {
             errorLogger("PaymentRepository / getMany", err);

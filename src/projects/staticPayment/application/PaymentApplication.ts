@@ -51,7 +51,7 @@ export default class PaymentApplication {
         return result;
     }
 
-    async open(userId: string) {
+    async open(userId: string, productId: string) {
         const result = new OperationResult();
 
         if (this.#lock.isLocked(userId))
@@ -67,6 +67,7 @@ export default class PaymentApplication {
             date: new Date(),
             status: PaymentStatus.Open,
             userId: userId,
+            productId: productId,
         }))
             result.succeeded();
 
@@ -102,6 +103,21 @@ export default class PaymentApplication {
         return result;
     }
 
+    /** Set to pending (rollback) */
+    async unsetValidityStatus(paymentId: string) {
+        const result = new OperationResult();
+
+        const updated = await this.#paymentRepository.update({
+            id: paymentId,
+            status: PaymentStatus.PendingApprove
+        });
+
+        if (updated)
+            result.succeeded();
+
+        return result;
+    }
+
     async rejectById(paymentId: string, reason: string) {
         const result = new OperationResult();
 
@@ -117,7 +133,7 @@ export default class PaymentApplication {
                 status: PaymentStatus.Rejected,
                 rejectReason: reason,
             });
-    
+
             if (updated)
                 result.succeeded();
         }

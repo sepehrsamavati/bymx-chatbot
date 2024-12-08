@@ -7,6 +7,7 @@ export type Payment = {
     gatewayPaymentId?: string;
     rejectReason?: string;
     status: PaymentStatus;
+    productId: string;
 }
 
 export type CreatePayment = Omit<Payment, 'id'>;

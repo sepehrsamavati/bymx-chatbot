@@ -146,5 +146,6 @@
     "reason": "دلیل",
     "sendRejectReason": "علت رد کردن پرداخت را ارسال کنید",
     "paymentIdRequiredForApprove": "قبل از تائید باید شناسه پرداخت را ثبت نمائید",
-    "notifyUser": "اطلاع رسانی به کاربر"
+    "notifyUser": "اطلاع رسانی به کاربر",
+    "planNotAvailable": "پلن غیر قابل خرید است!"
 }
