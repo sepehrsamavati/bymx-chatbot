@@ -20,7 +20,7 @@ export type Chat = {
     is_forum?: true;
 }
 
-type TelegramUser = {
+export type TelegramUser = {
     id: ChatID;
     is_bot: boolean;
     first_name: string;
@@ -113,6 +113,7 @@ export type TelegramMessage = {
     photo?: PhotoSize[];
     forward_origin?: MessageOrigin;
     reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;
+    new_chat_members?: Array<TelegramUser>;
 };
 
 type ChatMemberOwner = {
@@ -218,6 +219,10 @@ export type RequestContext = {
     user: User;
     uiText: UITextLanguage;
     getUit: (keyOrMessage: UITextOptionalKey) => string;
+    readonly chat?: Chat;
+    /** Bot Telegram ID */
+    readonly botId: number;
+    readonly botUsername: string;
     readonly broadcastTrigger: () => void;
     readonly callStack: IUpdateHandler[];
 }
@@ -252,8 +257,12 @@ export type ResponseContext = (
     }
     | ResponseContextActions) & ResponseContextBase;
 
+type UpdateHandlerChatType = "all" | Chat['type'];
+
 export type IUpdateHandler = {
     readonly name: string;
+    /** Default: `private` only */
+    readonly chatTypes?: Array<UpdateHandlerChatType>;
     updateType: TelegramUpdateType | TelegramUpdateType[];
     handler: (context: RequestContext, update: TelegramUpdateObject) => Promise<ResponseContext | null>;
     mode?: UserModeType | UserModeType[];

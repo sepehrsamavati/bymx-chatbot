@@ -4,6 +4,7 @@ import { UpdateHandler } from "./UpdateHandler.js";
 import type CoreServices from "../core/Container.js";
 import BroadcastHandler from "./BroadcastHandler.js";
 import exitHelper from "../core/helpers/exitHelper.js";
+import { TelegramUser } from "../../types/telegram.js";
 import type { IServices } from "../../types/services.js";
 import { ExitCode } from "../../types/enums/exitCodes.js";
 import type PaymentServices from "../staticPayment/Container.js";
@@ -11,9 +12,10 @@ import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
-    #handler;
+    #handler!: UpdateHandler;
     #services: IServices;
     #broadcastHandler;
+    #botInfo?: TelegramUser;
 
     async #dispose() {
         await this.#broadcastHandler.dispose();
@@ -29,7 +31,6 @@ export class UpdateProvider {
             coreServices.applications.userApplication,
             coreServices.applications.telegramBroadcastApplication
         );
-        this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler);
 
         coreServices
             .diReady()
@@ -39,16 +40,19 @@ export class UpdateProvider {
     }
 
     async #startBot() {
-        const bot = await tgCall(TelegramMethods.GetMe, null);
+        const botInfo = await tgCall(TelegramMethods.GetMe, null);
 
-        if (!bot?.ok) {
+        if (!botInfo?.ok) {
             console.log("Telegram connection issue!");
             await this.#dispose();
             exitHelper(ExitCode.TelegramConnectionIssue);
             return;
         }
 
-        const botUsername = bot.result.username as string;
+        this.#botInfo = botInfo.result;
+
+        const botUsername = botInfo.result.username as string;
+        this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler, this.#botInfo);
 
         logger.info(`Bot started @${botUsername}`);
 
