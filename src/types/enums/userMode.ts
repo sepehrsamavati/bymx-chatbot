@@ -9,6 +9,7 @@ const General = Object.freeze({
 
 const Manager = Object.freeze({
     SetStaticPaymentGatewayId: 100,
+    SetStaticPaymentRejectReason: 101,
 });
 
 const ChatManagement = Object.freeze({

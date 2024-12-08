@@ -6,6 +6,7 @@ import { accessHelper } from "../../core/helpers/accessHelper.js";
 import { getStaticPaymentReceiptPanel } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import emojiIcon from "../helpers/emojiIcon.js";
 
 export const receiptManageHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -16,6 +17,7 @@ export const receiptManageHandler: IUpdateHandler = {
     mode: [
         UserMode.General.Normal,
         UserMode.Manager.SetStaticPaymentGatewayId,
+        UserMode.Manager.SetStaticPaymentRejectReason,
     ],
     async handler(context, update) {
         if (!accessHelper(UserType.Manager, context.user.type))
@@ -26,19 +28,28 @@ export const receiptManageHandler: IUpdateHandler = {
 
         if (queryData?.startsWith("approveStaticPayment_")) {
             const paymentId = queryData.replace("approveStaticPayment_", "");
+            const payment = await context.services.paymentApplication.getById(paymentId);
+
+            if (!payment)
+                return {
+                    call: {
+                        text: "itemNotFound"
+                    }
+                };
+
             const result = await context.services.paymentApplication.approveById(paymentId);
 
-            const callbackQueryAnswer = await tgCall(
+            await tgCall(
                 TelegramMethods.AnswerCallbackQuery,
                 {
                     callback_query_id: update.callback_query?.id,
                     text: context.getUit(result.message),
-                    show_alert: false,
-                    cache_time: 10,
+                    show_alert: !result.ok,
+                    cache_time: 2,
                 }
             );
 
-            if (callbackQueryAnswer?.ok) {
+            if (result.ok) {
                 const receiptPanel = await getStaticPaymentReceiptPanel(context, paymentId);
 
                 if (receiptPanel && typeof receiptPanel === "object")
@@ -51,35 +62,88 @@ export const receiptManageHandler: IUpdateHandler = {
                         }
                     );
             }
+
+            if (result.ok) {
+                const user = await context.services.userApplication.getUserById(payment.userId);
+                if (user)
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: user.tgId,
+                            text: `${emojiIcon.ok} ${context.uiText.paymentApproved}`,
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [{ text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]
+                                ]
+                            }
+                        }
+                    );
+            }
+
             return { shouldContinue: false };
         } else if (queryData?.startsWith("rejectStaticPayment_")) {
             const paymentId = queryData.replace("rejectStaticPayment_", "");
-            const result = await context.services.paymentApplication.rejectById(paymentId);
 
-            const callbackQueryAnswer = await tgCall(
-                TelegramMethods.AnswerCallbackQuery,
-                {
-                    callback_query_id: update.callback_query?.id,
-                    text: context.getUit(result.message),
-                    show_alert: false,
-                    cache_time: 10,
+            await context.services.userApplication.setUserMode(context.user.id, UserMode.Manager.SetStaticPaymentRejectReason);
+            context.services.selectedStaticPaymentIdCacheStorage.set(context.user.id, paymentId);
+
+            return {
+                call: {
+                    text: `${context.uiText.sendRejectReason}:\n\n${context.uiText.cancel}: /cancel`
                 }
-            );
+            };
+        } else if (context.user.mode === UserMode.Manager.SetStaticPaymentRejectReason && text && text.length < 3e3) {
 
-            if (callbackQueryAnswer?.ok) {
-                const receiptPanel = await getStaticPaymentReceiptPanel(context, paymentId);
+            const selectedPaymentId = context.services.selectedStaticPaymentIdCacheStorage.get(context.user.id);
 
-                if (receiptPanel && typeof receiptPanel === "object")
-                    await tgCall(
-                        TelegramMethods.EditMessageText,
-                        {
-                            chat_id: update.callback_query?.message.chat.id,
-                            message_id: update.callback_query?.message.message_id,
-                            ...receiptPanel
+            await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+            context.services.selectedStaticPaymentIdCacheStorage.unset(context.user.id);
+
+            if (!selectedPaymentId)
+                return {
+                    call: {
+                        text: "errorOccurred"
+                    }
+                };
+            else {
+                const payment = await context.services.paymentApplication.getById(selectedPaymentId);
+
+                if (!payment)
+                    return {
+                        call: {
+                            text: "itemNotFound"
                         }
-                    );
+                    };
+
+                const result = await context.services.paymentApplication.rejectById(selectedPaymentId, text);
+
+                let sentToUser = false;
+
+                if (result.ok) {
+                    const user = await context.services.userApplication.getUserById(payment.userId);
+                    if (user) {
+                        const sendToUser = await tgCall(
+                            TelegramMethods.SendMessage,
+                            {
+                                chat_id: user.tgId,
+                                text: `${emojiIcon.failed} ${context.uiText.paymentRejected}\n\n${context.uiText.reason}: ${text}`,
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{ text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]
+                                    ]
+                                }
+                            }
+                        );
+                        sentToUser = sendToUser?.ok ?? false;
+                    }
+                }
+
+                return {
+                    call: {
+                        text: `${context.getUit(result.message)}\n\n${context.uiText.notifyUser}: ${sentToUser ? emojiIcon.ok : emojiIcon.failed}`
+                    }
+                };
             }
-            return { shouldContinue: false };
         } else if (queryData?.startsWith("setStaticPaymentId_")) {
             const paymentId = queryData.replace("setStaticPaymentId_", "");
 
@@ -91,7 +155,7 @@ export const receiptManageHandler: IUpdateHandler = {
 
             return {
                 call: {
-                    text: `${context.uiText.sendGatewayPaymentId}\n\n${context.uiText.cancel}: /cancel`
+                    text: `${context.uiText.sendGatewayPaymentId}:\n\n${context.uiText.cancel}: /cancel`
                 }
             };
         } else if (context.user.mode === UserMode.Manager.SetStaticPaymentGatewayId && text) {

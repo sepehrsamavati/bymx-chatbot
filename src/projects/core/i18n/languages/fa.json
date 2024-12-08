@@ -140,5 +140,11 @@
     "paymentIdAlreadySet": "شناسه پرداخت قبلا ذخیره شده است!",
     "sendGatewayPaymentId": "شناسه پرداخت درگاه را ارسال کنید",
     "canceled": "لغو شد",
-    "noOperationToCancel": "عملیاتی جهت لغو کردن وجود ندارد!"
+    "noOperationToCancel": "عملیاتی جهت لغو کردن وجود ندارد!",
+    "paymentApproved": "پرداخت شما تائید شد",
+    "paymentRejected": "پرداخت شما رد شد",
+    "reason": "دلیل",
+    "sendRejectReason": "علت رد کردن پرداخت را ارسال کنید",
+    "paymentIdRequiredForApprove": "قبل از تائید باید شناسه پرداخت را ثبت نمائید",
+    "notifyUser": "اطلاع رسانی به کاربر"
 }

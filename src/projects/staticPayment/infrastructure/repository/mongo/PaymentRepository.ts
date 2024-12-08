@@ -1,8 +1,8 @@
+import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { PaymentServicesType } from "../../../Container.js";
 import { errorLogger } from "../../../../core/helpers/logger.js";
 import type { IPaymentRepository } from "../../../types/contracts/repositories.js";
 import type { CreatePayment, Payment, SearchPayment, UpdatePayment } from "../../../types/entities/payment.js";
-import { FilterQuery, UpdateQuery } from "mongoose";
 
 export class PaymentRepository implements IPaymentRepository {
     #databaseConnection;
@@ -29,6 +29,9 @@ export class PaymentRepository implements IPaymentRepository {
 
             if (payment.gatewayPaymentId)
                 _update.gatewayPaymentId = payment.gatewayPaymentId;
+
+            if (payment.rejectReason)
+                _update.rejectReason = payment.rejectReason;
 
             const res = await this.#databaseConnection.models.payment
                 .updateOne({
@@ -73,6 +76,7 @@ export class PaymentRepository implements IPaymentRepository {
                 gatewayPaymentId: item.gatewayPaymentId,
                 status: item.status,
                 userId: item.userId,
+                rejectReason: item.rejectReason,
             };
         } catch (err) {
             errorLogger("PaymentRepository / getOne", err);
@@ -110,6 +114,7 @@ export class PaymentRepository implements IPaymentRepository {
                 paymentId: item.gatewayPaymentId,
                 status: item.status,
                 userId: item.userId,
+                rejectReason: item.rejectReason,
             }));
         } catch (err) {
             errorLogger("PaymentRepository / getMany", err);

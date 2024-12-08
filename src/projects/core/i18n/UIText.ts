@@ -150,6 +150,12 @@ const keys = [
     "sendGatewayPaymentId",
     "canceled",
     "noOperationToCancel",
+    "paymentApproved",
+    "paymentRejected",
+    "reason",
+    "sendRejectReason",
+    "paymentIdRequiredForApprove",
+    "notifyUser",
 ] as const;
 
 export type UITextKey = typeof keys[number];

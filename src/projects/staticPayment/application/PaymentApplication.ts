@@ -51,20 +51,6 @@ export default class PaymentApplication {
         return result;
     }
 
-    async #changePaymentStatus(paymentId: string, status: PaymentStatus) {
-        const result = new OperationResult();
-
-        const updated = await this.#paymentRepository.update({
-            id: paymentId,
-            status: status
-        });
-
-        if (updated)
-            result.succeeded();
-
-        return result;
-    }
-
     async open(userId: string) {
         const result = new OperationResult();
 
@@ -93,11 +79,50 @@ export default class PaymentApplication {
     }
 
     async approveById(paymentId: string) {
-        return await this.#changePaymentStatus(paymentId, PaymentStatus.Approved);
+        const result = new OperationResult();
+
+        const payment = await this.#paymentRepository.getOne({ id: paymentId });
+
+        if (!payment)
+            result.failed("itemNotFound");
+        else if (payment.status !== PaymentStatus.PendingApprove)
+            result.failed();
+        else if (!payment.gatewayPaymentId)
+            result.failed("paymentIdRequiredForApprove");
+        else {
+            const updated = await this.#paymentRepository.update({
+                id: payment.id,
+                status: PaymentStatus.Approved
+            });
+
+            if (updated)
+                result.succeeded();
+        }
+
+        return result;
     }
 
-    async rejectById(paymentId: string) {
-        return await this.#changePaymentStatus(paymentId, PaymentStatus.Rejected);
+    async rejectById(paymentId: string, reason: string) {
+        const result = new OperationResult();
+
+        const payment = await this.#paymentRepository.getOne({ id: paymentId });
+
+        if (!payment)
+            result.failed("itemNotFound");
+        else if (payment.status !== PaymentStatus.PendingApprove)
+            result.failed();
+        else {
+            const updated = await this.#paymentRepository.update({
+                id: paymentId,
+                status: PaymentStatus.Rejected,
+                rejectReason: reason,
+            });
+    
+            if (updated)
+                result.succeeded();
+        }
+
+        return result;
     }
 
     async cancel(userId: string) {
