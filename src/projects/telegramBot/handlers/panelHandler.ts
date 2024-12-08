@@ -92,6 +92,18 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             };
+            case "deleteMessage": {
+
+                await tgCall(
+                    TelegramMethods.DeleteMessage,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
             case "usedPointsForMessage": {
 
                 await tgCall(

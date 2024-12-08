@@ -7,6 +7,10 @@ const General = Object.freeze({
     StaticPayment: 10,
 });
 
+const Manager = Object.freeze({
+    SetStaticPaymentGatewayId: 100,
+});
+
 const ChatManagement = Object.freeze({
     ChangeTitle: 20
 });
@@ -21,6 +25,7 @@ const UserPrompt = Object.freeze({
 
 const Enums = Object.freeze({
     General,
+    Manager,
     UserPrompt,
     ChatManagement,
     JoinRequiredChatManagement,

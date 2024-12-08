@@ -61,6 +61,16 @@ export const userCommandHandler: IUpdateHandler = {
                 ]);
 
                 return { shouldContinue: context.user.status === UserStatus.EULA };
+            case "/cancel":
+                let canceled = false;
+                if (context.user.mode !== UserMode.General.Normal)
+                    canceled = (await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok;
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: canceled ? "canceled" : "noOperationToCancel"
+                    }
+                };
             case "/help":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

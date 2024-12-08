@@ -205,6 +205,7 @@ type TelegramResponseMap = {
     [TelegramMethods.SetMessageReaction]: TelegramResponseBase<null>;
     [TelegramMethods.GetFile]: TelegramResponseBase<File>;
     [TelegramMethods.SetWebhook]: TelegramResponseBase<null>;
+    [TelegramMethods.AnswerCallbackQuery]: TelegramResponseBase<null>;
     [TelegramMethods.CopyMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.ForwardMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.GetChatMember]: TelegramResponseBase<ChatMember>;

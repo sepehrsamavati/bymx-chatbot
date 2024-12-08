@@ -67,6 +67,8 @@ type Applications = {
     fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Cache chat members to prevent spamming Telegram */
     chatMemberCacheStorage: ServiceInterfaces.ICacheStorage<Date>;
+    /** Cache manager's selected payment ID */
+    selectedStaticPaymentIdCacheStorage: ServiceInterfaces.ICacheStorage<string>;
 };
 
 type Services = {
@@ -129,6 +131,7 @@ export default class CoreServices {
             openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
+            selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),

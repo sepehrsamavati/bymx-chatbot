@@ -4,10 +4,10 @@ export type Payment = {
     id: string;
     date: Date;
     userId: string;
-    paymentId?: string;
+    gatewayPaymentId?: string;
     status: PaymentStatus;
 }
 
 export type CreatePayment = Omit<Payment, 'id'>;
-export type UpdatePayment = { id: string } & Pick<Payment, 'status'>;
-export type SearchPayment = Pick<Partial<Payment>, 'userId' | 'paymentId' | 'status'>;
+export type UpdatePayment = { id: string } & Pick<Partial<Payment>, 'status' | 'gatewayPaymentId'>;
+export type SearchPayment = { id?: string } & Pick<Partial<Payment>, 'userId' | 'gatewayPaymentId' | 'status'>;

@@ -14,6 +14,7 @@ import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
+import { receiptManageHandler } from "./handlers/receiptManageHandler.js";
 import { imageGenerateHandler } from "./handlers/imageGenerateHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { joinRequiredChatHandler } from "./handlers/joinRequiredChatHandler.js";
@@ -26,8 +27,9 @@ import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObj
 const handlers: IUpdateHandler[] = [
     joinChatHandler,
     adminCommandHandler,
-    planHandler,
     userCommandHandler,
+    receiptManageHandler,
+    planHandler,
     panelHandler,
     joinRequiredChatHandler,
     adminPanelHandler,

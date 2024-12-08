@@ -234,6 +234,10 @@ export default class UserApplication {
         };
     }
 
+    async getUserById(userId: string): Promise<User | null> {
+        return await this.#userRepository.getBy({ id: userId });
+    }
+
     async getUserByTgId(tgId: number): Promise<User | null> {
         return await this.#userRepository.getBy({ tgId: tgId });
     }

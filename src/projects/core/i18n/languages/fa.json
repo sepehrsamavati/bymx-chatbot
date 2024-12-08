@@ -129,5 +129,16 @@
     "sendReceiptTextOrScreenshot": "لطفا شناسه پرداخت یا اسکرین شات رسید را ارسال کنید!",
     "staticPaymentSubmitted": "پرداخت شما با موفقیت ثبت شد، لطفا تا تائید ادمین صبر کنید.",
     "staticPaymentSubmitErrored": "در ثبت کردن پرداخت شما خطایی رخ داد، لطفا به پشتیبانی اطلاع رسانی کنید",
-    "support": "پشتیبانی"
+    "support": "پشتیبانی",
+    "itemNotFound": "موردی یافت نشد!",
+    "status": "وضعیت",
+    "gatewayPaymentId": "شناسه پرداخت درگاه",
+    "approve": "تائید",
+    "reject": "رد",
+    "close": "بستن",
+    "setPaymentId": "ثبت شناسه پرداخت",
+    "paymentIdAlreadySet": "شناسه پرداخت قبلا ذخیره شده است!",
+    "sendGatewayPaymentId": "شناسه پرداخت درگاه را ارسال کنید",
+    "canceled": "لغو شد",
+    "noOperationToCancel": "عملیاتی جهت لغو کردن وجود ندارد!"
 }

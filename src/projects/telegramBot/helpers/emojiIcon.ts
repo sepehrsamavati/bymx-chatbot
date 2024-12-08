@@ -1,3 +1,5 @@
+import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus";
+
 const emojiIcon = Object.freeze({
     model: '🤖',
     help: '⁉',
@@ -31,3 +33,11 @@ const emojiIcon = Object.freeze({
 });
 
 export default emojiIcon;
+
+export const paymentStatusIcon = {
+    [PaymentStatus.Open]: '🔵',
+    [PaymentStatus.PendingApprove]: '🟠',
+    [PaymentStatus.Approved]: '🟢',
+    [PaymentStatus.Canceled]: '🟡',
+    [PaymentStatus.Rejected]: '🔴',
+} as const;

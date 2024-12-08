@@ -20,13 +20,15 @@ export default class PaymentApplication {
         if (userOpenPayments?.length === 1) {
             const payment = userOpenPayments[0];
             result.succeeded().setData(payment);
+        } else if (userOpenPayments?.length === 0) {
+            result.failed("itemNotFound");
         }
 
         return result;
     }
 
     async #changeUserOpenPaymentStatus(userId: string, status: PaymentStatus) {
-        const result = new OperationResult();
+        const result = new OperationResultWithData<Payment>();
 
         if (this.#lock.isLocked(userId))
             return result.failed();
@@ -40,10 +42,26 @@ export default class PaymentApplication {
                 id: openPayment.data.id,
                 status: status,
             }))
-                result.succeeded();
+                result.succeeded().setData(openPayment.data);
+        } else {
+            result.failed(openPayment.message);
         }
 
         this.#lock.unlock(userId);
+        return result;
+    }
+
+    async #changePaymentStatus(paymentId: string, status: PaymentStatus) {
+        const result = new OperationResult();
+
+        const updated = await this.#paymentRepository.update({
+            id: paymentId,
+            status: status
+        });
+
+        if (updated)
+            result.succeeded();
+
         return result;
     }
 
@@ -74,15 +92,36 @@ export default class PaymentApplication {
         return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.PendingApprove);
     }
 
-    async approveByAdmin(userId: string) {
-        return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.Approved);
+    async approveById(paymentId: string) {
+        return await this.#changePaymentStatus(paymentId, PaymentStatus.Approved);
     }
 
-    async rejectByAdmin(userId: string) {
-        return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.Rejected);
+    async rejectById(paymentId: string) {
+        return await this.#changePaymentStatus(paymentId, PaymentStatus.Rejected);
     }
 
     async cancel(userId: string) {
         return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.Canceled);
+    }
+
+    async setGatewayPaymentId(paymentId: string, gatewayPaymentId: string) {
+        const result = new OperationResult();
+        const payment = await this.#paymentRepository.getOne({ id: paymentId });
+
+        if (!payment)
+            result.failed("itemNotFound");
+        else if (payment?.gatewayPaymentId)
+            result.failed("paymentIdAlreadySet");
+        else if (await this.#paymentRepository.update({ id: payment.id, gatewayPaymentId }))
+            result.succeeded();
+
+        return result;
+    }
+
+    async getById(paymentId: string) {
+        const payment = await this.#paymentRepository.getOne({
+            id: paymentId
+        });
+        return payment;
     }
 }

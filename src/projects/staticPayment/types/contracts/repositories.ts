@@ -4,6 +4,7 @@ import type { CreatePayment, Payment, SearchPayment, UpdatePayment } from "../en
 export type IPaymentRepository = {
     create(payment: CreatePayment): Promise<boolean | null>;
     update(payment: UpdatePayment): Promise<boolean | null>;
+    getOne(filter: SearchPayment): Promise<Payment | null>;
     getMany(filter: SearchPayment): Promise<Payment[] | null>;
 }
 

@@ -27,7 +27,7 @@ const schema = new mongoose.Schema<PaymentMongoStored>({
         required: true,
         index: true,
     },
-    paymentId: {
+    gatewayPaymentId: {
         type: String,
         required: false,
         index: true,

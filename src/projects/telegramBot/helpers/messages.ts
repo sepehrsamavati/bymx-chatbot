@@ -1,4 +1,4 @@
-import emojiIcon from "./emojiIcon.js";
+import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
 import config from "../../core/config.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
@@ -8,6 +8,8 @@ import { accessHelper } from "../../core/helpers/accessHelper.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
 import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
+import { UITextOptionalKey } from "../../core/i18n/UIText.js";
+import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -376,6 +378,42 @@ export const getPlanBuyPanel = async (context: RequestContext, planId: string) =
                 [{ text: `${emojiIcon.link} ${context.uiText.purchaseLink}`, url: paymentLink.url }],
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: `viewPlan_${planId}` }]
             ]
+        }
+    };
+};
+
+export const getStaticPaymentReceiptPanel = async (context: RequestContext, paymentId: string) => {
+    const payment = await context.services.paymentApplication.getById(paymentId);
+
+    if (!payment)
+        return "itemNotFound" as UITextOptionalKey;
+
+    const paymentUser = await context.services.userApplication.getUserById(payment.userId);
+
+    const keyboard = [
+        [{ text: `${emojiIcon.failed} ${context.uiText.close}`, callback_data: "deleteMessage" }]
+    ];
+
+    if (!payment.gatewayPaymentId)
+        keyboard[0].push({ text: `${emojiIcon.plus} ${context.uiText.setPaymentId}`, callback_data: `setStaticPaymentId_${payment.id}` });
+
+    if (payment.status === PaymentStatus.PendingApprove)
+        keyboard.unshift([
+            { text: `${paymentStatusIcon[PaymentStatus.Approved]} ${context.uiText.approve}`, callback_data: `approveStaticPayment_${payment.id}` },
+            { text: `${paymentStatusIcon[PaymentStatus.Rejected]} ${context.uiText.reject}`, callback_data: `rejectStaticPayment_${payment.id}` }
+        ]);
+
+    return {
+        text: (
+            (
+                paymentUser ? (`${emojiIcon.user} ${paymentUser.firstName} /find_${paymentUser.tgId}`) : (`${emojiIcon.user} ${emojiIcon.failed} User not found`)
+            )
+            + `\n\n${emojiIcon.calendar} ${stringHelper.dateLocalization(payment.date, context.user.lang)}`
+            + `\n\n${paymentStatusIcon[payment.status]} ${context.uiText.status}: ${PaymentStatus[payment.status]}`
+            + `\n\n${emojiIcon.info} ${context.uiText.gatewayPaymentId}: ${payment.gatewayPaymentId ?? '-'}`
+        ),
+        reply_markup: {
+            inline_keyboard: keyboard
         }
     };
 };

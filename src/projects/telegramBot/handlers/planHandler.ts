@@ -52,6 +52,7 @@ export const planHandler: IUpdateHandler = {
                     reply_markup: {
                         inline_keyboard: [
                             [{ text: `${emojiIcon.identifier} ${context.user.tgId}`, url: startLinkGenerator(context, "getUser_" + context.user.tgId) }],
+                            [{ text: `${emojiIcon.info} View`, url: startLinkGenerator(context, "getReceipt_" + savePaymentResult.data?.id) }],
                         ]
                     }
                 }

@@ -139,6 +139,17 @@ const keys = [
     "staticPaymentSubmitted",
     "staticPaymentSubmitErrored",
     "support",
+    "itemNotFound",
+    "status",
+    "gatewayPaymentId",
+    "approve",
+    "reject",
+    "close",
+    "setPaymentId",
+    "paymentIdAlreadySet",
+    "sendGatewayPaymentId",
+    "canceled",
+    "noOperationToCancel",
 ] as const;
 
 export type UITextKey = typeof keys[number];
