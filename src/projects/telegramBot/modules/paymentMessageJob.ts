@@ -18,16 +18,6 @@ const deleteMessage = (item: PaymentMessageCache) => tgCall(
     }
 );
 
-
-const deleteMessage = (item: PaymentMessageCache) => tgCall(
-    TelegramMethods.DeleteMessage,
-    {
-        chat_id: item.chatId,
-        message_id: item.messageId,
-    }
-);
-
-
 let runLock = false;
 let intervalInitialized = false;
 export const initPaymentMessageCleanupJob = (onDelete: (item: { userId: string } & PaymentMessageCache) => Promise<void>) => {
