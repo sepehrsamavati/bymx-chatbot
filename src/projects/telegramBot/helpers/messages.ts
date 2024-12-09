@@ -332,8 +332,15 @@ export const getPlanList = async (context: RequestContext) => {
     if (plans.length === 0)
         return "noPlanAvailable";
 
+    let planListText = plans.map(plan => (
+        `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
+        + `\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
+        + `\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${stringHelper.digitLocalization(plan.days, context.user.lang)} ${context.uiText.days}`
+        + `\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)} ${context.uiText.irt}`
+    )).join('\n\n');
+
     return {
-        text: `${emojiIcon.list} ${context.uiText.pointPackage}`,
+        text: `${emojiIcon.list} ${context.uiText.pointPackage}` + (planListText.length < 3500 ? `\n\n${planListText}` : ""),
         reply_markup: {
             inline_keyboard: [
                 ...plans.map(plan => [{ text: context.getUit(plan.title), callback_data: `viewPlan_${plan.id}` }]),
@@ -354,7 +361,7 @@ export const getPlanInfoPanel = async (context: RequestContext, planId: string) 
             `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
             + `\n\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
             + `\n\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${stringHelper.digitLocalization(plan.days, context.user.lang)} ${context.uiText.days}`
-            + `\n\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)}`
+            + `\n\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)} ${context.uiText.irt}`
         ),
         reply_markup: {
             inline_keyboard: [

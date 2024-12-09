@@ -151,5 +151,9 @@
     "maxActiveSubscriptionsReached": "امکان خرید بیشتر از این تعداد وجود ندارد!",
     "waitForPendingPayment": "لطفا منتظر تائید پرداخت قبلی خود باشید!",
     "paymentCanceled": "عملیات پرداخت لغو شد!",
-    "contactSupport": "ارتباط با پشتیبانی"
+    "contactSupport": "ارتباط با پشتیبانی",
+    "plan_shortTerm": "کوتاه مدت (Short term)",
+    "plan_plus": "پلاس (Plus)",
+    "plan_student": "دانشجویی (Student)",
+    "plan_pro": "حرفه‌ای (Pro)"
 }
