@@ -22,9 +22,9 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
             + `\n\n🤖 ${context.uiText.model}: ${chat.model.title}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }],
                 [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }, { text: `🤖 ${context.uiText.changeModel}`, callback_data: "changeChatModel" }],
                 [{ text: `${emojiIcon.delete} ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }],
             ]
         }
     };
@@ -61,8 +61,8 @@ export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId:
         text: `⚠ ${context.uiText.confirmToDelete}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${chatId}` }],
                 [{ text: `${emojiIcon.ok} ${context.uiText.confirm}`, callback_data: `deleteChat_${chatId}` }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${chatId}` }],
             ]
         }
     };
@@ -78,12 +78,12 @@ export const getChatListPanel = async (context: RequestContext) => {
         text: chats.length > 0 ? context.uiText.savedChats : context.uiText.noSavedChats,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
-                        ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
-                        : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
-                ])
+                    ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
+                    : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
+                ]),
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
             ]
         }
     };
@@ -107,10 +107,10 @@ export const getUserSubscriptionsList = async (context: RequestContext) => {
         ),
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.purchasePackage}`, callback_data: "planList" }],
                 ...subscriptions.map(subscription => [
                     { text: `${context.getUit(subscription.plan.title)}`, callback_data: `manageSubscription_${subscription.id}` }
-                ])
+                ]),
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.purchasePackage}`, callback_data: "planList" }],
             ]
         }
     };
@@ -200,8 +200,8 @@ export const getJoinRequiredChatsPanel = async (context: RequestContext) => {
         text: chats.length === 0 ? context.uiText.noJoinRequiredChat : `${context.uiText.joinRequiredChats}:`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "adminPanel" }, { text: `${emojiIcon.plus} ${context.uiText.add}`, callback_data: "newJoinRequiredChat" }],
                 ...(chats.map(chat => [{ text: chat.title, callback_data: `manageJoinChat_${chat.id}` }])),
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "adminPanel" }, { text: `${emojiIcon.plus} ${context.uiText.add}`, callback_data: "newJoinRequiredChat" }],
             ]
         }
     };
@@ -297,10 +297,10 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
         text: context.uiText.selectModel,
         reply_markup: {
             inline_keyboard: [
+                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }]),
                 (changeChatModel
                     ? [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
                     : [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]),
-                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }])
             ]
         }
     };
@@ -334,8 +334,8 @@ export const getPlanList = async (context: RequestContext) => {
         text: `${emojiIcon.list} ${context.uiText.pointPackage}`,
         reply_markup: {
             inline_keyboard: [
+                ...plans.map(plan => [{ text: context.getUit(plan.title), callback_data: `viewPlan_${plan.id}` }]),
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "mySubscriptions" }],
-                ...plans.map(plan => [{ text: context.getUit(plan.title), callback_data: `viewPlan_${plan.id}` }])
             ]
         }
     };
