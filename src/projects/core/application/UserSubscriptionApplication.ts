@@ -211,7 +211,7 @@ export default class UserSubscriptionApplication {
         if (!activeSubscriptions)
             return result.failed("errorOccurred");
 
-        if(activeSubscriptions.paidSubscriptions.length >= config.activeSubscriptionLimit)
+        if (activeSubscriptions.paidSubscriptions.length >= config.activeSubscriptionLimit)
             return result.failed("maxActiveSubscriptionsReached");
 
         const plan = await this.#planRepository.getById(planId);
@@ -259,27 +259,29 @@ export default class UserSubscriptionApplication {
             const subscriptionRemainingPoints = Math.floor(subscription.plan.points - subscription._usage);
 
             if (subscriptionRemainingPoints <= 0) { // subscription has no points remaining
-                if (!subscription.isFinished) {
-                    subscription.isFinished = true; // just updating memory cache to prevent issues
-                    await this.#userSubscriptionRepository.updateById({
-                        id: subscription.id,
-                        isFinished: true,
-                    });
-                }
                 continue;
             }
 
+            let decreasedAmount = 0;
+
             if (subscriptionRemainingPoints >= remainingPoints) { // subscription remaining points are enough
                 calculatedPoints += remainingPoints;
-                usedSubscriptions.push({
-                    id: subscription.id,
-                    usedAmount: remainingPoints,
-                });
+                decreasedAmount = remainingPoints;
             } else { // using all subscription remaining points
                 calculatedPoints += subscriptionRemainingPoints;
-                usedSubscriptions.push({
+                decreasedAmount = subscriptionRemainingPoints;
+            }
+
+            usedSubscriptions.push({
+                id: subscription.id,
+                usedAmount: decreasedAmount,
+            });
+
+            if (subscriptionRemainingPoints - decreasedAmount <= 0 && !subscription.isFinished) {
+                subscription.isFinished = true; // just updating memory cache to prevent issues
+                await this.#userSubscriptionRepository.updateById({
                     id: subscription.id,
-                    usedAmount: subscriptionRemainingPoints,
+                    isFinished: true,
                 });
             }
         }
