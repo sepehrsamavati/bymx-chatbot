@@ -70,7 +70,7 @@ export class UpdateHandler {
             ?? update.channel_post?.chat;
 
         const fromTgUser = update.message?.from
-            ?? (chat?.type === "private" ? update.callback_query?.message.chat : null)
+            ?? update.callback_query?.from
             ?? update.inline_query?.from
             ?? update.my_chat_member?.from
             ?? update.channel_post?.from

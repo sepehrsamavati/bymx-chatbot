@@ -41,4 +41,8 @@ const schema = new mongoose.Schema<PaymentMongoStored>({
         type: String,
         required: false,
     },
+    approvedByUser: {
+        type: String,
+        required: false,
+    },
 }, { versionKey: false, collection: paymentModelDefinition.collection });

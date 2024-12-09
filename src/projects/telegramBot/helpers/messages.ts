@@ -383,7 +383,7 @@ export const getPlanBuyPanel = async (context: RequestContext, planId: string) =
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.link} ${context.uiText.purchaseLink}`, url: paymentLink.url }],
-                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: `viewPlan_${planId}` }]
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "cancelPayment" }]
             ]
         }
     };
@@ -418,6 +418,7 @@ export const getStaticPaymentReceiptPanel = async (context: RequestContext, paym
             + `\n\n${emojiIcon.calendar} ${stringHelper.dateLocalization(payment.date, context.user.lang)}`
             + `\n\n${paymentStatusIcon[payment.status]} ${context.uiText.status}: ${PaymentStatus[payment.status]}`
             + `\n\n${emojiIcon.info} ${context.uiText.gatewayPaymentId}: ${payment.gatewayPaymentId ?? '-'}`
+            + (payment.rejectReason ? `\n\n${context.uiText.reason}: ${payment.rejectReason}` : "")
         ),
         reply_markup: {
             inline_keyboard: keyboard
@@ -436,8 +437,8 @@ export const getStaticPaymentReceiptInfoKeyboard = (opts: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.identifier} ${opts.customer.tgId}`, url: startLinkGenerator(opts.botUsername, "getUser_" + opts.customer.tgId) }],
                 [{ text: `${emojiIcon.calendar} ${stringHelper.dateLocalization(opts.payment.date, opts.customer.lang)}`, url: managePaymentLink }],
-                [{ text: `${emojiIcon.refresh} ${stringHelper.dateLocalization(new Date(), "en")}`, callback_data: `refreshReceipt_${opts.payment.id}`}],
-                [{ text: `${emojiIcon.info} View`, url: managePaymentLink }],
+                [{ text: `${emojiIcon.refresh} ${stringHelper.dateLocalization(new Date(), "en")}`, callback_data: `refreshReceipt_${opts.payment.id}` }],
+                [{ text: `${emojiIcon.info} View`, url: managePaymentLink }, { text: `${paymentStatusIcon[opts.payment.status]} ${PaymentStatus[opts.payment.status]}`, url: managePaymentLink }],
             ]
         }
     };

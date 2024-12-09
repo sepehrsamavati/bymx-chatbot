@@ -1,5 +1,6 @@
 import tgCall from "./helpers/call.js";
-import { logger } from "../core/helpers/logger.js";
+import UIText from "../core/i18n/UIText.js";
+import emojiIcon from "./helpers/emojiIcon.js";
 import { UpdateHandler } from "./UpdateHandler.js";
 import type CoreServices from "../core/Container.js";
 import BroadcastHandler from "./BroadcastHandler.js";
@@ -7,8 +8,11 @@ import exitHelper from "../core/helpers/exitHelper.js";
 import { TelegramUser } from "../../types/telegram.js";
 import type { IServices } from "../../types/services.js";
 import { ExitCode } from "../../types/enums/exitCodes.js";
+import { errorLogger, logger } from "../core/helpers/logger.js";
 import type PaymentServices from "../staticPayment/Container.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
+import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
+import { UserMode } from "../../types/enums/userMode.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
@@ -31,6 +35,26 @@ export class UpdateProvider {
             coreServices.applications.userApplication,
             coreServices.applications.telegramBroadcastApplication
         );
+
+        initPaymentMessageCleanupJob(async item => {
+            try {
+                const user = await this.#services.core.applications.userApplication.getUserById(item.userId);
+                if (user) {
+                    await this.#services.payment.applications.paymentApplication.cancel(user.id);
+                    if (user.mode === UserMode.General.StaticPayment)
+                        await this.#services.core.applications.userApplication.setUserMode(user.id, UserMode.General.Normal);
+                    tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: item.chatId,
+                            text: `${emojiIcon.warning} ${UIText[user.lang]?.paymentCanceled}`,
+                        }
+                    );
+                }
+            } catch (err) {
+                errorLogger("Payment automatic cleanup get user failed", err);
+            }
+        });
 
         coreServices
             .diReady()
