@@ -145,8 +145,10 @@ export default class OpenAIApplication {
 
         const { selectedChat, historyMessages, totalRemainingPoints, result, subscriptions } = _middlewareResult;
 
+        const inputUnits = textMessage.split(' ').length + (opts?.imageUrl ? 500 : 0);
+
         const predictedCost = modelCostPredication({
-            inputUnits: textMessage.split(' ').length + (opts?.imageUrl ? 500 : 0),
+            inputUnits: inputUnits,
             model: selectedChat.model,
             pointUsageLimit: totalRemainingPoints
         });
@@ -159,6 +161,8 @@ export default class OpenAIApplication {
             textMessage += `\n\nFile extension=${opts.plainTextTempFile.extension}\nFile content=\n${byteArrayData.toString()}`;
         }
 
+        const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
+
         const res = await this.#openAI.multiTextMessage({
             inputMessage: textMessage,
             messages: historyMessages,
@@ -166,7 +170,8 @@ export default class OpenAIApplication {
             systemMessage: openAISystemMessageMapper(selectedChat.behavior),
             userId: user.id,
             tokenLimit: predictedCost.outputTokens,
-            imageUrl: opts?.imageUrl
+            imageUrl: opts?.imageUrl,
+            languageCode: sendLangToGpt ? user.lang : undefined
         });
 
         if (res) {
