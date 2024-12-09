@@ -108,14 +108,14 @@ export class MongoDBConnection {
 
     async connect() {
         const connection = this.#_con = await mongoose.createConnection(this.#mongoDbConnectionStringUri).asPromise();
-        logger.info("MongoDB connection established.");
+        logger.info("MongoDB connection established (core).");
         this.#mongooseModels = new MongooseModels(connection);
         return connection;
     }
 
     async closeConnection(): Promise<void> {
         await this.con?.close(false);
-        logger.info("MongoDB connection closed.");
+        logger.info("MongoDB connection closed (core).");
         return;
     }
 
