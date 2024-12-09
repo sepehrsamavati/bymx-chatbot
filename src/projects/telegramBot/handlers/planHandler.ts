@@ -112,7 +112,10 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         } else if (queryData?.startsWith("viewPlan_")) {
             if (context.user.mode !== UserMode.General.Normal) {
-                paymentMessageCache.unset(context.user.id);
+                if (context.user.mode === UserMode.General.StaticPayment) {
+                    paymentMessageCache.unset(context.user.id);
+                    await context.services.paymentApplication.cancel(context.user.id);
+                }
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 context.user.mode = UserMode.General.Normal;
             }

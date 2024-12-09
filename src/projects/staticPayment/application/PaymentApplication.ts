@@ -59,11 +59,14 @@ export default class PaymentApplication {
 
         this.#lock.lock(userId);
 
-        const hasOpenPayment = await this.#getUserOpenPayment(userId);
-
-        if (hasOpenPayment.ok) {
+        if (await this.#paymentRepository.getOne({
+            userId: userId,
+            status: PaymentStatus.PendingApprove,
+        }))
+            result.failed("waitForPendingPayment");
+        else if ((await this.#getUserOpenPayment(userId)).ok)
             result.failed("anOpenPaymentExists");
-        } else if (await this.#paymentRepository.create({
+        else if (await this.#paymentRepository.create({
             date: new Date(),
             status: PaymentStatus.Open,
             userId: userId,

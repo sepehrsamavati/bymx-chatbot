@@ -148,5 +148,6 @@
     "paymentIdRequiredForApprove": "قبل از تائید باید شناسه پرداخت را ثبت نمائید",
     "notifyUser": "اطلاع رسانی به کاربر",
     "planNotAvailable": "پلن غیر قابل خرید است!",
-    "maxActiveSubscriptionsReached": "امکان خرید بیشتر از این تعداد وجود ندارد!"
+    "maxActiveSubscriptionsReached": "امکان خرید بیشتر از این تعداد وجود ندارد!",
+    "waitForPendingPayment": "لطفا منتظر تائید پرداخت قبلی خود باشید!"
 }
