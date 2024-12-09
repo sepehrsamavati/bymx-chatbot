@@ -13,6 +13,7 @@ const config = {
     staticPaymentReceiptTgChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
     chatCountLimit: 5,
     cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
+    activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     /** Minutes */
     tempFileCleanupAge: Number.parseInt(process.env.BYMX_FILE_CLEANUP_AGE ?? "5"),
@@ -92,6 +93,11 @@ configError(
 configError(
     "Define receipt chat ID for static payments",
     !config.staticPaymentReceiptTgChatId
+);
+
+configError(
+    `Invalid value for active subscriptions limit (${config.activeSubscriptionLimit}) / Should be an integer in range 1-2000`,
+    Number.isNaN(config.activeSubscriptionLimit) || config.activeSubscriptionLimit < 1 || config.activeSubscriptionLimit > 2000
 );
 
 if (!fs.existsSync(config.cacheDirectory))

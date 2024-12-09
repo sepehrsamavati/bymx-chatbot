@@ -135,6 +135,24 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         } else if (queryData?.startsWith("buyPlan_")) {
             const planId = queryData.replace("buyPlan_", "");
+            const currentSubscriptionsInfo = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user.id);
+
+            if (!currentSubscriptionsInfo)
+                return null;
+
+            if (currentSubscriptionsInfo.paidSubscriptions.length >= config.activeSubscriptionLimit) {
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.maxActiveSubscriptionsReached,
+                        show_alert: true,
+                        cache_time: 20,
+                    }
+                );
+                return { shouldContinue: false };
+            }
+
             const planBuyPanel = await getPlanBuyPanel(context, planId);
 
             if (!planBuyPanel)

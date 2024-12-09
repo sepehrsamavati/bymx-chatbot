@@ -157,6 +157,7 @@ const keys = [
     "paymentIdRequiredForApprove",
     "notifyUser",
     "planNotAvailable",
+    "maxActiveSubscriptionsReached",
 ] as const;
 
 export type UITextKey = typeof keys[number];

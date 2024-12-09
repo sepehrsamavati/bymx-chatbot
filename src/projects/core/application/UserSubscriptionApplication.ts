@@ -206,6 +206,13 @@ export default class UserSubscriptionApplication {
 
     async purchasePlan(userId: User['id'], planId: string) {
         const result = new OperationResult();
+        const activeSubscriptions = await this.getActiveSubscriptionsExtendedInfo(userId);
+
+        if (!activeSubscriptions)
+            return result.failed("errorOccurred");
+
+        if(activeSubscriptions.paidSubscriptions.length >= config.activeSubscriptionLimit)
+            return result.failed("maxActiveSubscriptionsReached");
 
         const plan = await this.#planRepository.getById(planId);
 
