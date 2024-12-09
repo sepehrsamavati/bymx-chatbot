@@ -1,4 +1,4 @@
-import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus";
+import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 
 const emojiIcon = Object.freeze({
     model: '🤖',
