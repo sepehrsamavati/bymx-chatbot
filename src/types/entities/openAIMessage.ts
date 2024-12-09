@@ -14,6 +14,7 @@ export type OpenAIMessage = {
     saved: boolean;
     cost: number;
     points: number;
+    responseTime: number;
     /** Name of OpenAI model used for message */
     model: string;
     /** User temp file `fsId` */

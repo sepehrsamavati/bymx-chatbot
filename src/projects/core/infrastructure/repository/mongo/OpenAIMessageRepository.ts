@@ -22,68 +22,11 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             saved: message.saved,
             model: message.model,
             promptUser: message.promptUser.id,
-            fileId: message.fileId
+            fileId: message.fileId,
+            responseTime: message.responseTime,
         });
         return Boolean(res?._id);
     }
-
-    // async getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null> {
-    //     type AggregationResult = { _id: null; sum: number; }[] | undefined;
-    //     const res = (
-    //         await this.#databaseConnection.models.openAIMessage
-    //             .aggregate([
-    //                 {
-    //                     $match: {
-    //                         isDeleted: false,
-    //                         plan: {
-    //                             $exists: false,
-    //                         },
-    //                         insertDate: {
-    //                             $gte: fromDate,
-    //                             $lte: toDate
-    //                         }
-    //                     }
-    //                 },
-    //                 {
-    //                     $lookup: {
-    //                         from: openAIChatModelDefinition.collection,
-    //                         localField: "chat" satisfies keyof OpenAIMessageDBModel,
-    //                         foreignField: "_id",
-    //                         as: "_chat",
-    //                         pipeline: [
-    //                             {
-    //                                 $match: {
-    //                                     user: new mongoose.Types.ObjectId(userId),
-    //                                 }
-    //                             }
-    //                         ]
-    //                     }
-    //                 },
-    //                 {
-    //                     $unwind: "$_chat"
-    //                 },
-    //                 {
-    //                     $group: {
-    //                         _id: null,
-    //                         sum: {
-    //                             $sum: "$points"
-    //                         }
-    //                     }
-    //                 }
-    //             ])
-    //     ) as AggregationResult;
-
-    //     if (!res || res.length === 0)
-    //         return 0;
-
-    //     if (res.length !== 1)
-    //         throw new Error("Invalid aggregation result");
-
-    //     const _userPointUsage = res[0].sum;
-
-    //     return _userPointUsage;
-    // }
-
     async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null> {
         const res = await this.#databaseConnection.models.openAIMessage
             .find({
@@ -115,6 +58,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             saved: item.saved,
             model: item.model,
             fileId: item.fileId,
+            responseTime: item.responseTime,
             // chat: {
             //     id: item.chat._id.toString(),
             //     title: item.chat.title,

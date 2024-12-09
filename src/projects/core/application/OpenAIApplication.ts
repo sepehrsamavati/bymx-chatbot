@@ -163,6 +163,7 @@ export default class OpenAIApplication {
 
         const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
 
+        const startTime = performance.now();
         const res = await this.#openAI.multiTextMessage({
             inputMessage: textMessage,
             messages: historyMessages,
@@ -173,6 +174,7 @@ export default class OpenAIApplication {
             imageUrl: opts?.imageUrl,
             languageCode: sendLangToGpt ? user.lang : undefined
         });
+        const responseTime = performance.now() - startTime;
 
         if (res) {
             const { cost, userPointCost } = modelCostCalculator({
@@ -194,7 +196,8 @@ export default class OpenAIApplication {
                 model: selectedChat.model.name,
                 saved: user.saveMessages,
                 usages: savedUsageIds ?? [],
-                promptUser: user
+                promptUser: user,
+                responseTime: responseTime,
             });
 
             return result.succeeded().setData({
@@ -263,7 +266,9 @@ export default class OpenAIApplication {
 
         this.#messageLock.lock(user.id);
 
+        const startTime = performance.now();
         const res = await this.#openAI.simpleImageGenerate(user.id, message);
+        const responseTime = performance.now() - startTime;
 
         if (res?.url) {
             const userPointCost = calculatePointUsage({ usdCent: res.costUsdCent });
@@ -286,7 +291,8 @@ export default class OpenAIApplication {
                 model: "dall-e-2",
                 saved: false,
                 usages: savedUsageIds ?? [],
-                promptUser: user
+                promptUser: user,
+                responseTime: responseTime,
             });
         } else if (res?.contentPolicyViolation) {
             result.failed("promptContentNotAllowed");
@@ -321,12 +327,14 @@ export default class OpenAIApplication {
 
         const { selectedChat, historyMessages, result, subscriptions } = _middlewareResult;
 
+        const startTime = performance.now();
         const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
             inputMessage: message,
             messages: historyMessages,
             tempFile,
             model: selectedChat.model
         });
+        const responseTime = performance.now() - startTime;
 
         if (!res) {
             this.#messageLock.unlock(user.id);
@@ -360,7 +368,8 @@ export default class OpenAIApplication {
             saved: user.saveMessages,
             fileId: tempFile.fsId,
             usages: savedUsageIds ?? [],
-            promptUser: user
+            promptUser: user,
+            responseTime: responseTime,
         });
 
         this.#messageLock.unlock(user.id);
