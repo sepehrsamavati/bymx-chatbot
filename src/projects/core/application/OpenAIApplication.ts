@@ -74,7 +74,7 @@ export default class OpenAIApplication {
                 user: user,
                 model: defaultModel,
                 behavior: OpenAISystemMessage.None,
-                isHidden: true
+                isHidden: false,
             } satisfies Partial<OpenAIChat>;
 
             const defaultChatId = await this.#openAIChatRepository.create({
