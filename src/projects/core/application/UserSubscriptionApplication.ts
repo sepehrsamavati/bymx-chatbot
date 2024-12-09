@@ -118,7 +118,7 @@ export default class UserSubscriptionApplication {
             ...result,
             paidSubscriptions,
             dailyFreePointStatus,
-            paidSubscriptionsTotalRemainingPoints: paidSubscriptions.map(s => s.plan.points).reduce((a, b) => a + b, 0),
+            paidSubscriptionsTotalRemainingPoints: paidSubscriptions.map(s => s.plan.points).reduce((a, b) => a + b, 0) - paidSubscriptions.map(s => s._usage).reduce((a, b) => a + b, 0),
         };
     }
 
