@@ -33,6 +33,7 @@ export type IOpenAIRequest = {
     tokenLimit?: number;
     model: OpenAIModel;
     userId?: string;
+    languageCode?: string;
 };
 
 export type IOpenAIRequestWithFile = IOpenAIRequest & { tempFile: UserTempFile; };

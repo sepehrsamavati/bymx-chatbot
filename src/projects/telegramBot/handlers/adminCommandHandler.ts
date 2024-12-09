@@ -1,12 +1,13 @@
 import tgCall from "../helpers/call.js";
-import emojiIcon from "../helpers/emojiIcon.js";
-import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
+import stringHelper from "../../core/helpers/stringHelper.js";
+import { getStaticPaymentReceiptPanel, getUserManagementText } from "../helpers/messages.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
+import emojiIcon, { paymentStatusIcon } from "../helpers/emojiIcon.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { getPanel, getModelUsageListPanel, getUserManagementText } from "../helpers/messages.js";
+import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 
 export const adminCommandHandler: IUpdateHandler = {
@@ -17,9 +18,23 @@ export const adminCommandHandler: IUpdateHandler = {
         if (!accessHelper(UserType.Admin, context.user.type))
             return { shouldContinue: true };
 
+        const startParameter = update.message?.text?.replace("/start", "").trimStart() ?? "";
+
+        if (update.message && startParameter.startsWith("getUser_")) {
+            const targetTgId = Number.parseInt(startParameter.replace("getUser_", ""));
+            if (!Number.isNaN(targetTgId)) {
+                update.message.text = `/find_${targetTgId}`;
+            }
+        } else if (update.message && startParameter.startsWith("getReceipt_")) {
+            const receiptId = startParameter.replace("getReceipt_", "");
+            if (receiptId.length)
+                update.message.text = `/receipt_${receiptId}`;
+        }
+
+
         const text = update.message?.text as string;
 
-        const isCommand = update.message?.entities?.at(0)?.type === "bot_command" && !text.includes('\n');
+        let isCommand = update.message?.entities?.at(0)?.type === "bot_command" && !text.includes('\n');
 
         if (!isCommand)
             return { shouldContinue: true };
@@ -40,6 +55,26 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: getUserManagementText(context, await context.services.userApplication.getUserInfo(tgId))
                 }
             };
+        } else if (text.startsWith("/receipt_")) {
+            const paymentId = text.replace("/receipt_", "");
+            const receiptPanel = await getStaticPaymentReceiptPanel(context, paymentId);
+
+            if (typeof receiptPanel === "string")
+                return {
+                    call: {
+                        text: receiptPanel
+                    }
+                };
+
+            await tgCall(
+                TelegramMethods.SendMessage,
+                {
+                    chat_id: update.message?.chat.id,
+                    ...receiptPanel
+                }
+            );
+
+            return { shouldContinue: false };
         } else if (text.startsWith("/ban")) {
             if (!accessHelper(UserType.Manager, context.user.type))
                 return {

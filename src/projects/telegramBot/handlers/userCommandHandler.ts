@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
@@ -14,13 +15,15 @@ export const userCommandHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text as string;
 
-        const isCommand = update.message?.entities?.at(0)?.type === "bot_command";
+        let isCommand = update.message?.entities?.at(0)?.type === "bot_command";
 
         let command = "";
         if (isCommand) {
             command = text;
-            if (command.startsWith("/start"))
+            if (command.startsWith("/start")) {
+                // const startParameter = command.replace("/start", "").trimStart();
                 command = "/start"; // remove start parameters
+            }
         }
 
         switch (command) {
@@ -59,6 +62,16 @@ export const userCommandHandler: IUpdateHandler = {
                 ]);
 
                 return { shouldContinue: context.user.status === UserStatus.EULA };
+            case "/cancel":
+                let canceled = false;
+                if (context.user.mode !== UserMode.General.Normal)
+                    canceled = (await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok;
+                return {
+                    shouldContinue: false,
+                    call: {
+                        text: canceled ? "canceled" : "noOperationToCancel"
+                    }
+                };
             case "/help":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -104,6 +117,12 @@ export const userCommandHandler: IUpdateHandler = {
                 );
 
                 return { shouldContinue: false };
+            case "/support":
+                return {
+                    call: {
+                        text: `${emojiIcon.contact} ${context.uiText.contactSupport}: ${config.telegramSupportAccount}`
+                    }
+                };
             case "/panel":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -135,25 +154,6 @@ export const userCommandHandler: IUpdateHandler = {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
                         ...modelUsageList
-                    }
-                );
-
-                return { shouldContinue: false };
-            case "/plans":
-                const plans = await context.services.openAIPlanApplication.getAllAvailable();
-
-                if (!plans)
-                    return null;
-
-                await tgCall(
-                    TelegramMethods.SendMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        text: "📃",
-                        reply_markup: {
-                            inline_keyboard: plans.map(plan => [{ text: plan.title, callback_data: `purchasePlan${plan.id}` }])
-                        }
                     }
                 );
 

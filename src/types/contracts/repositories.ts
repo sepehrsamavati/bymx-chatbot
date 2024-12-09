@@ -1,11 +1,12 @@
-import type { CaptionOnly } from "./entities";
-import type { Plan, PlanDBModel } from "../entities/plan";
+import type { CaptionOnly, FlattenToIDs } from "./entities";
+import type { Plan, SearchPlan } from "../entities/plan";
 import type { OpenAIModel } from "../entities/openAIModel";
+import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUsage";
 import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
-import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
+import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
 
@@ -48,11 +49,18 @@ export type IUserRepository = {
 }
 
 export type IUserSubscriptionRepository = {
-    create(userSubscription: Omit<UserSubscriptionDBModel, 'id'>): Promise<boolean | null>;
+    create(userSubscription: CreateUserSubscription): Promise<string | null>;
     updateById(userSubscription: UpdateUserSubscription): Promise<boolean | null>;
-    getActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null>;
-    getAllActives(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
-    countByUserId(userId: User['id'], expiryNotBefore: Date): Promise<number | null>;
+    getAllActive(userId: User['id'], expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null>;
+    getById(id: string): Promise<UserSubscriptionDBModel | null>;
+    getMany(filter: SearchUserSubscription): Promise<Omit<UserSubscription, 'user'>[] | null>;
+    count(filter: SearchUserSubscription): Promise<number | null>;
+}
+
+export type IUserSubscriptionUsageRepository = {
+    createMany(userSubscriptionUsages: CreateUserSubscriptionUsage[]): Promise<string[] | null>;
+    getPointUsageById(userSubscriptionId: UserSubscription['id']): Promise<number | null>;
+    getPointUsageByIds(userSubscriptionIds: UserSubscription['id'][]): Promise<{ userSubscriptionId: string; amount: number; }[] | null>;
 }
 
 export type ITelegramBroadcastRepository = {
@@ -81,7 +89,7 @@ export type IOpenAIModelRepository = {
 
 export type IPlanRepository = {
     getById(id: Plan['id']): Promise<Plan | null>;
-    getMany(filter: Pick<Partial<PlanDBModel>, 'available'>): Promise<Plan[] | null>;
+    getMany(filter: SearchPlan): Promise<Plan[] | null>;
 }
 
 export type IOpenAIChatRepository = {
@@ -94,9 +102,7 @@ export type IOpenAIChatRepository = {
 }
 
 export type IOpenAIMessageRepository = {
-    create(message: OpenAIMessageDBModel): Promise<boolean | null>;
-    getPlanPointUsage(plan: Plan['id']): Promise<number | null>;
-    getFreePointUsage(userId: string, fromDate: Date, toDate: Date): Promise<number | null>;
+    create(message: FlattenToIDs<OpenAIMessageDBModel, 'usages'>): Promise<boolean | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;

@@ -61,12 +61,17 @@ export default class OpenAIService implements IOpenAIService {
     }
 
     async multiTextMessage(opts: IOpenAIRequest) {
-        const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl } = opts;
+        const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl, languageCode } = opts;
 
         const _messages: IChatCompletionConfig['messages'] = [];
 
-        if (systemMessage)
-            _messages.push({ role: 'system', content: systemMessage });
+        let _systemMessage = systemMessage ?? "";
+
+        if (languageCode)
+            _systemMessage += `\nUser language: '${languageCode}'`;
+
+        if (_systemMessage)
+            _messages.push({ role: 'system', content: _systemMessage });
 
         for (const message of messages) {
             _messages.push({ role: 'user', content: message.prompt });

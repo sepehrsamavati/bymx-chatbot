@@ -3,7 +3,7 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel } from "../helpers/messages.js";
+import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -56,9 +56,53 @@ export const panelHandler: IUpdateHandler = {
                             ...await getImageGenerateModePanel(context)
                         }
                     );
+                    return { shouldContinue: false };
                 }
 
                 return null;
+            };
+            case "mySubscriptions": {
+                const subscriptionsList = await getUserSubscriptionsList(context);
+
+                if (!subscriptionsList)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ...subscriptionsList
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "comingSoon": {
+
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.comingSoon,
+                        show_alert: true,
+                        cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "deleteMessage": {
+
+                await tgCall(
+                    TelegramMethods.DeleteMessage,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id
+                    }
+                );
+
+                return { shouldContinue: false };
             };
             case "usedPointsForMessage": {
 

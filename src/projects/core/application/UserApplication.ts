@@ -8,20 +8,19 @@ import { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
 
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
-    #planRepository;
     #openAIMessageRepository;
-    #userSubscriptionRepository;
+    #userSubscriptionApplication;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
-        this.#planRepository = container.planRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
-        this.#userSubscriptionRepository = container.userSubscriptionRepository;
+        this.#userSubscriptionApplication = container.userSubscriptionApplication;
     }
 
     async upsert(user: UpsertUserModel) {
@@ -145,54 +144,6 @@ export default class UserApplication {
         return result;
     }
 
-    async purchasePlan(user: User, planId: string) {
-        const result = new OperationResult();
-
-        const plan = await this.#planRepository.getById(planId);
-
-        if (!plan)
-            return result.failed("planNotExist");
-
-        if (!plan.available)
-            return result.failed("planNotAvailable");
-
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + plan.days);
-
-        const res = await this.#userSubscriptionRepository.create({
-            user: user,
-            plan: plan,
-            expiry: expiry,
-            insertDate: new Date(),
-            isDeleted: false,
-            isFinished: false
-        });
-
-        return res ? result.succeeded() : result.failed();
-    }
-
-    async getActiveSubscription(userId: string) {
-        return await this.#userSubscriptionRepository.getActive(userId, new Date());
-    }
-
-    async getFreePointStatus(userId: string) {
-        const [start, end] = getTodayRange();
-
-        const freePointUsage = await this.#openAIMessageRepository.getFreePointUsage(userId, start, end);
-
-
-        if (freePointUsage === null)
-            return null;
-
-        const { dailyFreePoints } = config;
-
-        return {
-            used: freePointUsage,
-            remaining: freePointUsage < dailyFreePoints ? dailyFreePoints - freePointUsage : 0,
-            total: dailyFreePoints
-        };
-    }
-
     async getUserFileProcessingStatus(userId: string) {
         const result = new OperationResult();
 
@@ -256,19 +207,32 @@ export default class UserApplication {
         if (!user)
             return null;
 
-        const [
-            activePlans,
-            dailyFreePointStatus
-        ] = await Promise.all([
-            this.#userSubscriptionRepository.countByUserId(user.id, new Date()),
-            this.getFreePointStatus(user.id)
-        ]);
+        const result = await this.#userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(user.id);
+
+        if (!result)
+            return {
+                user: user,
+                dailyFreePoints: null,
+                activePurchasedPlans: null,
+                paidSubscriptionsRemainingPoints: null,
+            };
+
+        const { dailyFreePointStatus } = result;
 
         return {
             user: user,
-            activePlans: activePlans,
-            remainingDailyFreePoints: dailyFreePointStatus?.remaining ?? null,
+            dailyFreePoints: dailyFreePointStatus ? {
+                used: dailyFreePointStatus?.used,
+                remaining: dailyFreePointStatus?.remaining,
+                total: dailyFreePointStatus?.total,
+            } : null,
+            activePurchasedPlans: result.paidSubscriptions.length,
+            paidSubscriptionsRemainingPoints: result.paidSubscriptionsTotalRemainingPoints,
         };
+    }
+
+    async getUserById(userId: string): Promise<User | null> {
+        return await this.#userRepository.getBy({ id: userId });
     }
 
     async getUserByTgId(tgId: number): Promise<User | null> {

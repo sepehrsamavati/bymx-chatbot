@@ -1,7 +1,8 @@
 import tgCall from "./helpers/call.js";
-import CoreServices from "../core/Container.js";
 import { errorLogger } from "../core/helpers/logger.js";
 import UIText, { getUit } from "../core/i18n/UIText.js";
+import { planHandler } from "./handlers/planHandler.js";
+import type { IServices } from "../../types/services.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
@@ -13,22 +14,29 @@ import { userCommandHandler } from "./handlers/userCommandHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
+import { receiptManageHandler } from "./handlers/receiptManageHandler.js";
 import { imageGenerateHandler } from "./handlers/imageGenerateHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
+import { joinRequiredChatHandler } from "./handlers/joinRequiredChatHandler.js";
 import { TelegramUpdateType } from "../../types/enums/telegramUpdateHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import { adminJoinChatPanelHandler } from "./handlers/adminJoinChatPanelHandler.js";
-import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject } from "../../types/telegram.js";
+import { subscriptionManageHandler } from "./handlers/subscriptionManageHandler.js";
+import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject, TelegramUser } from "../../types/telegram.js";
 
 const handlers: IUpdateHandler[] = [
+    joinChatHandler,
     adminCommandHandler,
     userCommandHandler,
-    joinChatHandler,
+    receiptManageHandler,
+    planHandler,
     panelHandler,
+    joinRequiredChatHandler,
     adminPanelHandler,
     adminJoinChatPanelHandler,
     termsOfServiceHandler,
     chatManageHandler,
+    subscriptionManageHandler,
     createNewChatHandler,
     imageGenerateHandler,
     promptHandler,
@@ -49,23 +57,20 @@ Object
 
 export class UpdateHandler {
     constructor(
-        private services: CoreServices,
-        private broadcastHandler: BroadcastHandler
+        private services: IServices,
+        private broadcastHandler: BroadcastHandler,
+        private botInfo: TelegramUser,
     ) { }
 
     async handle(update: TelegramUpdateObject) {
 
-        const chatType = update.message?.chat.type
-            ?? update.callback_query?.message?.chat.type
-            ?? update.my_chat_member?.chat.type
-            ?? update.channel_post?.chat.type
-            ?? null;
-
-        if (chatType !== "private")
-            return;
+        const chat = update.message?.chat
+            ?? update.callback_query?.message?.chat
+            ?? update.my_chat_member?.chat
+            ?? update.channel_post?.chat;
 
         const fromTgUser = update.message?.from
-            ?? update.callback_query?.message.chat
+            ?? update.callback_query?.from
             ?? update.inline_query?.from
             ?? update.my_chat_member?.from
             ?? update.channel_post?.from
@@ -77,7 +82,7 @@ export class UpdateHandler {
             return;
 
         // use root container (do not create scope)
-        const user = await this.services.applications.userApplication.upsert({
+        const user = await this.services.core.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
@@ -91,7 +96,15 @@ export class UpdateHandler {
         if (user.status === UserStatus.Banned)
             return;
 
-        const container = this.services.createApplicationScope();
+        if (update.my_chat_member?.chat.id === this.botInfo.id) {
+            const newChatMember = update.my_chat_member.new_chat_member;
+            if (newChatMember.user.id === this.botInfo.id && newChatMember.status === "kicked") {
+                await this.services.core.applications.userApplication.setUserStatus(user.id, UserStatus.Blocked);
+                return;
+            }
+        }
+
+        const container = this.services.core.createApplicationScope();
 
         if (user.status === UserStatus.Blocked)
             await container.applications.userApplication.setUserStatus(user.id, UserStatus.EULA);
@@ -107,10 +120,15 @@ export class UpdateHandler {
             }
         } else if (update.callback_query) {
             _handlers = handlerTypeFilter[TelegramUpdateType.CallbackQuery];
+        } else {
+            _handlers = handlerTypeFilter[TelegramUpdateType.All];
         }
 
         // consider user modes
         _handlers = _handlers.filter(h => isCompatibleUserMode(h, user.mode));
+
+        // consider chat types
+        _handlers = _handlers.filter(h => h.chatTypes && chat?.type ? (h.chatTypes.includes("all") || h.chatTypes.includes(chat.type)) : chat?.type === "private");
 
         let callStack: IUpdateHandler[] = [];
 
@@ -118,8 +136,14 @@ export class UpdateHandler {
             user: user,
             uiText: UIText.fa,
             callStack: callStack,
+            chat,
+            botId: this.botInfo.id,
+            botUsername: this.botInfo.username ?? "ERROR",
             getUit: keyOrMessage => getUit(requestContext.uiText, keyOrMessage),
-            services: container.applications,
+            services: {
+                ...container.applications,
+                ...this.services.payment.applications
+            },
             broadcastTrigger: () => this.broadcastHandler.trigger()
         };
 
@@ -134,7 +158,8 @@ export class UpdateHandler {
                     + `\n   - Time (local): ${new Date().toLocaleString()}`
                     + `\n   - User ID: ${user.id}`
                     + `\n   - Telegram ID: ${user.tgId}`
-                    + `\n   - Callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name).join(' / ') : '-'}`
+                    + `\n   - Handler callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name.split(/\\|\//).pop()?.split('.').shift()).join(' / ') : '-'}`
+                    + `\n   - Callstack: ${err instanceof Error ? err.stack ?? "-" : "-"}`
                     + "\n"
                     , err);
                 break;

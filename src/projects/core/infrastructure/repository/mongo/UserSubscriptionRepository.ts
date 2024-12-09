@@ -1,9 +1,9 @@
-import type { UpdateQuery } from "mongoose";
+import type { FilterQuery, UpdateQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
-import type { PopulatedProperty } from "./lib/model.type.js";
-import type { PlanDBModel } from "../../../../../types/entities/plan.js";
+import type { User } from "../../../../../types/entities/user.js";
 import type { IUserSubscriptionRepository } from "../../../../../types/contracts/repositories.js";
-import type { UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
+import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../../../../../types/entities/userSubscription.js";
+import { PopulatedProperty } from "./lib/model.type.js";
 
 export class UserSubscriptionRepository implements IUserSubscriptionRepository {
     #databaseConnection;
@@ -11,74 +11,118 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(userSubscription: Omit<UserSubscriptionDBModel, 'id'>): Promise<boolean | null> {
+    #getFilter(filter: SearchUserSubscription) {
+        const _filter: FilterQuery<UserSubscription> = {};
+
+        if (filter.expiryNotBefore !== undefined)
+            _filter.expiry = {
+                $gt: filter.expiryNotBefore
+            };
+
+        if (filter.isDeleted !== undefined)
+            _filter.isDeleted = filter.isDeleted;
+
+        if (filter.isFinished !== undefined)
+            _filter.isFinished = filter.isFinished;
+
+        if (filter.user !== undefined)
+            _filter.user = typeof filter.user === "string" ? filter.user : filter.user.id;
+
+        if (filter.planId !== undefined)
+            _filter["plan._id"] = filter.planId;
+
+        if (filter.planType !== undefined)
+            _filter["plan.type"] = filter.planType;
+
+        return _filter;
+    }
+
+    async create(userSubscription: CreateUserSubscription): Promise<string | null> {
         const res = await this.#databaseConnection.models.userSubscription.create({
             insertDate: userSubscription.insertDate,
             isDeleted: userSubscription.isDeleted,
-            plan: userSubscription.plan.id,
-            user: userSubscription.user.id,
+            plan: {
+                id: userSubscription.plan.id,
+                title: userSubscription.plan.title,
+                type: userSubscription.plan.type,
+                price: userSubscription.plan.price,
+                points: userSubscription.plan.points
+            },
+            user: userSubscription.user,
             expiry: userSubscription.expiry,
             isFinished: userSubscription.isFinished
         });
-        return Boolean(res?._id);
+        return res?._id.toString() || null;
     }
 
-    async getActive(userId: string, expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'> | null> {
+    async count(filter: SearchUserSubscription): Promise<number | null> {
+        const count = await this.#databaseConnection.models.userSubscription.countDocuments(this.#getFilter(filter));
+        return count;
+    }
+
+    async getById(id: string): Promise<UserSubscriptionDBModel | null> {
         const res = await this.#databaseConnection.models.userSubscription
-            .find({
-                isDeleted: false,
-                expiry: {
-                    $gt: expiryNotBefore
-                },
-                user: userId
-            })
-            .sort({ expiry: 1 })
-            .limit(1)
-            .populate<{ plan: PopulatedProperty<PlanDBModel> }>("plan" satisfies keyof UserSubscriptionDBModel)
+            .findById(id)
+            .populate<{ user: PopulatedProperty<User> }>('user' satisfies keyof UserSubscription)
             .lean()
             .exec();
 
         if (!res)
             return null;
 
-        if (res.length > 1)
-            new Error("More than 1 active user subscription retrieved");
-
-        const subscription = res.at(0);
-
-        if (!subscription)
-            return null;
+        const subscription = res;
 
         return {
             id: subscription._id.toString(),
+            user: {
+                ...subscription.user,
+                id: subscription.user._id.toString()
+            },
             expiry: subscription.expiry,
+            isDeleted: subscription.isDeleted,
             isFinished: subscription.isFinished,
+            insertDate: subscription.insertDate,
             plan: {
-                id: subscription.plan._id.toString(),
-                available: subscription.plan.available,
-                days: subscription.plan.days,
+                id: subscription.plan.id,
                 points: subscription.plan.points,
                 price: subscription.plan.price,
                 title: subscription.plan.title,
+                type: subscription.plan.type
             }
         };
     }
 
-    async getAllActives(userId: string, expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null> {
+    async getMany(filter: SearchUserSubscription): Promise<Omit<UserSubscription, 'user'>[] | null> {
+        const res = await this.#databaseConnection.models.userSubscription.find(this.#getFilter(filter));
+
+        if (!res)
+            return null;
+
+        return res.map(subscription => (
+            {
+                id: subscription._id.toString(),
+                expiry: subscription.expiry,
+                isFinished: subscription.isFinished,
+                plan: {
+                    id: subscription.plan.id,
+                    points: subscription.plan.points,
+                    price: subscription.plan.price,
+                    title: subscription.plan.title,
+                    type: subscription.plan.type
+                }
+            }
+        ));
+    }
+
+    async getAllActive(userId: string, expiryNotBefore: Date): Promise<Omit<UserSubscription, 'user'>[] | null> {
         const res = await this.#databaseConnection.models.userSubscription.find({
             isDeleted: false,
             isFinished: false,
             user: userId,
             expiry: {
-                $lte: expiryNotBefore
+                $gt: expiryNotBefore
             }
         })
-            .populate<{
-                plan: PopulatedProperty<PlanDBModel>;
-            }>([
-                'plan'
-            ])
-            .orFail()
             .lean();
 
         if (!res)
@@ -92,27 +136,14 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
                 isFinished: item.isFinished,
                 expiry: item.expiry,
                 plan: {
-                    id: plan._id.toString(),
+                    id: plan.id,
                     title: plan.title,
-                    available: plan.available,
-                    days: plan.days,
                     points: plan.points,
-                    price: plan.price
+                    price: plan.price,
+                    type: plan.type,
                 }
             };
         });
-    }
-
-    async countByUserId(userId: string, expiryNotBefore: Date): Promise<number | null> {
-        const count = await this.#databaseConnection.models.userSubscription.countDocuments({
-            isDeleted: false,
-            isFinished: false,
-            user: userId,
-            expiry: {
-                $lte: expiryNotBefore
-            }
-        });
-        return count;
     }
 
     async updateById(update: UpdateUserSubscription): Promise<boolean | null> {

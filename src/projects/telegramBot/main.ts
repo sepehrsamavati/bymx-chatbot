@@ -1,6 +1,8 @@
 import CoreServices from "../core/Container.js";
 import { UpdateProvider } from "./UpdateProvider.js";
+import PaymentServices from "../staticPayment/Container.js";
 
-const services = new CoreServices();
+const coreServices = new CoreServices();
+const paymentServices = new PaymentServices();
 
-new UpdateProvider(services);
+new UpdateProvider(coreServices, paymentServices);

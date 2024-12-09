@@ -3,7 +3,13 @@ import configError from "../../projects/core/helpers/configError.js";
 const General = Object.freeze({
     Normal: 0,
     // AcceptEULA: 1,
-    EnterPhoneNumber: 2
+    EnterPhoneNumber: 2,
+    StaticPayment: 10,
+});
+
+const Manager = Object.freeze({
+    SetStaticPaymentGatewayId: 100,
+    SetStaticPaymentRejectReason: 101,
 });
 
 const ChatManagement = Object.freeze({
@@ -20,6 +26,7 @@ const UserPrompt = Object.freeze({
 
 const Enums = Object.freeze({
     General,
+    Manager,
     UserPrompt,
     ChatManagement,
     JoinRequiredChatManagement,

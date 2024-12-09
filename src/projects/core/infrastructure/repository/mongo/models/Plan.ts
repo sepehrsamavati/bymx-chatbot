@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PlanType } from "../../../../../../types/enums/planTypes.js";
 import type { PlanDBModel } from "../../../../../../types/entities/plan.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
@@ -41,5 +42,10 @@ const schema = new mongoose.Schema<MongoStored<PlanDBModel>>({
         type: Number,
         required: true,
         min: 0,
+    },
+    type: {
+        type: Number,
+        required: true,
+        enum: PlanType
     },
 }, { versionKey: false, collection: planModelDefinition.collection });

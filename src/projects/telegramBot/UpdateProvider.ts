@@ -1,32 +1,62 @@
 import tgCall from "./helpers/call.js";
-import { logger } from "../core/helpers/logger.js";
+import UIText from "../core/i18n/UIText.js";
+import emojiIcon from "./helpers/emojiIcon.js";
 import { UpdateHandler } from "./UpdateHandler.js";
 import type CoreServices from "../core/Container.js";
 import BroadcastHandler from "./BroadcastHandler.js";
 import exitHelper from "../core/helpers/exitHelper.js";
+import { TelegramUser } from "../../types/telegram.js";
+import type { IServices } from "../../types/services.js";
 import { ExitCode } from "../../types/enums/exitCodes.js";
+import { errorLogger, logger } from "../core/helpers/logger.js";
+import type PaymentServices from "../staticPayment/Container.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
+import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
+import { UserMode } from "../../types/enums/userMode.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
-    #handler;
-    #services
+    #handler!: UpdateHandler;
+    #services: IServices;
     #broadcastHandler;
+    #botInfo?: TelegramUser;
 
     async #dispose() {
         await this.#broadcastHandler.dispose();
-        await this.#services.destroy();
+        await this.#services.core.destroy();
     }
 
-    constructor(services: CoreServices) {
-        this.#services = services;
+    constructor(coreServices: CoreServices, paymentServices: PaymentServices) {
+        this.#services = {
+            core: coreServices,
+            payment: paymentServices,
+        };
         this.#broadcastHandler = new BroadcastHandler(
-            services.applications.userApplication,
-            services.applications.telegramBroadcastApplication
+            coreServices.applications.userApplication,
+            coreServices.applications.telegramBroadcastApplication
         );
-        this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler);
 
-        services
+        initPaymentMessageCleanupJob(async item => {
+            try {
+                const user = await this.#services.core.applications.userApplication.getUserById(item.userId);
+                if (user) {
+                    await this.#services.payment.applications.paymentApplication.cancel(user.id);
+                    if (user.mode === UserMode.General.StaticPayment)
+                        await this.#services.core.applications.userApplication.setUserMode(user.id, UserMode.General.Normal);
+                    tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: item.chatId,
+                            text: `${emojiIcon.warning} ${UIText[user.lang]?.paymentCanceled}`,
+                        }
+                    );
+                }
+            } catch (err) {
+                errorLogger("Payment automatic cleanup get user failed", err);
+            }
+        });
+
+        coreServices
             .diReady()
             .then(() => {
                 this.#startBot();
@@ -34,16 +64,19 @@ export class UpdateProvider {
     }
 
     async #startBot() {
-        const bot = await tgCall(TelegramMethods.GetMe, null);
+        const botInfo = await tgCall(TelegramMethods.GetMe, null);
 
-        if (!bot?.ok) {
+        if (!botInfo?.ok) {
             console.log("Telegram connection issue!");
             await this.#dispose();
             exitHelper(ExitCode.TelegramConnectionIssue);
             return;
         }
 
-        const botUsername = bot.result.username as string;
+        this.#botInfo = botInfo.result;
+
+        const botUsername = botInfo.result.username as string;
+        this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler, this.#botInfo);
 
         logger.info(`Bot started @${botUsername}`);
 
