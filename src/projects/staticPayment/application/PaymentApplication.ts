@@ -82,7 +82,7 @@ export default class PaymentApplication {
         return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.PendingApprove);
     }
 
-    async approveById(paymentId: string) {
+    async approveById(paymentId: string, adminUserId: string) {
         const result = new OperationResult();
 
         const payment = await this.#paymentRepository.getOne({ id: paymentId });
@@ -96,7 +96,8 @@ export default class PaymentApplication {
         else {
             const updated = await this.#paymentRepository.update({
                 id: payment.id,
-                status: PaymentStatus.Approved
+                status: PaymentStatus.Approved,
+                approvedByUser: adminUserId,
             });
 
             if (updated)
@@ -145,7 +146,10 @@ export default class PaymentApplication {
     }
 
     async cancel(userId: string) {
-        return await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.Canceled);
+        const result = await this.#changeUserOpenPaymentStatus(userId, PaymentStatus.Canceled);
+        if (result.ok)
+            result.message = "paymentCanceled";
+        return result;
     }
 
     async setGatewayPaymentId(paymentId: string, gatewayPaymentId: string) {

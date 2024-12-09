@@ -7,26 +7,8 @@ type PaymentMessageCache = {
     chatId: number;
 };
 
+const validity = 5 * 60e3;
 const cache = new Map<string, PaymentMessageCache>();
-
-let runLock = false;
-
-setInterval(async () => {
-    if (runLock)
-        return;
-
-    runLock = true;
-
-    const records = cache.entries();
-    for (const [userId, item] of records) {
-        if (new Date().getTime() - item.date.getTime() >= 5 * 60e3) {
-            await paymentMessageCache.delete(userId);
-        }
-    }
-
-    runLock = false;
-}, 60e3)
-    .unref();
 
 const deleteMessage = (item: PaymentMessageCache) => tgCall(
     TelegramMethods.DeleteMessage,
@@ -35,6 +17,34 @@ const deleteMessage = (item: PaymentMessageCache) => tgCall(
         message_id: item.messageId,
     }
 );
+
+
+let runLock = false;
+let intervalInitialized = false;
+export const initPaymentMessageCleanupJob = (onDelete: (item: { userId: string } & PaymentMessageCache) => Promise<void>) => {
+    if (intervalInitialized)
+        return;
+
+    intervalInitialized = true;
+
+    setInterval(async () => {
+        if (runLock)
+            return;
+
+        runLock = true;
+
+        const records = cache.entries();
+        for (const [userId, item] of records) {
+            if (new Date().getTime() - item.date.getTime() >= validity) {
+                await paymentMessageCache.delete(userId);
+                await onDelete({ userId, ...item });
+            }
+        }
+
+        runLock = false;
+    }, 60e3)
+        .unref();
+};
 
 export const paymentMessageCache = Object.freeze({
     set(userId: string, item: PaymentMessageCache) {
@@ -46,6 +56,7 @@ export const paymentMessageCache = Object.freeze({
     unset(userId: string) {
         return cache.delete(userId);
     },
+    /** Delete from cache and delete message */
     async delete(userId: string) {
         const item = cache.get(userId);
 

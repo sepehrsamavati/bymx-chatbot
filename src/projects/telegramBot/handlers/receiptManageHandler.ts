@@ -47,6 +47,7 @@ export const receiptManageHandler: IUpdateHandler = {
                         TelegramMethods.EditMessageReplyMarkup,
                         {
                             chat_id: update.callback_query.message.chat.id,
+                            message_id: update.callback_query.message.message_id,
                             ...getStaticPaymentReceiptInfoKeyboard({
                                 botUsername: context.botUsername,
                                 customer: customer,
@@ -71,7 +72,7 @@ export const receiptManageHandler: IUpdateHandler = {
                     }
                 };
 
-            const approvePayment = await context.services.paymentApplication.approveById(paymentId);
+            const approvePayment = await context.services.paymentApplication.approveById(paymentId, context.user.id);
 
             await tgCall(
                 TelegramMethods.AnswerCallbackQuery,

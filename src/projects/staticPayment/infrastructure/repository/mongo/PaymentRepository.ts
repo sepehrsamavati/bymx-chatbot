@@ -33,6 +33,9 @@ export class PaymentRepository implements IPaymentRepository {
             if (payment.rejectReason)
                 _update.rejectReason = payment.rejectReason;
 
+            if (payment.approvedByUser)
+                _update.approvedByUser = payment.approvedByUser;
+
             const res = await this.#databaseConnection.models.payment
                 .updateOne({
                     _id: payment.id,
@@ -78,6 +81,7 @@ export class PaymentRepository implements IPaymentRepository {
                 userId: item.userId,
                 rejectReason: item.rejectReason,
                 productId: item.productId,
+                approvedByUser: item.approvedByUser,
             };
         } catch (err) {
             errorLogger("PaymentRepository / getOne", err);
@@ -118,6 +122,7 @@ export class PaymentRepository implements IPaymentRepository {
                 rejectReason: item.rejectReason,
                 productId: item.productId,
                 gatewayPaymentId: item.gatewayPaymentId,
+                approvedByUser: item.approvedByUser,
             }));
         } catch (err) {
             errorLogger("PaymentRepository / getMany", err);

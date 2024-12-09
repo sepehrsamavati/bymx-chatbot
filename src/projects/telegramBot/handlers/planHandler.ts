@@ -5,6 +5,7 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
+import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../helpers/messages.js";
 
@@ -21,7 +22,21 @@ export const planHandler: IUpdateHandler = {
 
         const queryData = update.callback_query?.data;
 
-        if (context.user.mode === UserMode.General.StaticPayment && !queryData?.startsWith("viewPlan_")) {
+        if (context.user.mode === UserMode.General.StaticPayment) {
+
+            if (queryData === "cancelPayment") {
+                await Promise.all([
+                    context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
+                    paymentMessageCache.delete(context.user.id),
+                ]);
+                const cancel = await context.services.paymentApplication.cancel(context.user.id);
+                return {
+                    call: {
+                        text: cancel.message
+                    }
+                };
+            }
+
             const isValid = Boolean(update.message?.text || update.message?.photo || update.message?.document);
 
             if (!isValid || !update.message)
@@ -45,6 +60,9 @@ export const planHandler: IUpdateHandler = {
                         text: submitErrorMessage
                     }
                 };
+
+            // update cache
+            savePaymentResult.data.status = PaymentStatus.PendingApprove;
 
             const sendToReceiptChatResult = await tgCall(
                 TelegramMethods.CopyMessage,
@@ -110,10 +128,6 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         } else if (queryData?.startsWith("viewPlan_")) {
             if (context.user.mode !== UserMode.General.Normal) {
-                if (context.user.mode === UserMode.General.StaticPayment) {
-                    paymentMessageCache.unset(context.user.id);
-                    await context.services.paymentApplication.cancel(context.user.id);
-                }
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 context.user.mode = UserMode.General.Normal;
             }
@@ -159,8 +173,6 @@ export const planHandler: IUpdateHandler = {
             if (!planBuyPanel)
                 return null;
 
-            await paymentMessageCache.delete(context.user.id);
-
             const createdPayment = await context.services.paymentApplication.open(context.user.id, planId);
 
             if (!createdPayment.ok)
@@ -180,10 +192,9 @@ export const planHandler: IUpdateHandler = {
                     };
 
                 const res = await tgCall(
-                    TelegramMethods.EditMessageText,
+                    TelegramMethods.SendMessage,
                     {
                         chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
                         ...planBuyPanel
                     }
                 );
