@@ -182,7 +182,7 @@ export default class UserSubscriptionApplication {
      * @param activeDailyFreeSubscription Passing subscription object or null will use cache / passing undefined will get from repository
      */
     async #getDailyFreePointStatus(userId: string, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
-        if (activeDailyFreeSubscription === undefined)
+        if (!activeDailyFreeSubscription)
             activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
 
         if (!activeDailyFreeSubscription) // daily free subscription not created
