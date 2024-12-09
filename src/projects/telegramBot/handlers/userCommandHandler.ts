@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
@@ -116,6 +117,12 @@ export const userCommandHandler: IUpdateHandler = {
                 );
 
                 return { shouldContinue: false };
+            case "/support":
+                return {
+                    call: {
+                        text: `${emojiIcon.contact} ${context.uiText.contactSupport}: ${config.telegramSupportAccount}`
+                    }
+                };
             case "/panel":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

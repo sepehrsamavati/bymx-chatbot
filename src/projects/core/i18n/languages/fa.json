@@ -150,5 +150,6 @@
     "planNotAvailable": "پلن غیر قابل خرید است!",
     "maxActiveSubscriptionsReached": "امکان خرید بیشتر از این تعداد وجود ندارد!",
     "waitForPendingPayment": "لطفا منتظر تائید پرداخت قبلی خود باشید!",
-    "paymentCanceled": "عملیات پرداخت لغو شد!"
+    "paymentCanceled": "عملیات پرداخت لغو شد!",
+    "contactSupport": "ارتباط با پشتیبانی"
 }

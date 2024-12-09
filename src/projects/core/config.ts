@@ -12,6 +12,7 @@ const config = {
     telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
     staticPaymentReceiptTgChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
     chatCountLimit: 5,
+    telegramSupportAccount: process.env.BYMX_TELEGRAM_SUPPORT_ACCOUNT ?? "",
     cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
     activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
