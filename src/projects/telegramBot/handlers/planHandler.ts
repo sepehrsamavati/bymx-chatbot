@@ -3,11 +3,10 @@ import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
+import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getPlanBuyPanel, getPlanInfoPanel, getPlanList } from "../helpers/messages.js";
-import startLinkGenerator from "../helpers/startLinkGenerator.js";
-import { paymentMessageCache } from "../modules/paymentMessageJob.js";
+import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../helpers/messages.js";
 
 export const planHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -53,12 +52,11 @@ export const planHandler: IUpdateHandler = {
                     chat_id: config.staticPaymentReceiptTgChatId,
                     from_chat_id: update.message.chat.id,
                     message_id: update.message.message_id,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: `${emojiIcon.identifier} ${context.user.tgId}`, url: startLinkGenerator(context, "getUser_" + context.user.tgId) }],
-                            [{ text: `${emojiIcon.info} View`, url: startLinkGenerator(context, "getReceipt_" + savePaymentResult.data?.id) }],
-                        ]
-                    }
+                    ...getStaticPaymentReceiptInfoKeyboard({
+                        botUsername: context.botUsername,
+                        customer: context.user,
+                        payment: savePaymentResult.data,
+                    })
                 }
             );
 

@@ -1,15 +1,17 @@
-import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
 import config from "../../core/config.js";
+import startLinkGenerator from "./startLinkGenerator.js";
 import { UserType } from "../../../types/enums/userTypes.js";
+import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
+import { UITextOptionalKey } from "../../core/i18n/UIText.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
-import { UserInfoModel } from "../../../types/entities/user.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { RequestContext } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
 import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
-import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
-import { UserStatus } from "../../../types/enums/userStatus.js";
-import { UITextOptionalKey } from "../../core/i18n/UIText.js";
+import type { User, UserInfoModel } from "../../../types/entities/user.js";
+import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
+import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -80,8 +82,8 @@ export const getChatListPanel = async (context: RequestContext) => {
             inline_keyboard: [
                 ...chats.map(chat => [
                     context.user.selectedChat?.id === chat.id
-                    ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
-                    : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
+                        ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
+                        : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ]),
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
             ]
@@ -419,6 +421,24 @@ export const getStaticPaymentReceiptPanel = async (context: RequestContext, paym
         ),
         reply_markup: {
             inline_keyboard: keyboard
+        }
+    };
+};
+
+export const getStaticPaymentReceiptInfoKeyboard = (opts: {
+    botUsername: string;
+    customer: User;
+    payment: Payment;
+}) => {
+    const managePaymentLink = startLinkGenerator(opts.botUsername, "getReceipt_" + opts.payment.id);
+    return {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.identifier} ${opts.customer.tgId}`, url: startLinkGenerator(opts.botUsername, "getUser_" + opts.customer.tgId) }],
+                [{ text: `${emojiIcon.calendar} ${stringHelper.dateLocalization(opts.payment.date, opts.customer.lang)}`, url: managePaymentLink }],
+                [{ text: `${emojiIcon.refresh} ${stringHelper.dateLocalization(new Date(), "en")}`, callback_data: `refreshReceipt_${opts.payment.id}`}],
+                [{ text: `${emojiIcon.info} View`, url: managePaymentLink }],
+            ]
         }
     };
 };

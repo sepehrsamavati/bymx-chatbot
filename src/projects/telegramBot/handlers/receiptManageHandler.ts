@@ -5,9 +5,10 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
-import { getStaticPaymentReceiptPanel } from "../helpers/messages.js";
+import { getStaticPaymentReceiptInfoKeyboard, getStaticPaymentReceiptPanel } from "../helpers/messages.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import config from "../../core/config.js";
 
 export const receiptManageHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -20,12 +21,44 @@ export const receiptManageHandler: IUpdateHandler = {
         UserMode.Manager.SetStaticPaymentGatewayId,
         UserMode.Manager.SetStaticPaymentRejectReason,
     ],
+    chatTypes: ["all"],
     async handler(context, update) {
         if (!accessHelper(UserType.Manager, context.user.type))
             return null;
 
         const text = update.message?.text;
         const queryData = update.callback_query?.data;
+
+        if (context.chat?.type !== "private") {
+
+            if (update.callback_query?.message.chat.id?.toString() === config.staticPaymentReceiptTgChatId) {
+                if (queryData?.startsWith("refreshReceipt_")) {
+                    const paymentId = queryData.replace("refreshReceipt_", "");
+
+                    const payment = await context.services.paymentApplication.getById(paymentId);
+                    if (!payment)
+                        return null;
+
+                    const customer = await context.services.userApplication.getUserById(payment.userId);
+                    if (!customer)
+                        return null;
+
+                    await tgCall(
+                        TelegramMethods.EditMessageReplyMarkup,
+                        {
+                            chat_id: update.callback_query.message.chat.id,
+                            ...getStaticPaymentReceiptInfoKeyboard({
+                                botUsername: context.botUsername,
+                                customer: customer,
+                                payment: payment,
+                            })
+                        }
+                    );
+                }
+            }
+
+            return null;
+        }
 
         if (queryData?.startsWith("approveStaticPayment_")) {
             const paymentId = queryData.replace("approveStaticPayment_", "");

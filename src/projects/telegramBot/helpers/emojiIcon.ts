@@ -30,6 +30,8 @@ const emojiIcon = Object.freeze({
     calendar: '📅',
     price: '💳',
     link: '🔗',
+    refresh: '🔄',
+    time: '🕐',
 });
 
 export default emojiIcon;
