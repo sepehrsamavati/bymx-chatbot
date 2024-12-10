@@ -144,7 +144,8 @@ export const getPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(
             `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}`
-            + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
+            + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) && userInfo?.activePurchasedPlans !== 0 ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
+            + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount}`
             + (
                 userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
                     ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${userInfo?.paidSubscriptionsRemainingPoints?.toLocaleString("en-US")}`

@@ -169,6 +169,7 @@ const keys = [
     "inviteFriends",
     "inviteDescriptionText",
     "yourInviteLink",
+    "invitedCount",
 ] as const;
 
 export type UITextKey = typeof keys[number];
