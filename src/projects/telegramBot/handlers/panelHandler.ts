@@ -1,9 +1,11 @@
 import tgCall from "../helpers/call.js";
+import emojiIcon from "../helpers/emojiIcon.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList } from "../helpers/messages.js";
+import startLinkGenerator from "../helpers/startLinkGenerator.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -73,6 +75,26 @@ export const panelHandler: IUpdateHandler = {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id,
                         ...subscriptionsList
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "myInviteLink": {
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        text: `${emojiIcon.gift} ${context.uiText.inviteFriends}\n\n${context.uiText.inviteDescriptionText}\n\n${context.uiText.yourInviteLink}:\n${startLinkGenerator(context, `i${context.user.tgId}`)}`,
+                        link_preview_options: {
+                            is_disabled: true,
+                        },
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }]
+                            ]
+                        }
                     }
                 );
 

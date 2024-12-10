@@ -5,6 +5,7 @@ import { planHandler } from "./handlers/planHandler.js";
 import type { IServices } from "../../types/services.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
+import { inviteHandler } from "./handlers/inviteHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { UserStatus } from "../../types/enums/userStatus.js";
 import { joinChatHandler } from "./handlers/joinChatHandler.js";
@@ -35,6 +36,7 @@ const handlers: IUpdateHandler[] = [
     adminPanelHandler,
     adminJoinChatPanelHandler,
     termsOfServiceHandler,
+    inviteHandler,
     chatManageHandler,
     subscriptionManageHandler,
     createNewChatHandler,
@@ -81,6 +83,18 @@ export class UpdateHandler {
         if (!userId)
             return;
 
+        let inviterUserId: string | undefined = undefined;
+
+        // invite link handler
+        if (update.message?.text?.startsWith("/start i")) {
+            const inviterTgId = Number.parseInt(update.message.text.replace("/start i", ""));
+            if (!Number.isNaN(inviterTgId)) {
+                const inviter = await this.services.core.applications.userApplication.getUserByTgId(inviterTgId);
+                if (inviter)
+                    inviterUserId = inviter.id;
+            }
+        }
+
         // use root container (do not create scope)
         const user = await this.services.core.applications.userApplication.upsert({
             tgId: userId,
@@ -88,6 +102,7 @@ export class UpdateHandler {
             lastName: fromTgUser?.last_name,
             username: fromTgUser?.username,
             lang: "fa",
+            invite: inviterUserId ? { by: inviterUserId, used: false } : undefined
         });
 
         if (!user)

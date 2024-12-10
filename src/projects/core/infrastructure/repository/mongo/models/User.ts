@@ -104,7 +104,7 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 				required: true,
 			},
 			used: {
-				type: Number,
+				type: Boolean,
 				required: true,
 				default: false,
 			},

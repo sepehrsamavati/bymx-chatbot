@@ -9,6 +9,7 @@ const emojiIcon = Object.freeze({
     return: '🔙',
     point: '⚡',
     extraPoint: '🌟',
+    gift: '🎁',
     statistics: '📊',
     list: '📃',
     user: '👤',

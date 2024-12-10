@@ -125,6 +125,9 @@ export const getPanel = async (context: RequestContext) => {
         [
             { text: context.uiText.chats, callback_data: "chats" },
             { text: context.uiText.models, callback_data: "modelsUsage" },
+        ],
+        [
+            { text: `${emojiIcon.gift} ${context.uiText.inviteFriends}`, callback_data: "myInviteLink" },
             { text: `${emojiIcon.extraPoint} ${context.uiText.pointPackages}`, callback_data: "mySubscriptions" },
         ],
         [

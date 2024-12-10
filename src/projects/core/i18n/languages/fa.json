@@ -155,5 +155,9 @@
     "plan_shortTerm": "کوتاه مدت (Short term)",
     "plan_plus": "پلاس (Plus)",
     "plan_student": "دانشجویی (Student)",
-    "plan_pro": "حرفه‌ای (Pro)"
+    "plan_pro": "حرفه‌ای (Pro)",
+    "userJoinedWithYourInviteLink": "یک نفر با لینک شما عضو ربات شد!",
+    "inviteFriends": "دعوت دوستان",
+    "inviteDescriptionText": "با دعوت دوستان خودتون میتونید امتیاز رایگان دریافت کنید!\n\nتوجه کنید که کاربرانی که دعوت میشوند باید مرحله تائید شماره رو انجام بدن تا امتیاز به شما تعلق بگیره!",
+    "yourInviteLink": "لینک دعوت شما"
 }

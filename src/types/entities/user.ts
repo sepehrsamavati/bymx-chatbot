@@ -37,7 +37,7 @@ export type CreateUserModel = Omit<UserDBModel, 'id'>;
 export type UpdateUserModel = {
     inviteUsed?: NonNullable<User['invite']>['used'];
 } & Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
-export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName'>;
+export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName' | 'invite'>;
 export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted' | 'username'> & {
     status?: {
         equal?: User['status'][];

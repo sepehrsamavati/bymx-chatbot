@@ -5,7 +5,7 @@ import { accessHelper } from "../helpers/accessHelper.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { OpenAIChat } from "../../../types/entities/openAIChat.js";
-import { OperationResult } from "../common/dto/OperationResult.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
@@ -246,21 +246,24 @@ export default class UserApplication {
     }
 
     async useInvite(invitedUser: User) {
+        const result = new OperationResultWithData<{ inviter: User }>();
+
         if (this.#inviteLockCache.isLocked(invitedUser.id))
-            return;
+            return result;
 
         this.#inviteLockCache.lock(invitedUser.id);
 
         if (!(await this.#transaction.start()))
-            return;
+            return result;
 
         const unlock = () => this.#inviteLockCache.unlock(invitedUser.id);
         const rollback = async () => {
             await this.#transaction.rollback();
             unlock();
+            return result;
         };
 
-        if (!invitedUser.invite || invitedUser.invite.used)
+        if (!invitedUser.invite || invitedUser.invite.used || invitedUser.status !== UserStatus.OK)
             return await rollback();
 
         const inviter = await this.getUserById(invitedUser.invite.by);
@@ -285,6 +288,6 @@ export default class UserApplication {
         await this.#transaction.commit();
         unlock();
 
-        return;
+        return result.succeeded().setData({ inviter });
     }
 }

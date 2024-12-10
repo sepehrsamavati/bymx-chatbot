@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import emojiIcon from "../helpers/emojiIcon.js";
 import { setTimeout } from 'node:timers/promises';
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
@@ -109,6 +110,9 @@ export const termsOfServiceHandler: IUpdateHandler = {
                         }
                     };
 
+                // update memory
+                context.user.status = UserStatus.OK;
+
                 await Promise.allSettled([
                     (message.reply_to_message ? tgCall(
                         TelegramMethods.DeleteMessage,
@@ -129,6 +133,16 @@ export const termsOfServiceHandler: IUpdateHandler = {
                         }
                     )
                 ]);
+
+                const useInviteRes = await context.services.userApplication.useInvite(context.user);
+                if (useInviteRes.ok)
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: useInviteRes.data.inviter.tgId,
+                            text: `${emojiIcon.ok} ${context.uiText.userJoinedWithYourInviteLink}`
+                        }
+                    );
             }
 
             return { shouldContinue: false };

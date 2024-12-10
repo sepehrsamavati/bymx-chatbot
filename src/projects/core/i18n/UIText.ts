@@ -165,6 +165,10 @@ const keys = [
     "plan_plus",
     "plan_student",
     "plan_pro",
+    "userJoinedWithYourInviteLink",
+    "inviteFriends",
+    "inviteDescriptionText",
+    "yourInviteLink",
 ] as const;
 
 export type UITextKey = typeof keys[number];
