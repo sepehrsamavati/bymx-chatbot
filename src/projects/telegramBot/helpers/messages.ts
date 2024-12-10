@@ -313,13 +313,15 @@ export const getUserManagementText = (context: RequestContext, userInfo: UserInf
         return context.uiText.userNotFound;
 
     return (
-        `${emojiIcon.identifier} ${userInfo.user.tgId}`
+        `${emojiIcon.identifier} ${userInfo.user.tgId}${userInfo.user.username ? " @" + userInfo.user.username : ""}`
         + `\n${userInfo.user.firstName}${userInfo.user.lastName ? ` ${userInfo.user.lastName}` : ""}`
-        + `\n\n${userInfo.activePurchasedPlans}`
-        + `\n${new Date(userInfo.user.lastActivity).toLocaleString()}`
+        + `\n\n${emojiIcon.sparkle} ${userInfo.activePurchasedPlans ?? '-'}`
+        + `\n${emojiIcon.time} ${new Date(userInfo.user.lastActivity).toLocaleString()}`
         + `\n${emojiIcon.free} ${userInfo.dailyFreePoints?.remaining ?? '-'}`
+        + `\n${emojiIcon.extraPoint} ${userInfo.paidSubscriptionsRemainingPoints ?? '-'}`
         + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
         + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
+        + `\n\nReply these to any message to send/forward:\n/send_${userInfo.user.tgId}\n/forward_${userInfo.user.tgId}`
     )
 };
 

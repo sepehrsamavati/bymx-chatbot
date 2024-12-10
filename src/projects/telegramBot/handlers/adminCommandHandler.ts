@@ -185,6 +185,35 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: res.message
                 },
             };
+        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.tgId
+            && (text.startsWith("/send_") || text.startsWith("/forward_"))
+        ) {
+            const isCopy = text.startsWith("/send_");
+            const tgId = text.replace(/\/send_|\/forward_/, "");
+            const res = await tgCall(
+                isCopy ? TelegramMethods.CopyMessage : TelegramMethods.ForwardMessage,
+                {
+                    chat_id: tgId,
+                    from_chat_id: update.message.chat.id,
+                    message_id: update.message.reply_to_message.message_id
+                }
+            );
+
+            if (res?.ok) {
+                return {
+                    call: {
+                        text: emojiIcon.ok
+                    }
+                };
+            }
+
+            return {
+                call: {
+                    text: (
+                        `${emojiIcon.failed} ${res?.error_code}\n${res?.description ?? '-'}`
+                    )
+                },
+            };
         }
 
         return { shouldContinue: true };
