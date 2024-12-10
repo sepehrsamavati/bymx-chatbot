@@ -96,7 +96,7 @@ export class UpdateHandler {
         if (user.status === UserStatus.Banned)
             return;
 
-        if (update.my_chat_member?.chat.id === this.botInfo.id) {
+        if (update.my_chat_member) {
             const newChatMember = update.my_chat_member.new_chat_member;
             if (newChatMember.user.id === this.botInfo.id && newChatMember.status === "kicked") {
                 await this.services.core.applications.userApplication.setUserStatus(user.id, UserStatus.Blocked);
