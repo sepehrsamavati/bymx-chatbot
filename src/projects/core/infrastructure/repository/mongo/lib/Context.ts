@@ -5,7 +5,7 @@ import type { ServicesType } from "../../../../Container.js";
 import type { ITransaction } from "../../../../../../types/contracts/repositories.js";
 
 export class MongoDBTransaction implements ITransaction {
-    #session: mongoose.ClientSession | null = null;
+    #session: mongoose.ClientSession | undefined = undefined;
     #connection;
 
     get session() {
@@ -71,7 +71,7 @@ export class MongoDBTransaction implements ITransaction {
             if (!this.#session)
                 return false;
             await this.#session.endSession();
-            this.#session = null;
+            this.#session = undefined;
             return true;
         } catch (err) {
             logger.error("MongoDB transaction (session) end error, " + (err instanceof Error ? err.message : err));

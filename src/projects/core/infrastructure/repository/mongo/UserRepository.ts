@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Transactional } from "./lib/Context.js";
 import MongoSearchHelper from "./lib/SearchHelper.js";
 import type { ServicesType } from "../../../Container.js";
 import { openAIModelModelDefinition } from "./models/OpenAIModel.js";
@@ -9,9 +10,10 @@ import type { IUserRepository } from "../../../../../types/contracts/repositorie
 import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../../../../../types/entities/user.js";
 
-export default class UserRepository implements IUserRepository {
+export default class UserRepository extends Transactional implements IUserRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
+        super(container);
         this.#databaseConnection = container.databaseConnection;
     }
 
@@ -81,6 +83,9 @@ export default class UserRepository implements IUserRepository {
         if (update.memoryAmount !== undefined)
             _update.memoryAmount = update.memoryAmount;
 
+        if (update.inviteUsed !== undefined)
+            _update["invite.used"] = update.inviteUsed;
+
         if (Object.hasOwn(update, 'selectedChat')) {
             if (update.selectedChat !== undefined)
                 _update.selectedChat = update.selectedChat.id;
@@ -110,7 +115,9 @@ export default class UserRepository implements IUserRepository {
             type: result.type,
             saveMessages: result.saveMessages,
             memoryAmount: result.memoryAmount,
-            phoneNumber: result.phoneNumber
+            phoneNumber: result.phoneNumber,
+            inviteCount: result.inviteCount,
+            invite: result.invite,
         };
 
         const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>> | mongoose.Types.ObjectId;
@@ -194,7 +201,7 @@ export default class UserRepository implements IUserRepository {
         const _filter = this.#getFilter({ id });
         const _update = this.#getUpdate(update);
 
-        const result = await this.#databaseConnection.models.user.updateOne(_filter, _update).lean().exec();
+        const result = await this.#databaseConnection.models.user.updateOne(_filter, _update, { session: this.transaction.session }).lean().exec();
 
         return {
             ok: result.modifiedCount === 1
@@ -217,5 +224,17 @@ export default class UserRepository implements IUserRepository {
             return null;
 
         return result.map(item => item.tgId);
+    }
+
+    async increaseInviteCount(filter: SearchUserModel, amount: number): Promise<boolean | null> {
+        const _filter = this.#getFilter(filter);
+
+        const _update: UpdateQuery<UserDBModel> = {
+            $inc: { inviteCount: amount },
+        };
+
+        const result = await this.#databaseConnection.models.user.updateMany(_filter, _update, { session: this.transaction.session });
+
+        return Boolean(result);
     }
 }

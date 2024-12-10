@@ -46,6 +46,9 @@ export type IUserRepository = {
 
     /** Returns list of Telegram IDs */
     getTgIds(filter: SearchUserModel): Promise<number[] | null>;
+
+    /** Returns list of Telegram IDs */
+    increaseInviteCount(filter: SearchUserModel, amount: number): Promise<boolean | null>;
 }
 
 export type IUserSubscriptionRepository = {

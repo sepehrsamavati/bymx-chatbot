@@ -75,6 +75,8 @@ type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
     openAIMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
+    /** Lock invite calculation when it's being processed */
+    calculateInviteLockCache: ServiceInterfaces.IActionLockCache<string>;
 };
 
 export type ServicesType = Constants & Connections & Repositories & Applications & Services;
@@ -129,6 +131,7 @@ export default class CoreServices {
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
             openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),

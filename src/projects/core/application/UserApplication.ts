@@ -9,18 +9,23 @@ import { OperationResult } from "../common/dto/OperationResult.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
+import { logger } from "../helpers/logger.js";
 
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
     #openAIMessageRepository;
     #userSubscriptionApplication;
+    #inviteLockCache;
+    #transaction;
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
         this.#openAIMessageRepository = container.openAIMessageRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
+        this.#inviteLockCache = container.calculateInviteLockCache;
+        this.#transaction = container.databaseTransaction;
     }
 
     async upsert(user: UpsertUserModel) {
@@ -41,6 +46,7 @@ export default class UserApplication {
                 type: UserType.Normal,
                 memoryAmount: 3,
                 saveMessages: true,
+                inviteCount: 0,
             });
 
             if (!userId)
@@ -237,5 +243,48 @@ export default class UserApplication {
 
     async getUserByTgId(tgId: number): Promise<User | null> {
         return await this.#userRepository.getBy({ tgId: tgId });
+    }
+
+    async useInvite(invitedUser: User) {
+        if (this.#inviteLockCache.isLocked(invitedUser.id))
+            return;
+
+        this.#inviteLockCache.lock(invitedUser.id);
+
+        if (!(await this.#transaction.start()))
+            return;
+
+        const unlock = () => this.#inviteLockCache.unlock(invitedUser.id);
+        const rollback = async () => {
+            await this.#transaction.rollback();
+            unlock();
+        };
+
+        if (!invitedUser.invite || invitedUser.invite.used)
+            return await rollback();
+
+        const inviter = await this.getUserById(invitedUser.invite.by);
+        const setInviteAsUsed = async () => this.#userRepository.update(invitedUser.id, { inviteUsed: true });
+
+        if (!inviter) {
+            logger.warn(`Inviter '${invitedUser.invite.by}' of user '${invitedUser.id}' not found! Skipping invite...`);
+            await setInviteAsUsed();
+            return await rollback();
+        }
+
+        const increasedInvitedCount = await this.#userRepository.increaseInviteCount({ id: inviter.id }, 1);
+
+        if (!increasedInvitedCount)
+            return await rollback();
+
+        const setUsedResult = await setInviteAsUsed();
+
+        if (setUsedResult?.ok !== true)
+            return await rollback();
+
+        await this.#transaction.commit();
+        unlock();
+
+        return;
     }
 }

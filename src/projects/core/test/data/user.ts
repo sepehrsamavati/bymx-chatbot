@@ -21,6 +21,7 @@ export class SampleUser {
         type: UserType.Normal,
         usage: 0,
         memoryAmount: 3,
-        saveMessages: false
+        saveMessages: false,
+        inviteCount: 0,
     };
 }

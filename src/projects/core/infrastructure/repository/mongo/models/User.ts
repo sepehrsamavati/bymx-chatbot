@@ -33,6 +33,11 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		required: true,
 		default: 0
 	},
+	inviteCount: {
+		type: Number,
+		required: true,
+		default: 0
+	},
 	memoryAmount: {
 		type: Number,
 		required: true,
@@ -91,5 +96,19 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 	phoneNumber: {
 		type: String,
 		required: false
+	},
+	invite: {
+		type: {
+			by: {
+				type: String,
+				required: true,
+			},
+			used: {
+				type: Number,
+				required: true,
+				default: false,
+			},
+		},
+		required: false,
 	},
 }, { versionKey: false, collection: userModelDefinition.collection });

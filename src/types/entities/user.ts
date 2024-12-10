@@ -19,6 +19,11 @@ export type User = {
     saveMessages: boolean;
     /** Number of messages to resend in chat completion  */
     memoryAmount: number;
+    inviteCount: number;
+    invite?: {
+        by: User['id'];
+        used: boolean;
+    };
     /** Selected Open AI chat */
     selectedChat?: OpenAIChat;
     lastName?: string;
@@ -29,7 +34,9 @@ export type User = {
 export type UserDBModel = StoredEntity<User>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
-export type UpdateUserModel = Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
+export type UpdateUserModel = {
+    inviteUsed?: NonNullable<User['invite']>['used'];
+} & Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
 export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName'>;
 export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted' | 'username'> & {
     status?: {
