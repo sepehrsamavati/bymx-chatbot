@@ -12,6 +12,7 @@ import type { User, UserInfoModel } from "../../../types/entities/user.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
+import getPlanInfoView from "./getPlanInfoView.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
@@ -145,6 +146,7 @@ export const getPanel = async (context: RequestContext) => {
         text: stringHelper.digitLocalization(
             `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}`
             + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) && userInfo?.activePurchasedPlans !== 0 ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
+            + `\n${emojiIcon.price} ${context.uiText.buyPlans}: /plans`
             + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount}`
             + (
                 userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
@@ -338,18 +340,14 @@ export const getPlanList = async (context: RequestContext) => {
     if (plans.length === 0)
         return "noPlanAvailable";
 
-    let planListText = plans.map(plan => (
-        `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
-        + `\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
-        + `\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${stringHelper.digitLocalization(plan.days, context.user.lang)} ${context.uiText.days}`
-        + `\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)} ${context.uiText.irt}`
-    )).join('\n\n');
+    const plansInfo = plans.map(plan => getPlanInfoView(context, plan));
+    let planListText = plansInfo.map(item => `${item.title}\n${item.caption}`).join('\n\n');
 
     return {
         text: `${emojiIcon.list} ${context.uiText.pointPackage}` + (planListText.length < 3500 ? `\n\n${planListText}` : ""),
         reply_markup: {
             inline_keyboard: [
-                ...plans.map(plan => [{ text: context.getUit(plan.title), callback_data: `viewPlan_${plan.id}` }]),
+                ...plansInfo.map(planInfo => [{ text: planInfo.title, callback_data: `viewPlan_${planInfo.plan.id}` }]),
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "mySubscriptions" }],
             ]
         }
@@ -362,13 +360,10 @@ export const getPlanInfoPanel = async (context: RequestContext, planId: string) 
     if (!plan)
         return null;
 
+    const planInfo = getPlanInfoView(context, plan);
+
     return {
-        text: (
-            `${emojiIcon.extraPoint} ${context.getUit(plan.title)}`
-            + `\n\n${emojiIcon.point} ${context.uiText.pointsAmount}: ${stringHelper.digitLocalization(plan.points.toLocaleString(context.user.lang), context.user.lang)}`
-            + `\n\n${emojiIcon.calendar} ${context.uiText.subscriptionPeriod}: ${stringHelper.digitLocalization(plan.days, context.user.lang)} ${context.uiText.days}`
-            + `\n\n${emojiIcon.price} ${context.uiText.price}: ${stringHelper.digitLocalization((plan.price * config.usdToIrtMultiplier).toLocaleString(context.user.lang), context.user.lang)} ${context.uiText.irt}`
-        ),
+        text: planInfo.fullInfo,
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.ok} ${context.uiText.purchase}`, callback_data: `buyPlan_${plan.id}` }],

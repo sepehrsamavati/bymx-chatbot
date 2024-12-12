@@ -5,8 +5,8 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
-import { getPanel, getModelUsageListPanel } from "../helpers/messages.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { getPanel, getModelUsageListPanel, getPlanList } from "../helpers/messages.js";
 
 export const userCommandHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -157,6 +157,33 @@ export const userCommandHandler: IUpdateHandler = {
                     }
                 );
 
+                return { shouldContinue: false };
+            case "/plans":
+                const planList = await getPlanList(context);
+
+                if (!planList)
+                    return null;
+
+                if (planList === "noPlanAvailable") {
+                    return {
+                        call: {
+                            text: context.uiText.noItemToShow
+                        }
+                    };
+                } else {
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.message?.chat.id,
+                            message_id: update.message?.message_id,
+                            reply_parameters: {
+                                allow_sending_without_reply: true,
+                                message_id: update.message?.message_id
+                            },
+                            ...planList
+                        }
+                    );
+                }
                 return { shouldContinue: false };
         }
 
