@@ -1,6 +1,6 @@
+import type { Prompt } from "../entities/prompt.js";
 import type { OpenAIModel } from "../entities/openAIModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
-import type { OpenAIMessage } from "../entities/openAIMessage.js";
 import type { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
 export type IOpenAITextResult = {
@@ -29,7 +29,7 @@ export type IOpenAIRequest = {
     inputMessage: string;
     systemMessage?: string;
     imageUrl?: string;
-    messages: Array<Pick<OpenAIMessage, 'prompt' | 'output'>>;
+    messages: Array<Pick<Prompt, 'input' | 'output'>>;
     tokenLimit?: number;
     model: OpenAIModel;
     userId?: string;

@@ -1,13 +1,13 @@
-import type { CaptionOnly, FlattenToIDs } from "./entities";
 import type { Plan, SearchPlan } from "../entities/plan";
 import type { OpenAIModel } from "../entities/openAIModel";
+import type { CaptionOnly, FlattenToIDs } from "./entities";
+import type { PromptBasicInfo, PromptDBModel } from "../entities/prompt";
 import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUsage";
-import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../entities/openAIMessage";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
-import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
+import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
 
 export interface ITransaction {
@@ -104,10 +104,10 @@ export type IOpenAIChatRepository = {
     count(filter: SearchOpenAIChat): Promise<number | null>;
 }
 
-export type IOpenAIMessageRepository = {
-    create(message: FlattenToIDs<OpenAIMessageDBModel, 'usages'>): Promise<boolean | null>;
+export type IPromptRepository = {
+    create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<boolean | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
-    getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null>;
+    getRecentHistory(chatId: string, count: number): Promise<PromptBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
 }
 

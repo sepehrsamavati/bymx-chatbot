@@ -1,19 +1,19 @@
 import mongoose from "mongoose";
 import { userModelDefinition } from "./User.js";
 import { openAIChatModelDefinition } from "./OpenAIChat.js";
+import type { PromptDBModel } from "../../../../../../types/entities/prompt.js";
 import { userSubscriptionUsageModelDefinition } from "./UserSubscriptionUsage.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition } from "../lib/model.type.js";
-import type { OpenAIMessageDBModel } from "../../../../../../types/entities/openAIMessage.js";
 
-type OpenAIMessageMongoStored = FlattenToObjectIDs<OpenAIMessageDBModel, 'chat' | 'usages' | 'promptUser'>;
+type PromptMongoStored = FlattenToObjectIDs<PromptDBModel, 'chat' | 'usages' | 'promptUser'>;
 
-export const openAIMessageModelDefinition: MongooseModelDefinition<"openAIMessages", "OpenAIMessage", OpenAIMessageMongoStored> = Object.freeze({
-    model: "OpenAIMessage",
-    collection: "openAIMessages",
-    createModel: con => con.models[openAIMessageModelDefinition.model] || con.model(openAIMessageModelDefinition.model, schema)
+export const promptModelDefinition: MongooseModelDefinition<"prompts", "Prompt", PromptMongoStored> = Object.freeze({
+    model: "Prompt",
+    collection: "prompts",
+    createModel: con => con.models[promptModelDefinition.model] || con.model(promptModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
+const schema = new mongoose.Schema<PromptMongoStored>({
     insertDate: {
         type: Date,
         required: true
@@ -55,7 +55,7 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
         ref: userModelDefinition.model,
         required: true
     },
-    prompt: {
+    input: {
         type: String,
         required: true
     },
@@ -72,4 +72,4 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
         type: String,
         required: false
     }
-}, { versionKey: false, collection: openAIMessageModelDefinition.collection });
+}, { versionKey: false, collection: promptModelDefinition.collection });

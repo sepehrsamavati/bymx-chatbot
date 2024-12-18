@@ -1,19 +1,18 @@
 import fs from "node:fs/promises";
 import type { ServicesType } from "../Container.js";
 import type { User } from "../../../types/entities/user.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
+import type { PromptBasicInfo } from "../../../types/entities/prompt.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
 import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
-import type { UserSubscription } from "../../../types/entities/userSubscription.js";
-import type { OpenAIMessageBasicInfo } from "../../../types/entities/openAIMessage.js";
-import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
-import type { IOpenAIImageResult, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
-import { PlanType } from "../../../types/enums/planTypes.js";
+import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
+import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -26,7 +25,7 @@ export type IOpenAITextWithFileResponse = IOpenAITextResultWithFile & {
 export default class OpenAIApplication {
     #openAI;
     #openAIChatRepository;
-    #openAIMessageRepository;
+    #promptRepository;
     #userApplication;
     #userRepository;
     #userTempFileApplication;
@@ -37,7 +36,7 @@ export default class OpenAIApplication {
     constructor(container: ServicesType) {
         this.#openAI = container.openAI;
         this.#openAIChatRepository = container.openAIChatRepository;
-        this.#openAIMessageRepository = container.openAIMessageRepository;
+        this.#promptRepository = container.promptRepository;
         this.#userApplication = container.userApplication;
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
@@ -106,10 +105,10 @@ export default class OpenAIApplication {
         if (!(subscriptions && dailyFreeSubscription && totalRemainingPoints !== undefined))
             return result.failed();
 
-        let historyMessages: OpenAIMessageBasicInfo[] = [];
+        let historyMessages: PromptBasicInfo[] = [];
 
         if (user.memoryAmount && user.saveMessages) {
-            const _historyMessages = await this.#openAIMessageRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
+            const _historyMessages = await this.#promptRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
 
             if (_historyMessages === null)
                 return result.failed();
@@ -181,12 +180,12 @@ export default class OpenAIApplication {
 
             const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
-            await this.#openAIMessageRepository.create({
+            await this.#promptRepository.create({
                 chat: selectedChat,
                 cost: cost,
                 insertDate: new Date(),
                 isDeleted: false,
-                prompt: textMessage,
+                input: textMessage,
                 output: res.output,
                 points: userPointCost,
                 model: selectedChat.model.name,
@@ -352,12 +351,12 @@ export default class OpenAIApplication {
 
         const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
-        await this.#openAIMessageRepository.create({
+        await this.#promptRepository.create({
             chat: selectedChat,
             cost: cost,
             insertDate: new Date(),
             isDeleted: false,
-            prompt: message,
+            input: message,
             output: res.output,
             points: userPointCost,
             model: selectedChat.model.name,

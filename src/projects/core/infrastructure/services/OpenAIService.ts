@@ -74,7 +74,7 @@ export default class OpenAIService implements IOpenAIService {
             _messages.push({ role: 'system', content: _systemMessage });
 
         for (const message of messages) {
-            _messages.push({ role: 'user', content: message.prompt });
+            _messages.push({ role: 'user', content: message.input });
             _messages.push({ role: 'assistant', content: message.output });
         }
 
@@ -129,7 +129,7 @@ export default class OpenAIService implements IOpenAIService {
             const _messages: OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message[] = [];
 
             for (const message of messages) {
-                _messages.push({ role: 'user', content: message.prompt });
+                _messages.push({ role: 'user', content: message.input });
                 _messages.push({ role: 'assistant', content: message.output });
             }
 

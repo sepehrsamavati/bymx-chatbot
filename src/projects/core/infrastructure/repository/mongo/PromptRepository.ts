@@ -1,24 +1,24 @@
 import type { ServicesType } from "../../../Container.js";
 import type { FlattenToIDs } from "../../../../../types/contracts/entities.js";
-import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
+import type { IPromptRepository } from "../../../../../types/contracts/repositories.js";
+import type { PromptBasicInfo, PromptDBModel } from "../../../../../types/entities/prompt.js";
 
-export class OpenAIMessageRepository implements IOpenAIMessageRepository {
+export class PromptRepository implements IPromptRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(message: FlattenToIDs<OpenAIMessageDBModel, 'usages'>): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models.openAIMessage.create({
+    async create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<boolean | null> {
+        const res = await this.#databaseConnection.models.prompt.create({
             cost: message.cost,
             insertDate: message.insertDate,
             isDeleted: message.isDeleted,
             chat: message.chat?.id,
             usages: message.usages,
             points: message.points,
+            input: message.input,
             output: message.output,
-            prompt: message.prompt,
             saved: message.saved,
             model: message.model,
             promptUser: message.promptUser.id,
@@ -27,8 +27,8 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         });
         return Boolean(res?._id);
     }
-    async getRecentHistory(chatId: string, count: number): Promise<OpenAIMessageBasicInfo[] | null> {
-        const res = await this.#databaseConnection.models.openAIMessage
+    async getRecentHistory(chatId: string, count: number): Promise<PromptBasicInfo[] | null> {
+        const res = await this.#databaseConnection.models.prompt
             .find({
                 isDeleted: false,
                 isHidden: false,
@@ -52,7 +52,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
 
         return res.map(item => ({
             cost: item.cost,
-            prompt: item.prompt,
+            input: item.input,
             output: item.output,
             points: item.points,
             saved: item.saved,
@@ -79,7 +79,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
     }
 
     async countUserFileUsage(userId: string, fromDate: Date): Promise<number | null> {
-        const count = await this.#databaseConnection.models.openAIMessage.countDocuments({
+        const count = await this.#databaseConnection.models.prompt.countDocuments({
             user: userId,
             fileId: { "$exists": true },
             insertDate: {
@@ -92,7 +92,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
 
     async getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null> {
         type AggregationResult = { count: number; point: number; cost: number; }[];
-        const res: AggregationResult = await this.#databaseConnection.models.openAIMessage.aggregate([
+        const res: AggregationResult = await this.#databaseConnection.models.prompt.aggregate([
             {
                 $match: {
                     isDeleted: false,
@@ -119,7 +119,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
         ]).exec();
 
         if (res.length > 1)
-            throw new Error("OpenAI get message usage by date range errored (multiple aggregation result returned)");
+            throw new Error("Prompt get message usage by date range errored (multiple aggregation result returned)");
 
         const usage = res.at(0);
 

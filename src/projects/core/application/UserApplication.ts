@@ -14,7 +14,7 @@ import { logger } from "../helpers/logger.js";
 export default class UserApplication {
     #userRepository;
     #openAIChatRepository;
-    #openAIMessageRepository;
+    #promptRepository;
     #userSubscriptionApplication;
     #inviteLockCache;
     #transaction;
@@ -22,7 +22,7 @@ export default class UserApplication {
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
         this.#openAIChatRepository = container.openAIChatRepository;
-        this.#openAIMessageRepository = container.openAIMessageRepository;
+        this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#inviteLockCache = container.calculateInviteLockCache;
         this.#transaction = container.databaseTransaction;
@@ -156,7 +156,7 @@ export default class UserApplication {
         const fromDate = new Date();
         fromDate.setMinutes(fromDate.getMinutes() - config.fileProcessingLimit.timePeriod);
 
-        const count = await this.#openAIMessageRepository.countUserFileUsage(userId, fromDate);
+        const count = await this.#promptRepository.countUserFileUsage(userId, fromDate);
 
         if (count === null || Number.isNaN(count))
             return result.failed("errorOccurred");
@@ -180,7 +180,7 @@ export default class UserApplication {
             todayJoinedUsersCount,
         ] = await Promise.all([
             this.#userRepository.countAll(),
-            this.#openAIMessageRepository.getUsage(todayStart, todayEnd),
+            this.#promptRepository.getUsage(todayStart, todayEnd),
             this.#userRepository.getRecentlyInserted(10),
             this.#userRepository.countRecentlyInserted(todayStart),
         ]);

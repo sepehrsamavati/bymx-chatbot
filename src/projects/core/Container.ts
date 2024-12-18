@@ -21,10 +21,10 @@ import UserRepository from "./infrastructure/repository/mongo/UserRepository.js"
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
+import { PromptRepository } from "./infrastructure/repository/mongo/PromptRepository.js";
 import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
 import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
-import { OpenAIMessageRepository } from "./infrastructure/repository/mongo/OpenAIMessageRepository.js";
 import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequiredChatApplication.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
@@ -48,7 +48,7 @@ type Repositories = {
     planRepository: RepoInterfaces.IPlanRepository;
     openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
     openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
-    openAIMessageRepository: RepoInterfaces.IOpenAIMessageRepository;
+    promptRepository: RepoInterfaces.IPromptRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
     telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
     telegramJoinRequiredChatRepository: RepoInterfaces.ITelegramJoinRequiredChatRepository;
@@ -145,7 +145,7 @@ export default class CoreServices {
             openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
             openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
             planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),
-            openAIMessageRepository: asClass(errorCatcher(OpenAIMessageRepository), { lifetime: "SCOPED" }),
+            promptRepository: asClass(errorCatcher(PromptRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
             telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),
             telegramJoinRequiredChatRepository: asClass(errorCatcher(TelegramJoinRequiredChatRepository), { lifetime: "SCOPED" }),

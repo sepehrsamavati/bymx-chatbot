@@ -18,13 +18,13 @@ fal.config({
 });
 
 export default class AIApplication {
-    #openAIMessageRepository;
+    #promptRepository;
     #userSubscriptionApplication;
     #messageLock;
 
     constructor(container: ServicesType) {
         this.#messageLock = container.aiMessageLockCache;
-        this.#openAIMessageRepository = container.openAIMessageRepository;
+        this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
     }
 
@@ -96,11 +96,11 @@ export default class AIApplication {
 
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
-                await this.#openAIMessageRepository.create({
+                await this.#promptRepository.create({
                     cost: costUsdCent / 100,
                     insertDate: new Date(),
                     isDeleted: false,
-                    prompt: message,
+                    input: message,
                     output: generatedImage.url,
                     points: userPointCost,
                     model: model,
