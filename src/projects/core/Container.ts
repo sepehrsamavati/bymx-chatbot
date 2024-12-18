@@ -1,6 +1,7 @@
 import config from "./config.js";
 import type { User } from "../../types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
+import AIApplication from "./application/AIApplication.js";
 import UserApplication from "./application/UserApplication.js";
 import PlanApplication from "./application/PlanApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
@@ -56,6 +57,7 @@ type Repositories = {
 type Applications = {
     userApplication: UserApplication;
     userTempFileApplication: UserTempFileApplication;
+    aiApplication: AIApplication;
     openAIApplication: OpenAIApplication;
     planApplication: PlanApplication;
     openAIChatApplication: OpenAIChatApplication;
@@ -74,7 +76,7 @@ type Applications = {
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
-    openAIMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
+    aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Lock invite calculation when it's being processed */
     calculateInviteLockCache: ServiceInterfaces.IActionLockCache<string>;
 };
@@ -120,6 +122,7 @@ export default class CoreServices {
 
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
             userTempFileApplication: asClass(UserTempFileApplication, { lifetime: "SCOPED" }),
+            aiApplication: asClass(AIApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
@@ -130,7 +133,7 @@ export default class CoreServices {
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
-            openAIMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            aiMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),

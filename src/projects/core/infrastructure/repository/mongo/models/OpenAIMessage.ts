@@ -43,7 +43,7 @@ const schema = new mongoose.Schema<OpenAIMessageMongoStored>({
     chat: {
         type: mongoose.Types.ObjectId,
         ref: openAIChatModelDefinition.model,
-        required: true
+        required: false
     },
     usages: {
         type: [mongoose.Types.ObjectId],

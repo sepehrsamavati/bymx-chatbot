@@ -19,10 +19,6 @@ export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
 }
 
-export type IOpenAIGeneratedImageResponse = Pick<IOpenAIImageResult, 'url'> & {
-    pointUsage: number;
-}
-
 export type IOpenAITextWithFileResponse = IOpenAITextResultWithFile & {
     pointUsage: number;
 }
@@ -47,7 +43,7 @@ export default class OpenAIApplication {
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#openAIModelCache = container.openAIModelCache;
-        this.#messageLock = container.openAIMessageLockCache;
+        this.#messageLock = container.aiMessageLockCache;
     }
 
     async #middleware(user: User) {
@@ -248,60 +244,60 @@ export default class OpenAIApplication {
         return result;
     }
 
-    async imageGenerate(user: User, message: string): Promise<OperationResultWithData<IOpenAIGeneratedImageResponse>> {
-        const _middlewareResult = await this.#middleware(user);
+    // async imageGenerate(user: User, message: string): Promise<OperationResultWithData<IOpenAIGeneratedImageResponse>> {
+    //     const _middlewareResult = await this.#middleware(user);
 
-        if (_middlewareResult instanceof OperationResultWithData)
-            return _middlewareResult;
+    //     if (_middlewareResult instanceof OperationResultWithData)
+    //         return _middlewareResult;
 
-        const { selectedChat, totalRemainingPoints, subscriptions } = _middlewareResult;
+    //     const { selectedChat, totalRemainingPoints, subscriptions } = _middlewareResult;
 
-        const result = new OperationResultWithData<IOpenAIGeneratedImageResponse>().failed("errorOccurred");
+    //     const result = new OperationResultWithData<IOpenAIGeneratedImageResponse>().failed("errorOccurred");
 
-        if (totalRemainingPoints < 20)
-            return result.failed("pointNotEnough");
+    //     if (totalRemainingPoints < 20)
+    //         return result.failed("pointNotEnough");
 
-        if (this.#messageLock.isLocked(user.id))
-            return result.failed("youHavePendingPrompts");
+    //     if (this.#messageLock.isLocked(user.id))
+    //         return result.failed("youHavePendingPrompts");
 
-        this.#messageLock.lock(user.id);
+    //     this.#messageLock.lock(user.id);
 
-        const startTime = performance.now();
-        const res = await this.#openAI.simpleImageGenerate(user.id, message);
-        const responseTime = performance.now() - startTime;
+    //     const startTime = performance.now();
+    //     const res = await this.#openAI.simpleImageGenerate(user.id, message);
+    //     const responseTime = performance.now() - startTime;
 
-        if (res?.url) {
-            const userPointCost = calculatePointUsage({ usdCent: res.costUsdCent });
+    //     if (res?.url) {
+    //         const userPointCost = calculatePointUsage({ usdCent: res.costUsdCent });
 
-            result.succeeded().setData({
-                url: res.url,
-                pointUsage: userPointCost
-            });
+    //         result.succeeded().setData({
+    //             url: res.url,
+    //             pointUsage: userPointCost
+    //         });
 
-            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+    //         const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
-            await this.#openAIMessageRepository.create({
-                chat: selectedChat,
-                cost: res.costUsdCent / 100,
-                insertDate: new Date(),
-                isDeleted: false,
-                prompt: message,
-                output: res.url,
-                points: userPointCost,
-                model: "dall-e-2",
-                saved: false,
-                usages: savedUsageIds ?? [],
-                promptUser: user,
-                responseTime: responseTime,
-            });
-        } else if (res?.contentPolicyViolation) {
-            result.failed("promptContentNotAllowed");
-        }
+    //         await this.#openAIMessageRepository.create({
+    //             chat: selectedChat,
+    //             cost: res.costUsdCent / 100,
+    //             insertDate: new Date(),
+    //             isDeleted: false,
+    //             prompt: message,
+    //             output: res.url,
+    //             points: userPointCost,
+    //             model: "dall-e-2",
+    //             saved: false,
+    //             usages: savedUsageIds ?? [],
+    //             promptUser: user,
+    //             responseTime: responseTime,
+    //         });
+    //     } else if (res?.contentPolicyViolation) {
+    //         result.failed("promptContentNotAllowed");
+    //     }
 
-        this.#messageLock.unlock(user.id);
+    //     this.#messageLock.unlock(user.id);
 
-        return result;
-    }
+    //     return result;
+    // }
 
     async fileWithMessage(opts: {
         tempFile: UserTempFile;

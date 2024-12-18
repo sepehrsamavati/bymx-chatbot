@@ -5,7 +5,7 @@ import type { UserSubscriptionUsage } from "./userSubscriptionUsage";
 
 export type OpenAIMessage = {
     /** NOTE: Chat's model can be changed by user; Use message `model` field instead */
-    chat: OpenAIChat;
+    chat?: OpenAIChat;
     usages: UserSubscriptionUsage[];
     promptUser: User;
     prompt: string;

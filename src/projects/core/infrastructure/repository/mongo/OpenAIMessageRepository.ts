@@ -1,7 +1,7 @@
 import type { ServicesType } from "../../../Container.js";
+import type { FlattenToIDs } from "../../../../../types/contracts/entities.js";
 import type { IOpenAIMessageRepository } from "../../../../../types/contracts/repositories.js";
 import type { OpenAIMessageBasicInfo, OpenAIMessageDBModel } from "../../../../../types/entities/openAIMessage.js";
-import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
 
 export class OpenAIMessageRepository implements IOpenAIMessageRepository {
     #databaseConnection;
@@ -14,7 +14,7 @@ export class OpenAIMessageRepository implements IOpenAIMessageRepository {
             cost: message.cost,
             insertDate: message.insertDate,
             isDeleted: message.isDeleted,
-            chat: message.chat.id,
+            chat: message.chat?.id,
             usages: message.usages,
             points: message.points,
             output: message.output,

@@ -30,6 +30,9 @@ const config = {
         timePeriod: Number.parseInt(process.env.BYMX_FILE_PROCESSING_LIMIT_PERIOD ?? "30"),
         count: Number.parseInt(process.env.BYMX_FILE_PROCESSING_LIMIT_COUNT ?? "10"),
     },
+    falAI: {
+        apiToken: process.env.BYMX_FAL_API_KEY ?? "",
+    },
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
@@ -57,6 +60,11 @@ configError(
 configError(
     "Open AI API token not defined",
     !config.openAI.apiToken
+);
+
+configError(
+    "Fal AI API token not defined",
+    !config.falAI.apiToken
 );
 
 configError(

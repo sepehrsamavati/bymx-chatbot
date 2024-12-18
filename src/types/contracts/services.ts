@@ -43,7 +43,7 @@ export type IOpenAIService = {
     fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;
     deleteVectorById(id: string): Promise<OperationResult>;
-    simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
+    // simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
 }
 
 export type IOpenAIModelCache = {

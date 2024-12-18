@@ -12,7 +12,7 @@ export const imageGenerateHandler: IUpdateHandler = {
     async handler(context, update) {
         const message = update.message?.text as string;
 
-        if (message.length < 800) {
+        if (message.length < 1500) {
 
             await tgCall(
                 TelegramMethods.SendChatAction,
@@ -22,7 +22,7 @@ export const imageGenerateHandler: IUpdateHandler = {
                 }
             );
 
-            const imageGenerateResult = await context.services.openAIApplication.imageGenerate(context.user, message);
+            const imageGenerateResult = await context.services.aiApplication.imageGenerate(context.user, message);
 
             if (imageGenerateResult.ok) {
                 await tgCall(
@@ -35,7 +35,7 @@ export const imageGenerateHandler: IUpdateHandler = {
                             inline_keyboard: [
                                 [
                                     { text: `${emojiIcon.point} ${imageGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
-                                    { text: `${emojiIcon.model} DALL·E 2`, callback_data: "modelProcessedThisMessage" },
+                                    { text: `${emojiIcon.model} Flux`, callback_data: "modelProcessedThisMessage" },
                                     { text: `${emojiIcon.failed} ${context.uiText.cancelImageGeneration}`, callback_data: "panel" }
                                 ]
                             ]
