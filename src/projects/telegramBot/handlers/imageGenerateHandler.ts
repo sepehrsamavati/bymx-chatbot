@@ -36,7 +36,9 @@ export const imageGenerateHandler: IUpdateHandler = {
                                 [
                                     { text: `${emojiIcon.point} ${imageGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
                                     { text: `${emojiIcon.model} Flux`, callback_data: "modelProcessedThisMessage" },
-                                    { text: `${emojiIcon.failed} ${context.uiText.cancelImageGeneration}`, callback_data: "panel" }
+                                ],
+                                [
+                                    { text: `${emojiIcon.failed} ${context.uiText.cancelImageGeneration}`, callback_data: "panel" },
                                 ]
                             ]
                         }
