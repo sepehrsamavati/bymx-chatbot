@@ -35,7 +35,7 @@ export const imageGenerateHandler: IUpdateHandler = {
                             inline_keyboard: [
                                 [
                                     { text: `${emojiIcon.point} ${imageGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
-                                    { text: `${emojiIcon.model} Flux`, callback_data: "modelProcessedThisMessage" },
+                                    { text: `${emojiIcon.model} ${imageGenerateResult.data.modelName}`, callback_data: "modelProcessedThisMessage" },
                                 ],
                                 [
                                     { text: `${emojiIcon.failed} ${context.uiText.cancelImageGeneration}`, callback_data: "panel" },

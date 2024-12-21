@@ -22,6 +22,8 @@ export type AIModel = {
         outputText: number;
         inputAudio: number;
         outputAudio: number;
+        inputImage: number;
+        outputImage: number;
     };
 }
 

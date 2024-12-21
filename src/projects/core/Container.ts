@@ -11,11 +11,11 @@ import CacheStorage from "./infrastructure/services/CacheStorage.js";
 import AIModelApplication from "./application/AIModelApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
+import OpenAIModelCache from "./infrastructure/services/AIModelCache.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
-import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
@@ -75,7 +75,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
-    openAIModelCache: ServiceInterfaces.IAIModelCache;
+    aiModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Lock invite calculation when it's being processed */
     calculateInviteLockCache: ServiceInterfaces.IActionLockCache<string>;
@@ -111,6 +111,9 @@ export default class CoreServices {
 
         userTempFileCleanupJob.start();
         chatMemberCacheCleanup.start();
+        this.container.cradle.aiModelRepository
+            .getAll()
+            .then(res => res && this.container.cradle.aiModelCache.setAll(res));
     }
 
     constructor(autoSetup = true) {
@@ -132,7 +135,7 @@ export default class CoreServices {
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
-            openAIModelCache: asClass(OpenAIModelCache, { lifetime: "SCOPED" }),
+            aiModelCache: asClass(OpenAIModelCache, { lifetime: "SINGLETON" }),
             aiMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),

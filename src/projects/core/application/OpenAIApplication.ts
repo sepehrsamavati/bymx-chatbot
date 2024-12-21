@@ -30,7 +30,7 @@ export default class OpenAIApplication {
     #userRepository;
     #userTempFileApplication;
     #userSubscriptionApplication;
-    #openAIModelCache;
+    #aiModelCache;
     #messageLock;
 
     constructor(container: ServicesType) {
@@ -41,7 +41,7 @@ export default class OpenAIApplication {
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
-        this.#openAIModelCache = container.openAIModelCache;
+        this.#aiModelCache = container.aiModelCache;
         this.#messageLock = container.aiMessageLockCache;
     }
 
@@ -62,7 +62,7 @@ export default class OpenAIApplication {
             if (hasChats)
                 return result.failed("selectChatBeforeUse"); // select chat
 
-            const defaultModel = await this.#openAIModelCache.getDefault();
+            const defaultModel = await this.#aiModelCache.getDefault();
 
             const openAIChat = {
                 title: "",

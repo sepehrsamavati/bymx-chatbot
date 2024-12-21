@@ -47,6 +47,8 @@ export type IOpenAIService = {
 }
 
 export type IAIModelCache = {
+    setAll(models: AIModel[]): void;
+    getModelByName(name: string): AIModel | undefined;
     getDefault(): Promise<AIModel>;
 }
 

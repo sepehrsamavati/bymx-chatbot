@@ -72,5 +72,15 @@ const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
             required: true,
             min: 0,
         },
+        inputImage: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        outputImage: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
     },
 }, { versionKey: false, collection: aiModelModelDefinition.collection });

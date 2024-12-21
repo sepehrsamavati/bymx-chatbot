@@ -10,6 +10,7 @@ import { OperationResultWithData } from "../common/dto/OperationResult.js";
 
 type AIGeneratedImageResponse = {
     url: string;
+    modelName: string;
     pointUsage: number;
 }
 
@@ -18,11 +19,15 @@ fal.config({
 });
 
 export default class AIApplication {
-    #promptRepository;
-    #userSubscriptionApplication;
     #messageLock;
+    #promptRepository;
+    #aiModelCache;
+    #userSubscriptionApplication;
+
+    #fluxModelName = "fal-ai/flux/schnell";
 
     constructor(container: ServicesType) {
+        this.#aiModelCache = container.aiModelCache;
         this.#messageLock = container.aiMessageLockCache;
         this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
@@ -30,8 +35,12 @@ export default class AIApplication {
 
     async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
         const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
-        const costUsdCent = 0.3;
-        const model = "fal-ai/flux/schnell";
+
+        const model = this.#aiModelCache.getModelByName(this.#fluxModelName);
+        if (!model)
+            return result.failed();
+
+        const costUsdCent = model.pricePmu.outputImage / (1_000_000 * 100); // 0.3;
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
@@ -65,7 +74,7 @@ export default class AIApplication {
             }
         }
 
-        const falResponse = await fal.subscribe(model, {
+        const falResponse = await fal.subscribe(model.name, {
             input: {
                 prompt,
                 enable_safety_checker: true,
@@ -91,7 +100,8 @@ export default class AIApplication {
                     .succeeded()
                     .setData({
                         url: generatedImage.url,
-                        pointUsage: userPointCost
+                        pointUsage: userPointCost,
+                        modelName: model.name,
                     });
 
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
@@ -103,7 +113,7 @@ export default class AIApplication {
                     input: message,
                     output: generatedImage.url,
                     points: userPointCost,
-                    model: model,
+                    model: model.name,
                     saved: false,
                     usages: savedUsageIds ?? [],
                     promptUser: user,
