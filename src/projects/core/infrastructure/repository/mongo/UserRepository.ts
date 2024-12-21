@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import { Transactional } from "./lib/Context.js";
 import MongoSearchHelper from "./lib/SearchHelper.js";
 import type { ServicesType } from "../../../Container.js";
-import { openAIModelModelDefinition } from "./models/OpenAIModel.js";
+import { aiModelModelDefinition } from "./models/AIModel.js";
+import { AIChat } from "../../../../../types/entities/aiChat.js";
 import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
-import { OpenAIChat } from "../../../../../types/entities/openAIChat.js";
 import { FlattenToIDs } from "../../../../../types/contracts/entities.js";
 import type { IUserRepository } from "../../../../../types/contracts/repositories.js";
 import type { MongoStored, MongoStoredWithId, PopulatedProperty } from "./lib/model.type.js";
@@ -120,10 +120,10 @@ export default class UserRepository extends Transactional implements IUserReposi
             invite: result.invite,
         };
 
-        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<OpenAIChat, 'user'>> | mongoose.Types.ObjectId;
+        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<AIChat, 'user'>> | mongoose.Types.ObjectId;
 
         if (selectedChat && !(selectedChat instanceof mongoose.Types.ObjectId) && user.id === selectedChat.user.toString()) {
-            const chatModel = selectedChat.model as PopulatedProperty<OpenAIChat['model']>;
+            const chatModel = selectedChat.model as PopulatedProperty<AIChat['model']>;
             user.selectedChat = {
                 id: selectedChat._id.toString(),
                 model: {
@@ -132,7 +132,8 @@ export default class UserRepository extends Transactional implements IUserReposi
                     pricePmu: chatModel.pricePmu,
                     title: chatModel.title,
                     type: chatModel.type,
-                    assistants: chatModel.assistants
+                    assistants: chatModel.assistants,
+                    provider: chatModel.provider,
                 },
                 title: selectedChat.title,
                 behavior: selectedChat.behavior,
@@ -187,7 +188,7 @@ export default class UserRepository extends Transactional implements IUserReposi
                     populate: [
                         {
                             path: 'model',
-                            model: openAIModelModelDefinition.model
+                            model: aiModelModelDefinition.model
                         }
                     ]
                 },

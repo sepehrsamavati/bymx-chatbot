@@ -1,4 +1,4 @@
-import type { OpenAIChat } from "./openAIChat";
+import type { AIChat } from "./aiChat";
 import type { UserType } from "../enums/userTypes";
 import type { UserStatus } from "../enums/userStatus";
 import type { UserModeType } from "../enums/userMode";
@@ -24,8 +24,8 @@ export type User = {
         by: User['id'];
         used: boolean;
     };
-    /** Selected Open AI chat */
-    selectedChat?: OpenAIChat;
+    /** Selected chat */
+    selectedChat?: AIChat;
     lastName?: string;
     username?: string;
     phoneNumber?: string;

@@ -3,9 +3,9 @@ import config from "../../core/config.js";
 import { getModelListPanel } from "../helpers/messages.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
+import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
 
 export const createNewChatHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -15,7 +15,7 @@ export const createNewChatHandler: IUpdateHandler = {
         const queryData = update.callback_query?.data as string;
 
         if (queryData === "newChat") {
-            const canCreateNewChat = await context.services.openAIChatApplication.canCreateNewChat(context.user.id);
+            const canCreateNewChat = await context.services.aiChatApplication.canCreateNewChat(context.user.id);
 
             if (!canCreateNewChat.ok) {
                 return {
@@ -43,17 +43,17 @@ export const createNewChatHandler: IUpdateHandler = {
         } else if (queryData.startsWith("selectChatModel_")) {
             const modelId = queryData.replace("selectChatModel_", "");
 
-            const model = await context.services.openAIModelApplication.getById(modelId);
+            const model = await context.services.aiModelApplication.getById(modelId);
 
             if (!model)
                 return null;
 
-            const chatId = await context.services.openAIChatApplication.create({
+            const chatId = await context.services.aiChatApplication.create({
                 title: "",
                 isHidden: false,
                 model: model,
                 user: context.user,
-                behavior: OpenAISystemMessage.None
+                behavior: AIChatBehavior.None
             });
 
             if (chatId) {

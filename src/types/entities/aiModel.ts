@@ -1,17 +1,19 @@
+import type { AIModelType } from "../enums/aiModelType";
 import type { StoredEntity } from "../contracts/entities";
-import type { OpenAIModelType } from "../enums/openAIModelType";
+import type { AIModelProvider } from "../enums/aiModelProvider";
 
-export type OpenAIModel = {
+export type AIModel = {
     id: string;
-    /** OpenAI API model name */
+    /** Model name */
     name: string;
     /** Title for user view */
     title: string;
     /** Model type (text, audio, ...) */
-    type: OpenAIModelType;
+    type: AIModelType;
+    provider: AIModelProvider;
     /** Assistant ID */
     assistants: {
-        /** File search assistant ID */
+        /** File search assistant ID (OpenAI) */
         fileSearch?: string;
     };
     /** Price per million units (tokens, characters, minutes, ...) */
@@ -23,4 +25,4 @@ export type OpenAIModel = {
     };
 }
 
-export type OpenAIModelDBModel = StoredEntity<OpenAIModel>;
+export type AIModelDBModel = StoredEntity<AIModel>;

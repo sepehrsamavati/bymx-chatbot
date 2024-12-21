@@ -1,15 +1,16 @@
 import mongoose from "mongoose";
+import { AIModelType } from "../../../../../../types/enums/aiModelType.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
-import { OpenAIModelType } from "../../../../../../types/enums/openAIModelType.js";
-import type { OpenAIModelDBModel } from "../../../../../../types/entities/openAIModel.js";
+import type { AIModelDBModel } from "../../../../../../types/entities/aiModel.js";
+import { AIModelProvider } from "../../../../../../types/enums/aiModelProvider.js";
 
-export const openAIModelModelDefinition: MongooseModelDefinition<"openAIModels", "OpenAIModel", MongoStored<OpenAIModelDBModel>> = Object.freeze({
-    model: "OpenAIModel",
-    collection: "openAIModels",
-    createModel: con => con.models[openAIModelModelDefinition.model] || con.model(openAIModelModelDefinition.model, schema)
+export const aiModelModelDefinition: MongooseModelDefinition<"aiModels", "AIModel", MongoStored<AIModelDBModel>> = Object.freeze({
+    model: "AIModel",
+    collection: "aiModels",
+    createModel: con => con.models[aiModelModelDefinition.model] || con.model(aiModelModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<MongoStored<OpenAIModelDBModel>>({
+const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
     insertDate: {
         type: Date,
         required: true
@@ -32,9 +33,14 @@ const schema = new mongoose.Schema<MongoStored<OpenAIModelDBModel>>({
     },
     type: {
         type: Number,
-        enum: OpenAIModelType,
+        enum: AIModelType,
         required: true,
-        default: OpenAIModelType.Text
+        default: AIModelType.Text
+    },
+    provider: {
+        type: Number,
+        enum: AIModelProvider,
+        required: true,
     },
     assistants: {
         type: {
@@ -67,4 +73,4 @@ const schema = new mongoose.Schema<MongoStored<OpenAIModelDBModel>>({
             min: 0,
         },
     },
-}, { versionKey: false, collection: openAIModelModelDefinition.collection });
+}, { versionKey: false, collection: aiModelModelDefinition.collection });

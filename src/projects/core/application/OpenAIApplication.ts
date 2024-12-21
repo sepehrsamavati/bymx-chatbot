@@ -4,14 +4,14 @@ import type { User } from "../../../types/entities/user.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
-import type { OpenAIChat } from "../../../types/entities/openAIChat.js";
+import type { AIChat } from "../../../types/entities/aiChat.js";
+import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import type { PromptBasicInfo } from "../../../types/entities/prompt.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
-import openAISystemMessageMapper from "../helpers/openAISystemMessageMapper.js";
-import { OpenAISystemMessage } from "../../../types/enums/openAISystemMessages.js";
-import { modelCostCalculator, modelCostPredication } from "../helpers/openAICostCalculator.js";
+import systemMessageMapper from "../helpers/systemMessageMapper.js";
+import { modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
@@ -24,7 +24,7 @@ export type IOpenAITextWithFileResponse = IOpenAITextResultWithFile & {
 
 export default class OpenAIApplication {
     #openAI;
-    #openAIChatRepository;
+    #aiChatRepository;
     #promptRepository;
     #userApplication;
     #userRepository;
@@ -35,7 +35,7 @@ export default class OpenAIApplication {
 
     constructor(container: ServicesType) {
         this.#openAI = container.openAI;
-        this.#openAIChatRepository = container.openAIChatRepository;
+        this.#aiChatRepository = container.aiChatRepository;
         this.#promptRepository = container.promptRepository;
         this.#userApplication = container.userApplication;
         this.#userRepository = container.userRepository;
@@ -54,7 +54,7 @@ export default class OpenAIApplication {
         let selectedChat = user.selectedChat;
 
         if (!selectedChat) {
-            const hasChats = await this.#openAIChatRepository.exists(user.id);
+            const hasChats = await this.#aiChatRepository.exists(user.id);
 
             if (hasChats === null)
                 return result.failed(); // error
@@ -68,11 +68,11 @@ export default class OpenAIApplication {
                 title: "",
                 user: user,
                 model: defaultModel,
-                behavior: OpenAISystemMessage.None,
+                behavior: AIChatBehavior.None,
                 isHidden: false,
-            } satisfies Partial<OpenAIChat>;
+            } satisfies Partial<AIChat>;
 
-            const defaultChatId = await this.#openAIChatRepository.create({
+            const defaultChatId = await this.#aiChatRepository.create({
                 ...openAIChat,
                 insertDate: new Date(),
                 isDeleted: false,
@@ -163,7 +163,7 @@ export default class OpenAIApplication {
             inputMessage: textMessage,
             messages: historyMessages,
             model: selectedChat.model,
-            systemMessage: openAISystemMessageMapper(selectedChat.behavior),
+            systemMessage: systemMessageMapper(selectedChat.behavior),
             userId: user.id,
             tokenLimit: predictedCost.outputTokens,
             imageUrl: opts?.imageUrl,

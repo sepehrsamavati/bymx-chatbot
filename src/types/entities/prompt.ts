@@ -1,11 +1,11 @@
 import type { User } from "./user";
-import type { OpenAIChat } from "./openAIChat";
+import type { AIChat } from "./aiChat";
 import type { StoredEntity } from "../contracts/entities";
 import type { UserSubscriptionUsage } from "./userSubscriptionUsage";
 
 export type Prompt = {
     /** NOTE: Chat's model can be changed by user; Use message `model` field instead */
-    chat?: OpenAIChat;
+    chat?: AIChat;
     usages: UserSubscriptionUsage[];
     promptUser: User;
     /** User input */

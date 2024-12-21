@@ -1,19 +1,18 @@
 import config from "../config.js";
+import { logger } from "../helpers/logger.js";
 import type { ServicesType } from "../Container.js";
 import { getTodayRange } from "../helpers/dateHelper.js";
 import { accessHelper } from "../helpers/accessHelper.js";
+import { AIChat } from "../../../types/entities/aiChat.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
-import { OpenAIChat } from "../../../types/entities/openAIChat.js";
-import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
-import { PlanType } from "../../../types/enums/planTypes.js";
-import { logger } from "../helpers/logger.js";
 
 export default class UserApplication {
     #userRepository;
-    #openAIChatRepository;
+    #aiChatRepository;
     #promptRepository;
     #userSubscriptionApplication;
     #inviteLockCache;
@@ -21,7 +20,7 @@ export default class UserApplication {
 
     constructor(container: ServicesType) {
         this.#userRepository = container.userRepository;
-        this.#openAIChatRepository = container.openAIChatRepository;
+        this.#aiChatRepository = container.aiChatRepository;
         this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#inviteLockCache = container.calculateInviteLockCache;
@@ -61,10 +60,10 @@ export default class UserApplication {
     async setUserSelectedChatById(user: User, chatId: string | null) {
         const result = new OperationResult();
 
-        let chat: Omit<OpenAIChat, "user"> | null = null;
+        let chat: Omit<AIChat, "user"> | null = null;
 
         if (chatId !== null) {
-            chat = await this.#openAIChatRepository.getChat({
+            chat = await this.#aiChatRepository.getChat({
                 id: chatId
             });
 

@@ -1,4 +1,5 @@
 import config from "../../core/config.js";
+import getPlanInfoView from "./getPlanInfoView.js";
 import startLinkGenerator from "./startLinkGenerator.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
@@ -7,15 +8,14 @@ import stringHelper from "../../core/helpers/stringHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { RequestContext } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
-import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
+import type { AIModel } from "../../../types/entities/aiModel.js";
 import type { User, UserInfoModel } from "../../../types/entities/user.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
-import { modelUsageCalculator } from "../../core/helpers/openAICostCalculator.js";
-import getPlanInfoView from "./getPlanInfoView.js";
+import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
-    const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
+    const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
 
     if (!chat)
         return null;
@@ -72,7 +72,7 @@ export const getDeleteChatConfirmPanel = async (context: RequestContext, chatId:
 };
 
 export const getChatListPanel = async (context: RequestContext) => {
-    const chats = await context.services.openAIChatApplication.getVisibleChats(context.user.id);
+    const chats = await context.services.aiChatApplication.getVisibleChats(context.user.id);
 
     if (!chats)
         return null;
@@ -264,7 +264,7 @@ export const getGivePhoneNumberPanel = (context: RequestContext) => {
     }
 };
 
-const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
+const modelTitleGenerator = (context: RequestContext, model: AIModel) => {
     if (model.pricePmu.outputText <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;
 
@@ -275,7 +275,7 @@ const modelTitleGenerator = (context: RequestContext, model: OpenAIModel) => {
 };
 
 export const getModelUsageListPanel = async (context: RequestContext) => {
-    const models = await context.services.openAIModelApplication.getAll();
+    const models = await context.services.aiModelApplication.getAll();
 
     if (!models)
         return null;
@@ -296,7 +296,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
 };
 
 export const getModelListPanel = async (context: RequestContext, changeChatModel?: string) => {
-    const models = await context.services.openAIModelApplication.getAll();
+    const models = await context.services.aiModelApplication.getAll();
 
     if (!models)
         return null;

@@ -2,8 +2,8 @@ import type mongoose from "mongoose";
 import { planModelDefinition } from "../models/Plan.js";
 import { userModelDefinition } from "../models/User.js";
 import { promptModelDefinition } from "../models/Prompt.js";
-import { openAIChatModelDefinition } from "../models/OpenAIChat.js";
-import { openAIModelModelDefinition } from "../models/OpenAIModel.js";
+import { aiChatModelDefinition } from "../models/AIChat.js";
+import { aiModelModelDefinition } from "../models/AIModel.js";
 import { userTempFileModelDefinition } from "../models/UserTempFile.js";
 import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
 import { telegramBroadcastModelDefinition } from "../models/TelegramBroadcast.js";
@@ -18,9 +18,9 @@ export default class MongooseModels {
             user: userModelDefinition.createModel(this.connection),
             userSubscription: userSubscriptionModelDefinition.createModel(this.connection),
             userSubscriptionUsage: userSubscriptionUsageModelDefinition.createModel(this.connection),
-            openAIModel: openAIModelModelDefinition.createModel(this.connection),
+            aiChat: aiChatModelDefinition.createModel(this.connection),
+            aiModel: aiModelModelDefinition.createModel(this.connection),
             plan: planModelDefinition.createModel(this.connection),
-            openAIChat: openAIChatModelDefinition.createModel(this.connection),
             prompt: promptModelDefinition.createModel(this.connection),
             userTempFile: userTempFileModelDefinition.createModel(this.connection),
             telegramBroadcast: telegramBroadcastModelDefinition.createModel(this.connection),

@@ -5,7 +5,7 @@ import { ServicesType } from "../Container.js";
 import { errorLogger } from "../helpers/logger.js";
 import translate from "@iamtraction/google-translate";
 import { User } from "../../../types/entities/user.js";
-import { calculatePointUsage } from "../helpers/openAICostCalculator.js";
+import { calculatePointUsage } from "../helpers/costCalculator.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 
 type AIGeneratedImageResponse = {

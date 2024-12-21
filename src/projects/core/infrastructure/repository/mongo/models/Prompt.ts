@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { userModelDefinition } from "./User.js";
-import { openAIChatModelDefinition } from "./OpenAIChat.js";
+import { aiChatModelDefinition } from "./AIChat.js";
 import type { PromptDBModel } from "../../../../../../types/entities/prompt.js";
 import { userSubscriptionUsageModelDefinition } from "./UserSubscriptionUsage.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition } from "../lib/model.type.js";
@@ -42,7 +42,7 @@ const schema = new mongoose.Schema<PromptMongoStored>({
     },
     chat: {
         type: mongoose.Types.ObjectId,
-        ref: openAIChatModelDefinition.model,
+        ref: aiChatModelDefinition.model,
         required: false
     },
     usages: {

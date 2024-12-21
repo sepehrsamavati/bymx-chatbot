@@ -5,25 +5,25 @@ import AIApplication from "./application/AIApplication.js";
 import UserApplication from "./application/UserApplication.js";
 import PlanApplication from "./application/PlanApplication.js";
 import OpenAIApplication from "./application/OpenAIApplication.js";
+import AIChatApplication from "./application/AIChatApplication.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import CacheStorage from "./infrastructure/services/CacheStorage.js";
+import AIModelApplication from "./application/AIModelApplication.js";
 import { errorCatcher } from "./infrastructure/proxy/errorCatcher.js";
 import OpenAIService from "./infrastructure/services/OpenAIService.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
-import OpenAIChatApplication from "./application/OpenAIChatApplication.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
 import type * as ServiceInterfaces from "../../types/contracts/services.js";
 import type * as RepoInterfaces from "../../types/contracts/repositories.js";
 import OpenAIModelCache from "./infrastructure/services/OpenAIModelCache.js";
-import OpenAIModelApplication from "./application/OpenAIModelApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
 import { PromptRepository } from "./infrastructure/repository/mongo/PromptRepository.js";
-import { OpenAIChatRepository } from "./infrastructure/repository/mongo/OpenAIChatRepository.js";
-import { OpenAIModelRepository } from "./infrastructure/repository/mongo/OpenAIModelRepository.js";
+import { AIChatRepository } from "./infrastructure/repository/mongo/AIChatRepository.js";
+import { AIModelRepository } from "./infrastructure/repository/mongo/AIModelRepository.js";
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
 import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequiredChatApplication.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
@@ -46,8 +46,8 @@ type Repositories = {
     userSubscriptionRepository: RepoInterfaces.IUserSubscriptionRepository;
     userSubscriptionUsageRepository: RepoInterfaces.IUserSubscriptionUsageRepository;
     planRepository: RepoInterfaces.IPlanRepository;
-    openAIChatRepository: RepoInterfaces.IOpenAIChatRepository;
-    openAIModelRepository: RepoInterfaces.IOpenAIModelRepository;
+    aiChatRepository: RepoInterfaces.IAIChatRepository;
+    aiModelRepository: RepoInterfaces.IAIModelRepository;
     promptRepository: RepoInterfaces.IPromptRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
     telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
@@ -60,8 +60,8 @@ type Applications = {
     aiApplication: AIApplication;
     openAIApplication: OpenAIApplication;
     planApplication: PlanApplication;
-    openAIChatApplication: OpenAIChatApplication;
-    openAIModelApplication: OpenAIModelApplication;
+    aiChatApplication: AIChatApplication;
+    aiModelApplication: AIModelApplication;
     userSubscriptionApplication: UserSubscriptionApplication;
     telegramBroadcastApplication: TelegramBroadcastApplication;
     telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
@@ -75,7 +75,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
-    openAIModelCache: ServiceInterfaces.IOpenAIModelCache;
+    openAIModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Lock invite calculation when it's being processed */
     calculateInviteLockCache: ServiceInterfaces.IActionLockCache<string>;
@@ -125,8 +125,8 @@ export default class CoreServices {
             aiApplication: asClass(AIApplication, { lifetime: "SCOPED" }),
             openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
-            openAIChatApplication: asClass(OpenAIChatApplication, { lifetime: "SCOPED" }),
-            openAIModelApplication: asClass(OpenAIModelApplication, { lifetime: "SCOPED" }),
+            aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
+            aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
@@ -142,8 +142,8 @@ export default class CoreServices {
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
             userSubscriptionUsageRepository: asClass(errorCatcher(UserSubscriptionUsageRepository), { lifetime: "SCOPED" }),
-            openAIModelRepository: asClass(errorCatcher(OpenAIModelRepository), { lifetime: "SCOPED" }),
-            openAIChatRepository: asClass(errorCatcher(OpenAIChatRepository), { lifetime: "SCOPED" }),
+            aiModelRepository: asClass(errorCatcher(AIModelRepository), { lifetime: "SCOPED" }),
+            aiChatRepository: asClass(errorCatcher(AIChatRepository), { lifetime: "SCOPED" }),
             planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),
             promptRepository: asClass(errorCatcher(PromptRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),

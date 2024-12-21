@@ -1,16 +1,16 @@
 import type { ServicesType } from "../../../Container.js";
-import type { OpenAIModel } from "../../../../../types/entities/openAIModel.js";
-import type { IOpenAIModelRepository } from "../../../../../types/contracts/repositories.js";
+import type { AIModel } from "../../../../../types/entities/aiModel.js";
+import type { IAIModelRepository } from "../../../../../types/contracts/repositories.js";
 
-export class OpenAIModelRepository implements IOpenAIModelRepository {
+export class AIModelRepository implements IAIModelRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async getAll(): Promise<OpenAIModel[] | null> {
+    async getAll(): Promise<AIModel[] | null> {
         const res = (
-            await this.#databaseConnection.models.openAIModel
+            await this.#databaseConnection.models.aiModel
                 .find({ isDeleted: false })
                 .lean()
         )
@@ -20,13 +20,14 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
                 pricePmu: item.pricePmu,
                 title: item.title,
                 type: item.type,
-                assistants: item.assistants
-            } satisfies OpenAIModel));
+                assistants: item.assistants,
+                provider: item.provider,
+            } satisfies AIModel));
         return res;
     }
 
-    async getById(id: string): Promise<OpenAIModel | null> {
-        const res = await this.#databaseConnection.models.openAIModel
+    async getById(id: string): Promise<AIModel | null> {
+        const res = await this.#databaseConnection.models.aiModel
             .findOne({ _id: id, isDeleted: false })
             .lean();;
         return res ? {
@@ -35,13 +36,14 @@ export class OpenAIModelRepository implements IOpenAIModelRepository {
             pricePmu: res.pricePmu,
             title: res.title,
             type: res.type,
-            assistants: res.assistants
+            assistants: res.assistants,
+            provider: res.provider,
         } : null;
     }
 
-    async exists(id: OpenAIModel["id"]): Promise<boolean | null> {
+    async exists(id: AIModel["id"]): Promise<boolean | null> {
         const res = (
-            await this.#databaseConnection.models.openAIModel
+            await this.#databaseConnection.models.aiModel
                 .exists({ id, isDeleted: false })
         );
         return Boolean(res?._id);

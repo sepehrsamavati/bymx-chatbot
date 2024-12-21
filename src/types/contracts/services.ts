@@ -1,5 +1,5 @@
 import type { Prompt } from "../entities/prompt.js";
-import type { OpenAIModel } from "../entities/openAIModel.js";
+import type { AIModel } from "../entities/aiModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
@@ -31,7 +31,7 @@ export type IOpenAIRequest = {
     imageUrl?: string;
     messages: Array<Pick<Prompt, 'input' | 'output'>>;
     tokenLimit?: number;
-    model: OpenAIModel;
+    model: AIModel;
     userId?: string;
     languageCode?: string;
 };
@@ -46,8 +46,8 @@ export type IOpenAIService = {
     // simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
 }
 
-export type IOpenAIModelCache = {
-    getDefault(): Promise<OpenAIModel>;
+export type IAIModelCache = {
+    getDefault(): Promise<AIModel>;
 }
 
 export type IActionLockCache<T> = {

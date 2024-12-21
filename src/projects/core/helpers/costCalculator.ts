@@ -1,5 +1,5 @@
 import config from "../config.js";
-import type { OpenAIModel } from "../../../types/entities/openAIModel.js";
+import type { AIModel } from "../../../types/entities/aiModel.js";
 
 const pointsPerDollar = 1_000;
 
@@ -15,7 +15,7 @@ export const calculatePointUsage = (opts: { usd: number; } | { usdCent: number; 
 export const modelCostCalculator = (opts: {
     inputUnits: number;
     outputUnits: number;
-    model: OpenAIModel;
+    model: AIModel;
 }) => {
     const { inputUnits, outputUnits, model: { pricePmu } } = opts;
     const { feePercentage } = config.openAI;
@@ -40,7 +40,7 @@ export const modelCostCalculator = (opts: {
 export const modelCostPredication = (opts: {
     inputUnits: number;
     pointUsageLimit: number;
-    model: OpenAIModel;
+    model: AIModel;
 }) => {
     const { feePercentage } = config.openAI;
 
@@ -67,7 +67,7 @@ export const modelCostPredication = (opts: {
     };
 }
 
-export const modelUsageCalculator = (model: OpenAIModel) => {
+export const modelUsageCalculator = (model: AIModel) => {
     const { userPointCost } = modelCostCalculator({
         inputUnits: 350,
         outputUnits: 350,

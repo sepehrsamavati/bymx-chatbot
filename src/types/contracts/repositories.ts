@@ -1,10 +1,10 @@
+import type { AIModel } from "../entities/aiModel";
 import type { Plan, SearchPlan } from "../entities/plan";
-import type { OpenAIModel } from "../entities/openAIModel";
 import type { CaptionOnly, FlattenToIDs } from "./entities";
 import type { PromptBasicInfo, PromptDBModel } from "../entities/prompt";
 import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUsage";
+import type { AIChat, AIChatDBModel, SearchAIChat, UpdateAIChat } from "../entities/aiChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
-import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../entities/openAIChat";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
@@ -84,10 +84,10 @@ export type IUserTempFileRepository = {
     countUserUsage(userId: string, fromDate: Date): Promise<number | null>;
 }
 
-export type IOpenAIModelRepository = {
-    getAll(): Promise<OpenAIModel[] | null>;
-    getById(id: OpenAIModel['id']): Promise<OpenAIModel | null>;
-    exists(id: OpenAIModel['id']): Promise<boolean | null>;
+export type IAIModelRepository = {
+    getAll(): Promise<AIModel[] | null>;
+    getById(id: AIModel['id']): Promise<AIModel | null>;
+    exists(id: AIModel['id']): Promise<boolean | null>;
 }
 
 export type IPlanRepository = {
@@ -95,13 +95,13 @@ export type IPlanRepository = {
     getMany(filter: SearchPlan): Promise<Plan[] | null>;
 }
 
-export type IOpenAIChatRepository = {
-    create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null>;
-    updateById(update: UpdateOpenAIChat): Promise<boolean | null>;
-    getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null>;
+export type IAIChatRepository = {
+    create(chat: Omit<AIChatDBModel, 'id'>): Promise<AIChatDBModel['id'] | null>;
+    updateById(update: UpdateAIChat): Promise<boolean | null>;
+    getChat(filter: SearchAIChat): Promise<Omit<AIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
-    getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null>;
-    count(filter: SearchOpenAIChat): Promise<number | null>;
+    getChats(filter: SearchAIChat): Promise<CaptionOnly[] | null>;
+    count(filter: SearchAIChat): Promise<number | null>;
 }
 
 export type IPromptRepository = {

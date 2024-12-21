@@ -3,18 +3,18 @@ import type { ServicesType } from "../../../Container.js";
 import type { UserDBModel } from "../../../../../types/entities/user.js";
 import type { MongoStored, PopulatedProperty } from "./lib/model.type.js";
 import type { CaptionOnly } from "../../../../../types/contracts/entities.js";
-import type { OpenAIModelDBModel } from "../../../../../types/entities/openAIModel.js";
-import type { IOpenAIChatRepository } from "../../../../../types/contracts/repositories.js";
-import type { OpenAIChat, OpenAIChatDBModel, SearchOpenAIChat, UpdateOpenAIChat } from "../../../../../types/entities/openAIChat.js";
+import type { AIModelDBModel } from "../../../../../types/entities/aiModel.js";
+import type { IAIChatRepository } from "../../../../../types/contracts/repositories.js";
+import type { AIChat, AIChatDBModel, SearchAIChat, UpdateAIChat } from "../../../../../types/entities/aiChat.js";
 
-export class OpenAIChatRepository implements IOpenAIChatRepository {
+export class AIChatRepository implements IAIChatRepository {
     #databaseConnection;
     constructor(container: ServicesType) {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    #getFilter(filter: SearchOpenAIChat) {
-        const _filter: FilterQuery<MongoStored<OpenAIChatDBModel>> = {};
+    #getFilter(filter: SearchAIChat) {
+        const _filter: FilterQuery<MongoStored<AIChatDBModel>> = {};
 
         if (filter.id !== undefined)
             _filter._id = filter.id;
@@ -40,8 +40,8 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         return _filter;
     }
 
-    async create(chat: Omit<OpenAIChatDBModel, 'id'>): Promise<OpenAIChatDBModel['id'] | null> {
-        const res = await this.#databaseConnection.models.openAIChat.create({
+    async create(chat: Omit<AIChatDBModel, 'id'>): Promise<AIChatDBModel['id'] | null> {
+        const res = await this.#databaseConnection.models.aiChat.create({
             insertDate: chat.insertDate,
             isDeleted: chat.isDeleted,
             model: chat.model.id,
@@ -53,7 +53,7 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         return res?._id.toString() || null;
     }
 
-    async updateById(update: UpdateOpenAIChat): Promise<boolean | null> {
+    async updateById(update: UpdateAIChat): Promise<boolean | null> {
         const _update: UpdateQuery<UserDBModel> = {};
 
         if (update.isDeleted !== undefined)
@@ -68,17 +68,17 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         if (update.model !== undefined)
             _update.model = update.model;
 
-        const res = await this.#databaseConnection.models.openAIChat.updateOne({
+        const res = await this.#databaseConnection.models.aiChat.updateOne({
             _id: update.id
         }, _update);
 
         return res.modifiedCount === 1;
     }
 
-    async getChat(filter: SearchOpenAIChat): Promise<Omit<OpenAIChat, 'user'> | null> {
-        const res = await this.#databaseConnection.models.openAIChat.findOne(this.#getFilter(filter))
+    async getChat(filter: SearchAIChat): Promise<Omit<AIChat, 'user'> | null> {
+        const res = await this.#databaseConnection.models.aiChat.findOne(this.#getFilter(filter))
             .populate<{
-                model: PopulatedProperty<OpenAIModelDBModel>;
+                model: PopulatedProperty<AIModelDBModel>;
             }>([
                 'model'
             ])
@@ -101,13 +101,14 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
                 pricePmu: model.pricePmu,
                 title: model.title,
                 type: model.type,
-                assistants: model.assistants
+                assistants: model.assistants,
+                provider: model.provider,
             }
         };
     }
 
-    async getChats(filter: SearchOpenAIChat): Promise<CaptionOnly[] | null> {
-        const res = await this.#databaseConnection.models.openAIChat.find(this.#getFilter(filter))
+    async getChats(filter: SearchAIChat): Promise<CaptionOnly[] | null> {
+        const res = await this.#databaseConnection.models.aiChat.find(this.#getFilter(filter))
             .lean();
 
         if (!res)
@@ -116,15 +117,15 @@ export class OpenAIChatRepository implements IOpenAIChatRepository {
         return res.map(item => ({ id: item._id.toString(), caption: item.title }));
     }
 
-    async count(filter: SearchOpenAIChat): Promise<number | null> {
-        const res = await this.#databaseConnection.models.openAIChat
+    async count(filter: SearchAIChat): Promise<number | null> {
+        const res = await this.#databaseConnection.models.aiChat
             .countDocuments(this.#getFilter(filter));
 
         return res;
     }
 
     async exists(userId: string): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models.openAIChat.exists({
+        const res = await this.#databaseConnection.models.aiChat.exists({
             user: userId,
             isDeleted: false
         });

@@ -1,19 +1,19 @@
 import mongoose from "mongoose";
 import type { userModelDefinition } from "./User.js";
-import { openAIModelModelDefinition } from "./OpenAIModel.js";
-import type { OpenAIChatDBModel } from "../../../../../../types/entities/openAIChat.js";
-import { OpenAISystemMessage } from "../../../../../../types/enums/openAISystemMessages.js";
+import { aiModelModelDefinition } from "./AIModel.js";
+import type { AIChatDBModel } from "../../../../../../types/entities/aiChat.js";
+import { AIChatBehavior } from "../../../../../../types/enums/aiChatBehavior.js";
 import type { FlattenToObjectIDs, MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
-type OpenAIChatMongoStored = MongoStored<FlattenToObjectIDs<OpenAIChatDBModel, 'user' | 'model'>>;
+type AIChatMongoStored = MongoStored<FlattenToObjectIDs<AIChatDBModel, 'user' | 'model'>>;
 
-export const openAIChatModelDefinition: MongooseModelDefinition<"openAIChats", "OpenAIChat", OpenAIChatMongoStored> = Object.freeze({
-    model: "OpenAIChat",
-    collection: "openAIChats",
-    createModel: con => con.models[openAIChatModelDefinition.model] || con.model(openAIChatModelDefinition.model, schema)
+export const aiChatModelDefinition: MongooseModelDefinition<"aiChats", "AIChat", AIChatMongoStored> = Object.freeze({
+    model: "AIChat",
+    collection: "aiChats",
+    createModel: con => con.models[aiChatModelDefinition.model] || con.model(aiChatModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<OpenAIChatMongoStored>({
+const schema = new mongoose.Schema<AIChatMongoStored>({
     insertDate: {
         type: Date,
         required: true
@@ -36,7 +36,7 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
     },
     model: {
         type: mongoose.Types.ObjectId,
-        ref: openAIModelModelDefinition.model,
+        ref: aiModelModelDefinition.model,
         required: true
     },
     isHidden: {
@@ -47,7 +47,7 @@ const schema = new mongoose.Schema<OpenAIChatMongoStored>({
     behavior: {
         type: Number,
         required: true,
-        enum: OpenAISystemMessage,
-        default: OpenAISystemMessage.None
+        enum: AIChatBehavior,
+        default: AIChatBehavior.None
     },
-}, { versionKey: false, collection: openAIChatModelDefinition.collection });
+}, { versionKey: false, collection: aiChatModelDefinition.collection });

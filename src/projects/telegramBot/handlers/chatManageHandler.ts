@@ -79,7 +79,7 @@ export const chatManageHandler: IUpdateHandler = {
             const chatId = queryData.replace("selectChat_", "");
 
             if (context.user.selectedChat?.id !== chatId) {
-                const chat = await context.services.openAIChatApplication.getUserChatById(context.user.id, chatId);
+                const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
 
                 if (!chat)
                     return null;
@@ -118,7 +118,7 @@ export const chatManageHandler: IUpdateHandler = {
             if (!chat)
                 return null;
 
-            const result = await context.services.openAIChatApplication.setModel(chat, modelId);
+            const result = await context.services.aiChatApplication.setModel(chat, modelId);
 
             const chatPanel = await getChatPanel(context, chat.id);
 
@@ -152,7 +152,7 @@ export const chatManageHandler: IUpdateHandler = {
             }
 
             if (text.length < 50) {
-                const result = await context.services.openAIChatApplication.setTitle(selectedChatId, text);
+                const result = await context.services.aiChatApplication.setTitle(selectedChatId, text);
 
                 if (result.ok) {
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
@@ -213,7 +213,7 @@ export const chatManageHandler: IUpdateHandler = {
             const chatId = queryData.replace("deleteChat_", "");
 
             if (chatId.length > 0) {
-                const deleteResult = await context.services.openAIChatApplication.deleteByUser(context.user, chatId);
+                const deleteResult = await context.services.aiChatApplication.deleteByUser(context.user, chatId);
 
                 if (!deleteResult.ok)
                     return {
