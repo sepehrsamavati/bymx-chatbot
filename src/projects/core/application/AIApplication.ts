@@ -28,7 +28,7 @@ export default class AIApplication {
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
     }
 
-    async imageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
+    async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
         const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
         const costUsdCent = 0.3;
         const model = "fal-ai/flux/schnell";

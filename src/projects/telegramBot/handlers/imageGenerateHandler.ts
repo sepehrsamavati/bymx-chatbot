@@ -22,7 +22,7 @@ export const imageGenerateHandler: IUpdateHandler = {
                 }
             );
 
-            const imageGenerateResult = await context.services.aiApplication.imageGenerate(context.user, message);
+            const imageGenerateResult = await context.services.aiApplication.fluxImageGenerate(context.user, message);
 
             if (imageGenerateResult.ok) {
                 await tgCall(
