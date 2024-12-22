@@ -63,6 +63,14 @@ type File = {
     file_path?: string;
 }
 
+type Voice = {
+    file_id: string;
+    file_unique_id: string;
+    duration: number;
+    file_size?: number;
+    mime_type?: string;
+}
+
 export type MessageOriginUser = {
     type: "user";
     date: number;
@@ -110,6 +118,7 @@ export type TelegramMessage = {
     };
     document?: Document;
     audio?: unknown;
+    voice?: Voice;
     photo?: PhotoSize[];
     forward_origin?: MessageOrigin;
     reply_to_message?: Omit<TelegramMessage, 'reply_to_message'>;

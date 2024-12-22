@@ -12,6 +12,7 @@ import { joinChatHandler } from "./handlers/joinChatHandler.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
+import { audioPromptHandler } from "./handlers/audioPromptHandler.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
@@ -42,6 +43,7 @@ const handlers: IUpdateHandler[] = [
     createNewChatHandler,
     imageGenerateHandler,
     promptHandler,
+    audioPromptHandler,
 ];
 
 const handlerTypeFilter: {
@@ -130,6 +132,8 @@ export class UpdateHandler {
         if (update.message) {
             if (update.message.text) {
                 _handlers = handlerTypeFilter[TelegramUpdateType.TextMessage];
+            } else if (update.message.voice) {
+                _handlers = handlerTypeFilter[TelegramUpdateType.Voice];
             } else {
                 _handlers = handlerTypeFilter[TelegramUpdateType.Message];
             }

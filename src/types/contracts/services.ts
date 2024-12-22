@@ -4,11 +4,14 @@ import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
 export type IOpenAITextResult = {
+    /** Plain text or audio base64 */
     output: string;
     isComplete: boolean;
     inputTokens: number;
     outputTokens: number;
 };
+
+export type IOpenAIAudioResult = IOpenAITextResult;
 
 export type IOpenAIImageResult = {
     url?: string;
@@ -26,6 +29,7 @@ export type IOpenAITextResultWithFile = {
 };
 
 export type IOpenAIRequest = {
+    /** Plain text or audio base64 */
     inputMessage: string;
     systemMessage?: string;
     imageUrl?: string;
@@ -39,6 +43,7 @@ export type IOpenAIRequest = {
 export type IOpenAIRequestWithFile = IOpenAIRequest & { tempFile: UserTempFile; };
 
 export type IOpenAIService = {
+    multiAudioMessage(opts: IOpenAIRequest): Promise<IOpenAIAudioResult | null>
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
     fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;

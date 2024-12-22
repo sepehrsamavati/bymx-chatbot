@@ -15,13 +15,15 @@ export const calculatePointUsage = (opts: { usd: number; } | { usdCent: number; 
 export const modelCostCalculator = (opts: {
     inputUnits: number;
     outputUnits: number;
+    /** Default: `false` */
+    isAudio?: boolean;
     model: AIModel;
 }) => {
-    const { inputUnits, outputUnits, model: { pricePmu } } = opts;
+    const { inputUnits, outputUnits, isAudio, model: { pricePmu } } = opts;
     const { feePercentage } = config.openAI;
 
-    const inputTextCost = pricePmu.inputText * (inputUnits / 1_000_000);
-    const outputTextCost = pricePmu.outputText * (outputUnits / 1_000_000);
+    const inputTextCost = (isAudio ? pricePmu.inputAudio : pricePmu.inputText) * (inputUnits / 1_000_000);
+    const outputTextCost = (isAudio ? pricePmu.outputAudio : pricePmu.outputText) * (outputUnits / 1_000_000);
 
     const cost = inputTextCost + outputTextCost;
     const price = cost + ((feePercentage * cost) / 100);
@@ -40,6 +42,8 @@ export const modelCostCalculator = (opts: {
 export const modelCostPredication = (opts: {
     inputUnits: number;
     pointUsageLimit: number;
+    /** Default: `false` */
+    isAudio?: boolean;
     model: AIModel;
 }) => {
     const { feePercentage } = config.openAI;
@@ -59,7 +63,7 @@ export const modelCostPredication = (opts: {
 
     const userDollarCharge = (1 - (feePercentage / 100)) * (opts.pointUsageLimit / pointsPerDollar);
 
-    const outputTokens = (1_000_000 * userDollarCharge) / opts.model.pricePmu.outputText;
+    const outputTokens = (1_000_000 * userDollarCharge) / (opts.isAudio ? opts.model.pricePmu.outputAudio : opts.model.pricePmu.outputText);
 
     return {
         inputLimit: false,
