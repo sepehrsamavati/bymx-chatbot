@@ -10,9 +10,9 @@ import type { RequestContext } from "../../../types/telegram.js";
 import { accessHelper } from "../../core/helpers/accessHelper.js";
 import type { AIModel } from "../../../types/entities/aiModel.js";
 import type { User, UserInfoModel } from "../../../types/entities/user.js";
+import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
-import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
@@ -275,10 +275,7 @@ const modelTitleGenerator = (context: RequestContext, model: AIModel) => {
 };
 
 export const getModelUsageListPanel = async (context: RequestContext) => {
-    const models = await context.services.aiModelApplication.getAll();
-
-    if (!models)
-        return null;
+    const models = context.services.aiModelApplication.getChatModels();
 
     return {
         text: stringHelper.digitLocalization(`👇 ${context.uiText.modelUsageHelper}`
@@ -296,10 +293,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
 };
 
 export const getModelListPanel = async (context: RequestContext, changeChatModel?: string) => {
-    const models = await context.services.aiModelApplication.getAll();
-
-    if (!models)
-        return null;
+    const models = context.services.aiModelApplication.getChatModels();
 
     return {
         text: context.uiText.selectModel,

@@ -21,6 +21,11 @@ export default class AIModelCache implements IAIModelCache {
         return this.#models.find(model => model.name === name);
     }
 
+
+    getCurrentCache() {
+        return [...this.#models];
+    }
+
     async getDefault(): Promise<AIModel> {
         if (this.#defaultModel) return this.#defaultModel;
         const promise = new Promise<AIModel>(resolve => this.#queue.add(resolve));

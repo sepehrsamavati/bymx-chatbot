@@ -1,6 +1,7 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { User } from "../../../types/entities/user.js";
+import { AIModelType } from "../../../types/enums/aiModelType.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
 import { CreateAIChat, AIChat } from "../../../types/entities/aiChat.js";
 
@@ -19,6 +20,9 @@ export default class AIChatApplication {
         const canCreateNewChat = await this.canCreateNewChat(chat.user.id);
 
         if (!canCreateNewChat.ok)
+            return null;
+
+        if (chat.model.type !== AIModelType.Text)
             return null;
 
         const createdChatId = await this.#aiChatRepository.create({
@@ -84,6 +88,9 @@ export default class AIChatApplication {
             return result.failed();
 
         if (modelId === chat.model.id)
+            return result.failed();
+
+        if (_model.type !== AIModelType.Text)
             return result.failed();
 
         const updated = await this.#aiChatRepository.updateById({
