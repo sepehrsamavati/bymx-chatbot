@@ -106,6 +106,14 @@ export const userCommandHandler: IUpdateHandler = {
                 ]);
 
                 return { shouldContinue: false };
+            case "/clear":
+                const result = await context.services.aiChatApplication.clearUserSelectedChatHistory(context.user);
+
+                return {
+                    call: {
+                        text: `${result.ok ? emojiIcon.ok : emojiIcon.failed} ${context.getUit(result.message)}`
+                    }
+                };
             case "/terms":
 
                 await tgCall(

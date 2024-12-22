@@ -109,6 +109,7 @@ export type IPromptRepository = {
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number): Promise<PromptBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
+    deleteByChatId(chatId: string): Promise<boolean | null>;
 }
 
 export type ITelegramJoinRequiredChatRepository = {

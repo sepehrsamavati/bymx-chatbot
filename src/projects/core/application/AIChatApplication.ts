@@ -7,11 +7,13 @@ import { CreateAIChat, AIChat } from "../../../types/entities/aiChat.js";
 
 export default class AIChatApplication {
     #userApplication;
+    #promptRepository;
     #aiChatRepository;
     #aiModelApplication;
 
     constructor(container: ServicesType) {
         this.#userApplication = container.userApplication;
+        this.#promptRepository = container.promptRepository;
         this.#aiChatRepository = container.aiChatRepository;
         this.#aiModelApplication = container.aiModelApplication;
     }
@@ -139,5 +141,23 @@ export default class AIChatApplication {
             return result.failed("reachedChatCountLimit");
 
         return result.succeeded();
+    }
+
+    async clearPromptHistory(chatId: string) {
+        const result = new OperationResult();
+
+        if (await this.#promptRepository.deleteByChatId(chatId))
+            result.succeeded("chatMessagesCleared");
+
+        return result;
+    }
+
+    async clearUserSelectedChatHistory(user: User) {
+        const result = new OperationResult();
+
+        if (!user.selectedChat)
+            return result.failed("selectChatBeforeUse");
+
+        return this.clearPromptHistory(user.selectedChat.id);
     }
 }
