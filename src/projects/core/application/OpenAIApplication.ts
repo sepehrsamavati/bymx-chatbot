@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from 'ffmpeg-static';
 import type { ServicesType } from "../Container.js";
+import { audioConvert } from "../helpers/audioConvert.js";
 import type { User } from "../../../types/entities/user.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
@@ -16,12 +15,6 @@ import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 import type { IOpenAIAudioResult, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
-import { Readable } from "node:stream";
-import { randomUUID } from "node:crypto";
-import config from "../config.js";
-import { logger } from "../helpers/logger.js";
-
-ffmpeg.setFfmpegPath(ffmpegPath as string);
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
@@ -33,47 +26,6 @@ export type IOpenAIAudioResponse = IOpenAIAudioResult & {
 
 export type IOpenAITextWithFileResponse = IOpenAITextResultWithFile & {
     pointUsage: number;
-}
-
-async function convertOgaToWav(ogaBuffer: Buffer) {
-    return new Promise<Buffer>((resolve, reject) => {
-        // const outputBuffer: Buffer[] = [];
-        const outputTempPath = config.cacheDirectory + `/${randomUUID()}.temp`;
-
-        // Create a readable stream from the input buffer
-        const inputStream = new Readable();
-        inputStream.push(ogaBuffer);
-        inputStream.push(null); // Signal the end of the stream
-
-        ffmpeg(inputStream)
-            .toFormat('wav')
-            .on('end', async () => {
-                const outBuff = await fs.readFile(outputTempPath);
-                await fs.unlink(outputTempPath);
-                resolve(outBuff);
-            })
-            .on('error', (err) => {
-                logger.error('Error during conversion:', err.message);
-            })
-            .save(outputTempPath);
-
-        // Use fluent-ffmpeg to convert the audio
-        // ffmpeg(inputStream)
-        //     .toFormat('wav')
-        //     // @ts-ignore
-        //     .on('data', (chunk) => {
-        //         outputBuffer.push(chunk);
-        //     })
-        //     .on('end', () => {
-        //         // Concatenate all chunks into a single buffer
-        //         const finalBuffer = Buffer.concat(outputBuffer);
-        //         resolve(finalBuffer);
-        //     })
-        //     .on('error', (err) => {
-        //         reject(err);
-        //     })
-        //     .run();
-    });
 }
 
 export default class OpenAIApplication {
@@ -267,7 +219,7 @@ export default class OpenAIApplication {
         let audioFileData = await fs.readFile(getTempFilePath(audioFile));
 
         try {
-            const wavBuffer = await convertOgaToWav(audioFileData);
+            const wavBuffer = await audioConvert(audioFileData, "wav");
             audioFileData = wavBuffer;
             // You can now use the wavBuffer as needed
         } catch (error) {

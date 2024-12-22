@@ -174,7 +174,7 @@ export default class OpenAIService implements IOpenAIService {
             modalities: ["text", "audio"],
             audio: {
                 format: "mp3",
-                voice: "alloy"
+                voice: "ash"
             },
         });
     }

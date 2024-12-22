@@ -117,20 +117,24 @@ export const audioPromptHandler: IUpdateHandler = {
         const res = await context.services.openAIApplication.audioMessage(context.user, tempFile);
         unlockFileProcessing();
 
-        if (res.ok)
+        if (res.ok) {
+            const form = new FormData();
+
+            form.append("chat_id", update.message?.chat.id.toString());
+            form.append("reply_to_message_id", update.message?.message_id.toString());
+            form.append("reply_markup", JSON.stringify({
+                inline_keyboard: [
+                    [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                ]
+            }));
+            // form.append('duration', "6");
+            form.append('voice', new Blob([Buffer.from(res.data.output, "base64")]));
+
             await tgCall(
                 TelegramMethods.SendVoice,
-                {
-                    chat_id: update.message?.chat.id,
-                    reply_to_message_id: update.message?.message_id,
-                    voice: {},
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
-                        ]
-                    }
-                }
+                form
             );
+        }
         else
             switch (res.message) {
                 case "selectChatBeforeUse": {
