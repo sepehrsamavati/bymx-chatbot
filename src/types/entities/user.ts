@@ -4,6 +4,7 @@ import type { UserStatus } from "../enums/userStatus";
 import type { UserModeType } from "../enums/userMode";
 import type { StoredEntity } from "../contracts/entities";
 import type { LangCode } from "../../projects/core/i18n/UIText";
+import type { AIChatHistoryMemory } from "../enums/aiChatHistoryMemory";
 
 export type User = {
     id: string;
@@ -18,7 +19,7 @@ export type User = {
     firstName: string;
     saveMessages: boolean;
     /** Number of messages to resend in chat completion  */
-    memoryAmount: number;
+    memoryAmount: AIChatHistoryMemory;
     inviteCount: number;
     invite?: {
         by: User['id'];
