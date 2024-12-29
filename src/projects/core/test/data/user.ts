@@ -23,5 +23,9 @@ export class SampleUser {
         memoryAmount: 3,
         saveMessages: false,
         inviteCount: 0,
+        voiceResponse: {
+            on: false,
+            type: "alloy",
+        },
     };
 }

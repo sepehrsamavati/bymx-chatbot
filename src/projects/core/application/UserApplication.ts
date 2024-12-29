@@ -46,6 +46,10 @@ export default class UserApplication {
                 memoryAmount: 3,
                 saveMessages: true,
                 inviteCount: 0,
+                voiceResponse: {
+                    on: false,
+                    type: "onyx",
+                },
             });
 
             if (!userId)
