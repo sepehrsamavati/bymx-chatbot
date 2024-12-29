@@ -1,17 +1,45 @@
 import { franc } from "franc-min";
 import config from "../config.js";
+import fs from "node:fs/promises";
 import { fal } from "@fal-ai/client";
 import { ServicesType } from "../Container.js";
 import { errorLogger } from "../helpers/logger.js";
 import translate from "@iamtraction/google-translate";
 import { User } from "../../../types/entities/user.js";
-import { calculatePointUsage } from "../helpers/costCalculator.js";
+import { AIChat } from "../../../types/entities/aiChat.js";
+import { PlanType } from "../../../types/enums/planTypes.js";
+import { getTempFilePath } from "../helpers/storageHelper.js";
+import { UserStatus } from "../../../types/enums/userStatus.js";
+import { PromptBasicInfo } from "../../../types/entities/prompt.js";
+import systemMessageMapper from "../helpers/systemMessageMapper.js";
+import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
+import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import type { UserTempFile } from "../../../types/entities/userTempFile.js";
+import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { IOpenAITextResult } from "../../../types/contracts/services.js";
 
 type AIGeneratedImageResponse = {
     url: string;
     modelName: string;
     pointUsage: number;
+}
+
+type MultiModalInput = {
+    text: { text: string; };
+    voice: { voice: UserTempFile; };
+};
+
+type MultiModalInputAttachment = {
+    file: { file: UserTempFile; };
+    imageUrl: { imageUrl: string; };
+}
+
+type MultiModalOutput = {
+    plainText: string;
+    pointUsage: number;
+    isComplete: boolean;
+    audio?: Buffer;
 }
 
 fal.config({
@@ -23,6 +51,11 @@ export default class AIApplication {
     #promptRepository;
     #aiModelCache;
     #userSubscriptionApplication;
+    #openAI;
+    #aiChatRepository;
+    #userApplication;
+    #userRepository;
+    #userTempFileApplication;
 
     #fluxModelName = "fal-ai/flux/schnell";
 
@@ -31,6 +64,100 @@ export default class AIApplication {
         this.#messageLock = container.aiMessageLockCache;
         this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
+        this.#openAI = container.openAI;
+        this.#aiChatRepository = container.aiChatRepository;
+        this.#userApplication = container.userApplication;
+        this.#userRepository = container.userRepository;
+        this.#userTempFileApplication = container.userTempFileApplication;
+    }
+
+    /**
+     * - Used as ToS guard
+     * - Initialize and select user chat if not created before
+     * - Get subscriptions and chat history
+     * - Get points remaining */
+    private async middleware(user: User) {
+        const result = new OperationResultWithData<any>().failed("errorOccurred");
+
+        if (user.status !== UserStatus.OK)
+            return result.failed("shouldAcceptTermsOfService");
+
+        let selectedChat = user.selectedChat;
+
+        if (!selectedChat) {
+            const hasChats = await this.#aiChatRepository.exists(user.id);
+
+            if (hasChats === null)
+                return result.failed(); // error
+
+            if (hasChats)
+                return result.failed("selectChatBeforeUse"); // select chat
+
+            const defaultModel = await this.#aiModelCache.getDefault();
+
+            const openAIChat = {
+                title: "",
+                user: user,
+                model: defaultModel,
+                behavior: AIChatBehavior.None,
+                isHidden: false,
+            } satisfies Partial<AIChat>;
+
+            const defaultChatId = await this.#aiChatRepository.create({
+                ...openAIChat,
+                insertDate: new Date(),
+                isDeleted: false,
+            });
+
+            if (defaultChatId === null)
+                return result.failed(); // error
+
+            const updateResult = await this.#userRepository.update(user.id, {
+                selectedChat: {
+                    ...openAIChat,
+                    id: defaultChatId
+                }
+            });
+
+            if (updateResult?.ok) {
+                selectedChat = user.selectedChat = {
+                    ...openAIChat,
+                    id: defaultChatId
+                };
+            } else {
+                return result.failed(); // error
+            }
+        }
+
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+
+        const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
+
+        if (!(subscriptions && dailyFreeSubscription && totalRemainingPoints !== undefined))
+            return result.failed();
+
+        let historyMessages: PromptBasicInfo[] = [];
+
+        if (user.memoryAmount && user.saveMessages) {
+            const _historyMessages = await this.#promptRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
+
+            if (_historyMessages === null)
+                return result.failed();
+
+            historyMessages = _historyMessages.reverse();
+        }
+
+        if (totalRemainingPoints <= 0) {
+            return result.failed("noPointAvailable");
+        }
+
+        return {
+            result,
+            selectedChat,
+            subscriptions,
+            historyMessages,
+            totalRemainingPoints,
+        };
     }
 
     async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
@@ -125,5 +252,209 @@ export default class AIApplication {
         this.#messageLock.unlock(user.id);
 
         return result;
+    }
+
+    async multiModalChatCompletion(
+        user: User,
+        inputMessage: MultiModalInput[keyof MultiModalInput],
+        messageAttachment: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {},
+        opts?: {
+            /** Optional; Prevent double getting data and validations */
+            middlewareResult?: Awaited<ReturnType<typeof AIApplication.prototype.middleware>>;
+        }
+    ): Promise<OperationResultWithData<MultiModalOutput>> {
+        const _middlewareResult = opts?.middlewareResult ?? await this.middleware(user);
+
+        if (_middlewareResult instanceof OperationResultWithData)
+            return _middlewareResult;
+
+        const { subscriptions, selectedChat, historyMessages, totalRemainingPoints } = _middlewareResult;
+        const result = new OperationResultWithData<MultiModalOutput>();
+
+        /** Use only in view / Do not use in app logic / Call saveSubscriptionsUsage after each step */
+        let totalUserPointUsage = 0;
+        let inputText = 'text' in inputMessage ? inputMessage.text : "";
+
+        // Convert user speech to text (to send to model)
+        if ('voice' in inputMessage) {
+            const userTextMessage = await this.#openAI.speechToText({
+                inputAudioPath: getTempFilePath(inputMessage.voice),
+                prompt: user.voiceResponse.languagePrompt,
+            });
+
+            if (!userTextMessage)
+                return result.failed();
+
+            const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * userTextMessage.pmu) / 1e6 });
+            totalUserPointUsage += speechToTextUserPointCost;
+
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+
+            // Couldn't retrieve text from user speech audio
+            if (userTextMessage.output.length === 0) {
+                return result.failed("noContentInAudio").setData({
+                    pointUsage: speechToTextUserPointCost,
+                    plainText: "",
+                    isComplete: false,
+                });
+            }
+
+            inputText = userTextMessage.output;
+        }
+
+        const imageUrl = 'imageUrl' in messageAttachment ? messageAttachment.imageUrl : undefined;
+        const inputUnits = inputText.split(' ').length + (imageUrl ? 500 : 0);
+
+        const predictedCost = modelCostPredication({
+            inputUnits: inputUnits,
+            model: selectedChat.model,
+            pointUsageLimit: totalRemainingPoints
+        });
+
+        if (predictedCost.inputLimit)
+            return result.failed();
+
+        if ('file' in messageAttachment && openAiSupportedFileExtensions.plainTexts.includes(messageAttachment.file.extension)) {
+            const byteArrayData = await fs.readFile(getTempFilePath(messageAttachment.file));
+            inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${byteArrayData.toString()}`;
+        }
+
+        let resultData: IOpenAITextResult;
+        const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
+
+        // File search (PDF, ...)
+        if ('file' in messageAttachment && openAiSupportedFileExtensions.fileSearch.includes(messageAttachment.file.extension)) {
+            const startTime = performance.now();
+            const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
+                inputMessage: inputText,
+                messages: historyMessages,
+                tempFile: messageAttachment.file,
+                model: selectedChat.model,
+                languageCode: sendLangToGpt ? user.lang : undefined
+            });
+            const responseTime = performance.now() - startTime;
+
+            if (!res)
+                return result.failed();
+
+            resultData = res;
+
+            if ((!messageAttachment.file.openAiFileId || messageAttachment.file.vectorIds.length === 0) // file oai info not stored
+                && (fileUpdateInfo.fileId || fileUpdateInfo.vectorIds)) // file oai info is available
+                await this.#userTempFileApplication.setOpenAiInfo(messageAttachment.file.fsId, { // stored file info
+                    openAiFileId: fileUpdateInfo.fileId,
+                    vectorIds: fileUpdateInfo.vectorIds
+                });
+
+            const { cost, userPointCost: fileSearchUserPointCost } = modelCostCalculator({
+                model: selectedChat.model,
+                inputUnits: res.inputTokens,
+                outputUnits: res.outputTokens,
+            });
+
+            totalUserPointUsage += fileSearchUserPointCost;
+
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(fileSearchUserPointCost, subscriptions);
+
+            await this.#promptRepository.create({
+                chat: selectedChat,
+                cost: cost,
+                insertDate: new Date(),
+                isDeleted: false,
+                input: inputText,
+                output: res.output,
+                points: fileSearchUserPointCost,
+                model: selectedChat.model.name,
+                saved: user.saveMessages,
+                fileId: messageAttachment.file.fsId,
+                usages: savedUsageIds ?? [],
+                promptUser: user,
+                responseTime: responseTime,
+            });
+        } else { // Plain text chat completion
+            const startTime = performance.now();
+            const res = await this.#openAI.multiTextMessage({
+                inputMessage: inputText,
+                messages: historyMessages,
+                model: selectedChat.model,
+                systemMessage: systemMessageMapper(selectedChat.behavior),
+                userId: user.id,
+                tokenLimit: predictedCost.outputTokens,
+                imageUrl: imageUrl,
+                languageCode: sendLangToGpt ? user.lang : undefined
+            });
+            const responseTime = performance.now() - startTime;
+
+            // Couldn't generate output text
+            if (!res)
+                return result.failed();
+
+            resultData = res;
+
+            const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
+                model: selectedChat.model,
+                inputUnits: res.inputTokens,
+                outputUnits: res.outputTokens,
+            });
+
+            totalUserPointUsage += textGenerateUserPointCost;
+
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
+
+            await this.#promptRepository.create({
+                chat: selectedChat,
+                cost: cost,
+                insertDate: new Date(),
+                isDeleted: false,
+                input: inputText,
+                output: res.output,
+                points: textGenerateUserPointCost,
+                model: selectedChat.model.name,
+                saved: user.saveMessages,
+                usages: savedUsageIds ?? [],
+                promptUser: user,
+                responseTime: responseTime,
+            });
+        }
+
+        const outputText = resultData.output;
+
+        // * Skip generate audio for long output
+        const shouldGenerateAudio = user.voiceResponse.on && outputText.length < 4096;
+
+        if (shouldGenerateAudio) {
+
+            const modelAudioOutput = await this.#openAI.textToSpeech({
+                inputMessage: outputText,
+                voice: user.voiceResponse.type,
+            });
+
+            if (modelAudioOutput) {
+                const textToSpeechUserPointCost = calculatePointUsage({ usd: (outputText.length * modelAudioOutput.pmu) / 1e6 });
+
+                totalUserPointUsage += textToSpeechUserPointCost;
+
+                await this.#userSubscriptionApplication.saveSubscriptionsUsage(textToSpeechUserPointCost, subscriptions);
+
+                return result.succeeded().setData({
+                    pointUsage: totalUserPointUsage,
+                    plainText: outputText,
+                    isComplete: resultData.isComplete,
+                    audio: modelAudioOutput.output,
+                });
+            }
+
+            return result.succeeded().setData({
+                plainText: outputText,
+                pointUsage: totalUserPointUsage,
+                isComplete: resultData.isComplete,
+            });
+        }
+
+        return result.succeeded().setData({
+            pointUsage: totalUserPointUsage,
+            plainText: resultData.output,
+            isComplete: resultData.isComplete,
+        });
     }
 }
