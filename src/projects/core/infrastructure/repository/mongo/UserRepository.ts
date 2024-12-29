@@ -51,6 +51,7 @@ export default class UserRepository extends Transactional implements IUserReposi
     }
 
     #getUpdate(update: UpdateUserModel) {
+        const unsetList: Array<string> = [];
         const _update: UpdateQuery<UserDBModel> = {};
 
         if (update.username !== undefined)
@@ -86,11 +87,31 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (update.inviteUsed !== undefined)
             _update["invite.used"] = update.inviteUsed;
 
+        if (update.voiceResponseActive !== undefined)
+            _update["voiceResponse.on"] = update.voiceResponseActive;
+
+        if (update.voiceResponseType !== undefined)
+            _update["voiceResponse.type"] = update.voiceResponseType;
+
+        if (Object.hasOwn(update, 'voiceResponseLanguagePrompt')) {
+            if (update.voiceResponseLanguagePrompt !== undefined)
+                _update["voiceResponse.languagePrompt"] = update.voiceResponseLanguagePrompt;
+            else
+                unsetList.push("voiceResponse.languagePrompt");
+        }
+
         if (Object.hasOwn(update, 'selectedChat')) {
             if (update.selectedChat !== undefined)
                 _update.selectedChat = update.selectedChat.id;
             else
-                _update.$unset = { selectedChat: 1 };
+                unsetList.push("selectedChat");
+        }
+
+        if (unsetList.length) {
+            _update.$unset = {};
+            for (const key of unsetList) {
+                _update.$unset[key] = 1;
+            }
         }
 
         return _update;
@@ -118,6 +139,7 @@ export default class UserRepository extends Transactional implements IUserReposi
             phoneNumber: result.phoneNumber,
             inviteCount: result.inviteCount,
             invite: result.invite,
+            voiceResponse: result.voiceResponse,
         };
 
         const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<AIChat, 'user'>> | mongoose.Types.ObjectId;

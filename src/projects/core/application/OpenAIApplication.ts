@@ -6,21 +6,21 @@ import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { AIChat } from "../../../types/entities/aiChat.js";
-import { AIModelType } from "../../../types/enums/aiModelType.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import type { PromptBasicInfo } from "../../../types/entities/prompt.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
-import { modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 import type { IOpenAIAudioResult, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
 
 export type IOpenAITextResponse = IOpenAITextResult & {
     pointUsage: number;
 }
 
-export type IOpenAIAudioResponse = IOpenAIAudioResult & {
+export type IOpenAIAudioResponse = Partial<IOpenAIAudioResult> & {
+    plainText: string;
     pointUsage: number;
 }
 
@@ -138,8 +138,10 @@ export default class OpenAIApplication {
     async #message(user: User, textMessage: string, opts?: {
         imageUrl?: string;
         plainTextTempFile?: UserTempFile;
+        /** Optional; Prevent double getting data and validations */
+        middlewareResult?: any;
     }): Promise<OperationResultWithData<IOpenAITextResponse>> {
-        const _middlewareResult = await this.#middleware(user);
+        const _middlewareResult = opts?.middlewareResult ?? await this.#middleware(user);
 
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
@@ -210,87 +212,92 @@ export default class OpenAIApplication {
         return result.failed();
     }
 
-    async #audio(user: User, audioFile: UserTempFile): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async #audio(user: User, audioFile: UserTempFile): Promise<OperationResultWithData<IOpenAIAudioResponse>> {
         const _middlewareResult = await this.#middleware(user);
 
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
 
-        let audioFileData = await fs.readFile(getTempFilePath(audioFile));
+        const { subscriptions } = _middlewareResult;
 
-        try {
-            const wavBuffer = await audioConvert(audioFileData, "wav");
-            audioFileData = wavBuffer;
-            // You can now use the wavBuffer as needed
-        } catch (error) {
-            console.error('Error during conversion:', error);
-            debugger
-        }
+        // let audioFileData = await fs.readFile(getTempFilePath(audioFile));
 
-        const { selectedChat, historyMessages, totalRemainingPoints, result, subscriptions } = _middlewareResult;
+        // try {
+        //     const wavBuffer = await audioConvert(audioFileData, "wav");
+        //     audioFileData = wavBuffer;
+        //     // You can now use the wavBuffer as needed
+        // } catch (error) {
+        //     console.error('Error during conversion:', error);
+        //     debugger
+        // }
 
-        const inputUnits = 500;
+        const result = new OperationResultWithData<IOpenAIAudioResponse>();
 
-        const audioModel = this.#aiModelCache.getCurrentCache().find(model => model.title === selectedChat.model.title && model.type === AIModelType.TextAndAudio);
-        if (!audioModel)
-            return result.failed("audioNotSupported");
-
-        const predictedCost = modelCostPredication({
-            isAudio: true,
-            inputUnits: inputUnits,
-            model: audioModel,
-            pointUsageLimit: totalRemainingPoints
+        // Convert user speech to text (to send to model)
+        const userTextMessage = await this.#openAI.speechToText({
+            inputAudioPath: getTempFilePath(audioFile),
+            prompt: user.voiceResponse.languagePrompt,
         });
 
-        if (predictedCost.inputLimit)
+        if (!userTextMessage)
             return result.failed();
 
-        const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
+        const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * userTextMessage.pmu) / 1e6 });
 
-        const startTime = performance.now();
-        const res = await this.#openAI.multiAudioMessage({
-            inputMessage: audioFileData.toString("base64"),
-            messages: historyMessages,
-            model: audioModel,
-            userId: user.id,
-            tokenLimit: predictedCost.outputTokens,
-            languageCode: sendLangToGpt ? user.lang : undefined
-        });
-        const responseTime = performance.now() - startTime;
-
-        if (res) {
-            const { cost, userPointCost } = modelCostCalculator({
-                isAudio: true,
-                model: audioModel,
-                inputUnits: res.inputTokens,
-                outputUnits: res.outputTokens,
-            });
-
-            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
-
-            await this.#promptRepository.create({
-                chat: selectedChat,
-                cost: cost,
-                insertDate: new Date(),
-                isDeleted: false,
-                input: "[AUDIO]",
-                output: res.output,
-                points: userPointCost,
-                model: audioModel.name,
-                saved: false,
-                usages: savedUsageIds ?? [],
-                promptUser: user,
-                responseTime: responseTime,
-                fileId: audioFile.fsId,
-            });
-
-            return result.succeeded().setData({
-                ...res,
-                pointUsage: userPointCost
+        // Couldn't retrieve text from user speech audio
+        if (userTextMessage.output.length === 0) {
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+            return result.failed("noContentInAudio").setData({
+                pointUsage: speechToTextUserPointCost,
+                plainText: "",
             });
         }
 
-        return result.failed();
+        const textResult = await this.#message(user, userTextMessage.output, { middlewareResult: _middlewareResult });
+
+        // Couldn't generate output text
+        if (!textResult.ok) {
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+            return result.failed(textResult.message).setData({
+                pointUsage: speechToTextUserPointCost,
+                plainText: "",
+            });
+        }
+
+        // Output text is too long to generate audio
+        if (textResult.data.output.length >= 4096) {
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+            return result.succeeded().setData({
+                pointUsage: textResult.data.pointUsage + speechToTextUserPointCost,
+                plainText: textResult.data.output,
+            });
+        }
+
+        // const startTime = performance.now();
+        const modelAudioOutput = await this.#openAI.textToSpeech({
+            inputMessage: textResult.data.output,
+            voice: user.voiceResponse.type,
+        });
+        // const responseTime = performance.now() - startTime;
+
+        if (modelAudioOutput) {
+            const textToSpeechUserPointCost = calculatePointUsage({ usd: (textResult.data.output.length * modelAudioOutput.pmu) / 1e6 });
+
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(textToSpeechUserPointCost + speechToTextUserPointCost, subscriptions);
+
+            return result.succeeded().setData({
+                pointUsage: textResult.data.pointUsage + textToSpeechUserPointCost + speechToTextUserPointCost,
+                plainText: textResult.data.output,
+                output: modelAudioOutput.output,
+            });
+        }
+
+        await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+
+        return result.succeeded().setData({
+            plainText: textResult.data.output,
+            pointUsage: textResult.data.pointUsage,
+        });
     }
 
     async textMessage(user: User, message: string): Promise<OperationResultWithData<IOpenAITextResponse>> {
@@ -306,9 +313,9 @@ export default class OpenAIApplication {
         return result;
     }
 
-    async audioMessage(user: User, audioFile: UserTempFile): Promise<OperationResultWithData<IOpenAITextResponse>> {
+    async audioMessage(user: User, audioFile: UserTempFile): Promise<OperationResultWithData<IOpenAIAudioResponse>> {
         if (this.#messageLock.isLocked(user.id))
-            return new OperationResultWithData<IOpenAITextResponse>().failed("youHavePendingPrompts");
+            return new OperationResultWithData<IOpenAIAudioResponse>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 

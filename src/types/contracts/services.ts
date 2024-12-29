@@ -1,17 +1,29 @@
+import type { AIVoice } from "../enums/aiVoice.js";
 import type { Prompt } from "../entities/prompt.js";
 import type { AIModel } from "../entities/aiModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OperationResult } from "../../projects/core/common/dto/OperationResult.js";
 
 export type IOpenAITextResult = {
-    /** Plain text or audio base64 */
     output: string;
     isComplete: boolean;
     inputTokens: number;
     outputTokens: number;
 };
 
-export type IOpenAIAudioResult = IOpenAITextResult;
+export type IOpenAIAudioResult = {
+    output: Buffer;
+    /** Price per million units (input text characters) */
+    pmu: number;
+};
+
+export type IOpenAISpeechToTextResult = {
+    output: string;
+    /** Seconds */
+    duration: number;
+    /** Price per million units (input audio seconds) */
+    pmu: number;
+};
 
 export type IOpenAIImageResult = {
     url?: string;
@@ -29,7 +41,6 @@ export type IOpenAITextResultWithFile = {
 };
 
 export type IOpenAIRequest = {
-    /** Plain text or audio base64 */
     inputMessage: string;
     systemMessage?: string;
     imageUrl?: string;
@@ -38,16 +49,28 @@ export type IOpenAIRequest = {
     model: AIModel;
     userId?: string;
     languageCode?: string;
-};
+}
+
+export type IOpenAITextToSpeechRequest = {
+    inputMessage: string;
+    voice: AIVoice;
+}
+
+export type IOpenAISpeechToTextRequest = {
+    inputAudioPath: string;
+    language?: string;
+    prompt?: string;
+}
 
 export type IOpenAIRequestWithFile = IOpenAIRequest & { tempFile: UserTempFile; };
 
 export type IOpenAIService = {
-    multiAudioMessage(opts: IOpenAIRequest): Promise<IOpenAIAudioResult | null>
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
     fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;
     deleteVectorById(id: string): Promise<OperationResult>;
+    textToSpeech(opts: IOpenAITextToSpeechRequest): Promise<IOpenAIAudioResult | null>;
+    speechToText(opts: IOpenAISpeechToTextRequest): Promise<IOpenAISpeechToTextResult | null>;
     // simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
 }
 

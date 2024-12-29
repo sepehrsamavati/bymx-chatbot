@@ -1,4 +1,5 @@
 import type { AIChat } from "./aiChat";
+import type { AIVoice } from "../enums/aiVoice";
 import type { UserType } from "../enums/userTypes";
 import type { UserStatus } from "../enums/userStatus";
 import type { UserModeType } from "../enums/userMode";
@@ -21,6 +22,11 @@ export type User = {
     /** Number of messages to resend in chat completion  */
     memoryAmount: AIChatHistoryMemory;
     inviteCount: number;
+    voiceResponse: {
+        on: boolean;
+        type: AIVoice;
+        languagePrompt?: string;
+    };
     invite?: {
         by: User['id'];
         used: boolean;
@@ -37,6 +43,9 @@ export type UserDBModel = StoredEntity<User>;
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
 export type UpdateUserModel = {
     inviteUsed?: NonNullable<User['invite']>['used'];
+    voiceResponseActive?: User['voiceResponse']['on'];
+    voiceResponseType?: User['voiceResponse']['type'];
+    voiceResponseLanguagePrompt?: User['voiceResponse']['languagePrompt'];
 } & Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
 export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName' | 'invite'>;
 export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted' | 'username'> & {

@@ -6,7 +6,8 @@ import { errorLogger, logger } from "../../helpers/logger.js";
 import { getTempFilePath } from "../../helpers/storageHelper.js";
 import { OperationResult } from "../../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../../types/entities/userTempFile.js";
-import type { IOpenAIAudioResult, IOpenAIRequest, IOpenAIService, IOpenAITextResult, IOpenAITextResultWithFile } from "../../../../types/contracts/services.js";
+import type { IOpenAIAudioResult, IOpenAIRequest, IOpenAIService, IOpenAISpeechToTextRequest, IOpenAISpeechToTextResult, IOpenAITextResult, IOpenAITextResultWithFile, IOpenAITextToSpeechRequest } from "../../../../types/contracts/services.js";
+import { Readable } from "node:stream";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -58,35 +59,35 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
-    async #audioChatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAIAudioResult | null> {
-        try {
-            const chatCompletion = await this.#client.chat.completions.create(opts);
+    // async #audioChatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAIAudioResult | null> {
+    //     try {
+    //         const chatCompletion = await this.#client.chat.completions.create(opts);
 
-            const choice = chatCompletion.choices.at(0);
-            const result = choice?.message;
+    //         const choice = chatCompletion.choices.at(0);
+    //         const result = choice?.message;
 
-            if (result?.audio && result?.role === "assistant") {
-                const output = result.audio.data;
+    //         if (result?.audio && result?.role === "assistant") {
+    //             const output = result.audio.data;
 
-                debugger
+    //             debugger
 
-                if (!chatCompletion.usage)
-                    logger.warn("OpenAI chat completion usage not available!");
+    //             if (!chatCompletion.usage)
+    //                 logger.warn("OpenAI chat completion usage not available!");
 
-                return {
-                    output,
-                    isComplete: choice?.finish_reason === "stop",
-                    inputTokens: chatCompletion.usage?.prompt_tokens ?? opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0),
-                    outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
-                };
-            }
+    //             return {
+    //                 output,
+    //                 isComplete: choice?.finish_reason === "stop",
+    //                 inputTokens: chatCompletion.usage?.prompt_tokens ?? opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0),
+    //                 outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
+    //             };
+    //         }
 
-            return null;
-        } catch (err) {
-            logger.error("OpenAI audio chat request failed, " + (err instanceof Error ? err.message : err));
-            return null;
-        }
-    }
+    //         return null;
+    //     } catch (err) {
+    //         logger.error("OpenAI audio chat request failed, " + (err instanceof Error ? err.message : err));
+    //         return null;
+    //     }
+    // }
 
     async multiTextMessage(opts: IOpenAIRequest) {
         const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl, languageCode } = opts;
@@ -134,49 +135,36 @@ export default class OpenAIService implements IOpenAIService {
         });
     }
 
-    async multiAudioMessage(opts: IOpenAIRequest) {
-        const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl, languageCode } = opts;
-
-        const _messages: IChatCompletionConfig['messages'] = [];
-
-        let _systemMessage = systemMessage ?? "";
-
-        if (languageCode)
-            _systemMessage += `\nUser language: '${languageCode}'`;
-
-        if (_systemMessage)
-            _messages.push({ role: 'system', content: _systemMessage });
-
-        for (const message of messages) {
-            _messages.push({ role: 'user', content: message.input });
-            _messages.push({ role: 'assistant', content: message.output });
-        }
-
-        _messages.push({
-            role: 'user',
-            content: [
-                {
-                    type: "input_audio",
-                    input_audio: {
-                        data: inputMessage,
-                        format: "wav",
-                    }
-                }
-            ]
+    async textToSpeech(opts: IOpenAITextToSpeechRequest): Promise<IOpenAIAudioResult | null> {
+        const result = await this.#client.audio.speech.create({
+            input: opts.inputMessage,
+            model: "tts-1",
+            voice: opts.voice,
+            response_format: "mp3",
         });
 
-        return await this.#audioChatCompletion({
-            ...baseChatCompletionConfig,
-            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < 4_000 ? tokenLimit : undefined,
-            model: model.name,
-            user: userId,
-            messages: _messages,
-            modalities: ["text", "audio"],
-            audio: {
-                format: "mp3",
-                voice: "ash"
-            },
+        const buffer = Buffer.from(await result.arrayBuffer());
+
+        return {
+            output: buffer,
+            pmu: 15,
+        };
+    }
+
+    async speechToText(opts: IOpenAISpeechToTextRequest): Promise<IOpenAISpeechToTextResult | null> {
+        const result = await this.#client.audio.transcriptions.create({
+            file: fs.createReadStream(opts.inputAudioPath),
+            model: "whisper-1",
+            language: opts.language,
+            prompt: opts.prompt,
+            response_format: "verbose_json",
         });
+
+        return {
+            duration: Math.ceil(Number.parseInt(result.duration) || 20),
+            output: result.text,
+            pmu: 100,
+        };
     }
 
     async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile> {

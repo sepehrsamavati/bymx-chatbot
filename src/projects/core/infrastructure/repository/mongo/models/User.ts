@@ -6,6 +6,7 @@ import { UserStatus } from "../../../../../../types/enums/userStatus.js";
 import type { UserDBModel } from "../../../../../../types/entities/user.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 import { UserMode, userModeValues } from "../../../../../../types/enums/userMode.js";
+import { aiVoices } from "../../../../../../types/enums/aiVoice.js";
 
 export const userModelDefinition: MongooseModelDefinition<"users", "User", MongoStored<UserDBModel>> = Object.freeze({
 	model: "User",
@@ -110,5 +111,23 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 			},
 		},
 		required: false,
+	},
+	voiceResponse: {
+		type: {
+			on: {
+				type: Boolean,
+				required: true,
+			},
+			type: {
+				type: String,
+				required: true,
+				enum: aiVoices,
+			},
+			languagePrompt: {
+				type: String,
+				required: false,
+			},
+		},
+		// required: true,
 	},
 }, { versionKey: false, collection: userModelDefinition.collection });

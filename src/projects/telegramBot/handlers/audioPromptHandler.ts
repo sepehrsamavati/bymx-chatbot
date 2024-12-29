@@ -7,6 +7,7 @@ import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
+import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 
 export const audioPromptHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -118,22 +119,40 @@ export const audioPromptHandler: IUpdateHandler = {
         unlockFileProcessing();
 
         if (res.ok) {
-            const form = new FormData();
+            if (res.data.output) {
+                const form = new FormData();
 
-            form.append("chat_id", update.message?.chat.id.toString());
-            form.append("reply_to_message_id", update.message?.message_id.toString());
-            form.append("reply_markup", JSON.stringify({
-                inline_keyboard: [
-                    [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
-                ]
-            }));
-            // form.append('duration', "6");
-            form.append('voice', new Blob([Buffer.from(res.data.output, "base64")]));
+                form.append("chat_id", update.message?.chat.id.toString());
+                form.append("reply_to_message_id", update.message?.message_id.toString());
+                form.append("reply_markup", JSON.stringify({
+                    inline_keyboard: [
+                        [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                    ]
+                }));
+                // form.append('duration', "6");
+                form.append('voice', new Blob([res.data.output]));
 
-            await tgCall(
-                TelegramMethods.SendVoice,
-                form
-            );
+                await tgCall(
+                    TelegramMethods.SendVoice,
+                    form
+                );
+            } else {
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        text: res.data.plainText,
+                        // text: convertToTelegramMarkdown(res.data.plainText),
+                        // parse_mode: res.data.isComplete ? "Markdown" : undefined,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                            ]
+                        }
+                    }
+                );
+            }
         }
         else
             switch (res.message) {
