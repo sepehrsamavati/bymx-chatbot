@@ -1,9 +1,11 @@
 import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
 
-export default function (type?: AIChatBehavior) {
+export default function (type?: AIChatBehavior | "audio_output") {
     switch (type) {
         case AIChatBehavior.Baymax:
             return "Play role as Baymax (animation robot) character";
+        case "audio_output":
+            return "Consider your output will be converted to audio";
         case AIChatBehavior.None:
         default:
             return undefined;

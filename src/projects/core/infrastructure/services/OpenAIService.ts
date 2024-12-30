@@ -90,14 +90,15 @@ export default class OpenAIService implements IOpenAIService {
     // }
 
     async multiTextMessage(opts: IOpenAIRequest) {
-        const { messages, inputMessage, model, userId, systemMessage, tokenLimit, imageUrl, languageCode } = opts;
+        const { messages, inputMessage, model, userId, tokenLimit, imageUrl, languageCode } = opts;
+        let systemMessages = opts.systemMessages ?? [];
 
         const _messages: IChatCompletionConfig['messages'] = [];
 
-        let _systemMessage = systemMessage ?? "";
-
         if (languageCode)
-            _systemMessage += `\nUser language: '${languageCode}'`;
+            systemMessages.push(`User language: '${languageCode}'`);
+
+        const _systemMessage = systemMessages.filter(msg => Boolean(msg)).join('. ') ?? "";
 
         if (_systemMessage)
             _messages.push({ role: 'system', content: _systemMessage });
@@ -181,7 +182,7 @@ export default class OpenAIService implements IOpenAIService {
         let fileId: string | undefined = undefined;
         let vectorIds: string[] | undefined = undefined;
         try {
-            const { tempFile, messages, inputMessage, model } = opts;
+            const { tempFile, messages, inputMessage, model, languageCode } = opts;
 
             if (!model.assistants.fileSearch)
                 return { file: {} };
@@ -226,8 +227,14 @@ export default class OpenAIService implements IOpenAIService {
 
             vectorIds = thread.tool_resources?.file_search?.vector_store_ids ?? [];
 
+            let systemMessages = opts.systemMessages ?? [];
+            if (languageCode)
+                systemMessages.push(`User language: '${languageCode}'`);
+            const _systemMessage = systemMessages.filter(msg => Boolean(msg)).join('. ') ?? "";
+
             const threadRun = await this.#client.beta.threads.runs.createAndPoll(thread.id, {
                 assistant_id: model.assistants.fileSearch,
+                instructions: _systemMessage || undefined,
                 tools: [{ "type": "file_search" }],
             });
 

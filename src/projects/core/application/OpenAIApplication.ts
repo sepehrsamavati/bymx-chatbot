@@ -171,7 +171,7 @@ export default class OpenAIApplication {
             inputMessage: textMessage,
             messages: historyMessages,
             model: selectedChat.model,
-            systemMessage: systemMessageMapper(selectedChat.behavior),
+            systemMessages: [systemMessageMapper(selectedChat.behavior)],
             userId: user.id,
             tokenLimit: predictedCost.outputTokens,
             imageUrl: opts?.imageUrl,

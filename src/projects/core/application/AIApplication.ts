@@ -13,11 +13,11 @@ import { UserStatus } from "../../../types/enums/userStatus.js";
 import { PromptBasicInfo } from "../../../types/entities/prompt.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import { AIChatBehavior } from "../../../types/enums/aiChatBehavior.js";
+import { IOpenAITextResult } from "../../../types/contracts/services.js";
 import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { IOpenAITextResult } from "../../../types/contracts/services.js";
 
 type AIGeneratedImageResponse = {
     url: string;
@@ -330,7 +330,11 @@ export default class AIApplication {
                 messages: historyMessages,
                 tempFile: messageAttachment.file,
                 model: selectedChat.model,
-                languageCode: sendLangToGpt ? user.lang : undefined
+                languageCode: sendLangToGpt ? user.lang : undefined,
+                systemMessages: [
+                    systemMessageMapper(selectedChat.behavior),
+                    user.voiceResponse.on ? systemMessageMapper("audio_output") : null
+                ],
             });
             const responseTime = performance.now() - startTime;
 
@@ -377,7 +381,10 @@ export default class AIApplication {
                 inputMessage: inputText,
                 messages: historyMessages,
                 model: selectedChat.model,
-                systemMessage: systemMessageMapper(selectedChat.behavior),
+                systemMessages: [
+                    systemMessageMapper(selectedChat.behavior),
+                    user.voiceResponse.on ? systemMessageMapper("audio_output") : null
+                ],
                 userId: user.id,
                 tokenLimit: predictedCost.outputTokens,
                 imageUrl: imageUrl,
@@ -420,7 +427,7 @@ export default class AIApplication {
         const outputText = resultData.output;
 
         // * Skip generate audio for long output
-        const shouldGenerateAudio = user.voiceResponse.on && outputText.length < 4096;
+        const shouldGenerateAudio = user.voiceResponse.on && outputText.length < 500;
 
         if (shouldGenerateAudio) {
 

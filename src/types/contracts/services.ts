@@ -42,7 +42,7 @@ export type IOpenAITextResultWithFile = {
 
 export type IOpenAIRequest = {
     inputMessage: string;
-    systemMessage?: string;
+    systemMessages?: (string | null | undefined)[];
     imageUrl?: string;
     messages: Array<Pick<Prompt, 'input' | 'output'>>;
     tokenLimit?: number;
