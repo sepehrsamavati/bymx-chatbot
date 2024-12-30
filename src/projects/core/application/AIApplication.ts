@@ -28,7 +28,12 @@ type AIGeneratedImageResponse = {
 
 type MultiModalInput = {
     text: { text: string; };
-    voice: { voice: UserTempFile; };
+    voice: {
+        voice: {
+            file: UserTempFile;
+            duration?: number;
+        };
+    };
 };
 
 type MultiModalInputAttachment = {
@@ -273,7 +278,8 @@ export default class AIApplication {
         if (_middlewareResult instanceof OperationResultWithData)
             return _middlewareResult;
 
-        const { subscriptions, selectedChat, historyMessages, totalRemainingPoints } = _middlewareResult;
+        const { subscriptions, selectedChat, historyMessages } = _middlewareResult;
+        let { totalRemainingPoints } = _middlewareResult;
         const result = new OperationResultWithData<MultiModalOutput>();
 
         /** Use only in view / Do not use in app logic / Call saveSubscriptionsUsage after each step */
@@ -282,16 +288,23 @@ export default class AIApplication {
 
         // Convert user speech to text (to send to model)
         if ('voice' in inputMessage) {
+            if (inputMessage.voice.duration) {
+                const predictedPointCost = calculatePointUsage({ usd: (inputMessage.voice.duration * this.#openAI.speechToTextPmu) / 1e6 });
+                if (totalRemainingPoints - predictedPointCost < 1)
+                    return result.failed("pointNotEnough");
+            }
+
             const userTextMessage = await this.#openAI.speechToText({
-                inputAudioPath: getTempFilePath(inputMessage.voice),
+                inputAudioPath: getTempFilePath(inputMessage.voice.file),
                 prompt: user.voiceResponse.languagePrompt,
             });
 
             if (!userTextMessage)
                 return result.failed();
 
-            const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * userTextMessage.pmu) / 1e6 });
+            const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * this.#openAI.speechToTextPmu) / 1e6 });
             totalUserPointUsage += speechToTextUserPointCost;
+            totalRemainingPoints -= speechToTextUserPointCost;
 
             await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
 
@@ -362,6 +375,7 @@ export default class AIApplication {
             });
 
             totalUserPointUsage += fileSearchUserPointCost;
+            totalRemainingPoints -= fileSearchUserPointCost;
 
             const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(fileSearchUserPointCost, subscriptions);
 
@@ -410,6 +424,7 @@ export default class AIApplication {
             });
 
             totalUserPointUsage += textGenerateUserPointCost;
+            totalRemainingPoints -= textGenerateUserPointCost;
 
             const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
 
@@ -435,37 +450,39 @@ export default class AIApplication {
         const shouldGenerateAudio = user.voiceResponse.on && outputText.length < 500;
 
         if (shouldGenerateAudio) {
+            const textToSpeechUserPointCost = calculatePointUsage({ usd: (outputText.length * this.#openAI.textToSpeechPmu) / 1e6 });
+            if (totalRemainingPoints >= textToSpeechUserPointCost) {
+                const modelAudioOutput = await this.#openAI.textToSpeech({
+                    inputMessage: outputText,
+                    voice: user.voiceResponse.type,
+                });
 
-            const modelAudioOutput = await this.#openAI.textToSpeech({
-                inputMessage: outputText,
-                voice: user.voiceResponse.type,
-            });
+                if (modelAudioOutput) {
 
-            if (modelAudioOutput) {
-                const textToSpeechUserPointCost = calculatePointUsage({ usd: (outputText.length * modelAudioOutput.pmu) / 1e6 });
+                    totalUserPointUsage += textToSpeechUserPointCost;
+                    totalRemainingPoints -= textToSpeechUserPointCost;
 
-                totalUserPointUsage += textToSpeechUserPointCost;
+                    await this.#userSubscriptionApplication.saveSubscriptionsUsage(textToSpeechUserPointCost, subscriptions);
 
-                await this.#userSubscriptionApplication.saveSubscriptionsUsage(textToSpeechUserPointCost, subscriptions);
+                    const duration = await getAudioDuration(modelAudioOutput.output);
 
-                const duration = await getAudioDuration(modelAudioOutput.output);
+                    return result.succeeded().setData({
+                        pointUsage: totalUserPointUsage,
+                        plainText: outputText,
+                        isComplete: resultData.isComplete,
+                        audio: {
+                            data: modelAudioOutput.output,
+                            duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
+                        },
+                    });
+                }
 
                 return result.succeeded().setData({
-                    pointUsage: totalUserPointUsage,
                     plainText: outputText,
+                    pointUsage: totalUserPointUsage,
                     isComplete: resultData.isComplete,
-                    audio: {
-                        data: modelAudioOutput.output,
-                        duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
-                    },
                 });
             }
-
-            return result.succeeded().setData({
-                plainText: outputText,
-                pointUsage: totalUserPointUsage,
-                isComplete: resultData.isComplete,
-            });
         }
 
         return result.succeeded().setData({

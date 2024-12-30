@@ -23,7 +23,7 @@ export const promptHandler: IUpdateHandler = {
         const voice = update.message?.voice;
         const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
-        let userVoiceFile: UserTempFile | null = null;
+        let userVoiceFile: { file: UserTempFile; duration?: number; } | null = null;
 
         if (voice) {
 
@@ -106,7 +106,10 @@ export const promptHandler: IUpdateHandler = {
                 }
             }
 
-            userVoiceFile = tempFile;
+            userVoiceFile = {
+                file: tempFile,
+                duration: voice.duration,
+            };
             unlockFileProcessing();
         }
 

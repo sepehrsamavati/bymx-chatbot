@@ -13,16 +13,12 @@ export type IOpenAITextResult = {
 
 export type IOpenAIAudioResult = {
     output: Buffer;
-    /** Price per million units (input text characters) */
-    pmu: number;
 };
 
 export type IOpenAISpeechToTextResult = {
     output: string;
     /** Seconds */
     duration: number;
-    /** Price per million units (input audio seconds) */
-    pmu: number;
 };
 
 export type IOpenAIImageResult = {
@@ -65,6 +61,8 @@ export type IOpenAISpeechToTextRequest = {
 export type IOpenAIRequestWithFile = IOpenAIRequest & { tempFile: UserTempFile; };
 
 export type IOpenAIService = {
+    readonly textToSpeechPmu: number;
+    readonly speechToTextPmu: number;
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
     fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;

@@ -136,6 +136,8 @@ export default class OpenAIService implements IOpenAIService {
         });
     }
 
+    /** Price per million units (input text characters) */
+    readonly textToSpeechPmu = 15;
     async textToSpeech(opts: IOpenAITextToSpeechRequest): Promise<IOpenAIAudioResult | null> {
         try {
             const result = await this.#client.audio.speech.create({
@@ -149,7 +151,6 @@ export default class OpenAIService implements IOpenAIService {
 
             return {
                 output: buffer,
-                pmu: 15,
             };
         } catch (err) {
             errorLogger("OpenAI text to speech", err);
@@ -157,6 +158,8 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
+    /** Price per million units (input audio seconds) */
+    readonly speechToTextPmu = 100;
     async speechToText(opts: IOpenAISpeechToTextRequest): Promise<IOpenAISpeechToTextResult | null> {
         try {
             const result = await this.#client.audio.transcriptions.create({
@@ -170,7 +173,6 @@ export default class OpenAIService implements IOpenAIService {
             return {
                 duration: Math.ceil(Number.parseInt(result.duration) || 20),
                 output: result.text,
-                pmu: 100,
             };
         } catch (err) {
             errorLogger("OpenAI speech to text", err);
