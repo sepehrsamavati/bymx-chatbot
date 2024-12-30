@@ -288,8 +288,8 @@ export const promptHandler: IUpdateHandler = {
                             [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                         ]
                     }));
-                    // form.append('duration', "6");
-                    form.append('voice', new Blob([result.audio]));
+                    form.append('duration', result.audio.duration.toString());
+                    form.append('voice', new Blob([result.audio.data]));
 
                     await tgCall(
                         TelegramMethods.SendVoice,
@@ -374,8 +374,8 @@ export const promptHandler: IUpdateHandler = {
                         [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                     ]
                 }));
-                // form.append('duration', "6");
-                form.append('voice', new Blob([result.audio]));
+                form.append('duration', result.audio.duration.toString());
+                form.append('voice', new Blob([result.audio.data]));
 
                 await tgCall(
                     TelegramMethods.SendVoice,

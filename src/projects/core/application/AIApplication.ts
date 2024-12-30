@@ -18,6 +18,7 @@ import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { getAudioDuration } from "../helpers/audioUtils.js";
 
 type AIGeneratedImageResponse = {
     url: string;
@@ -39,7 +40,11 @@ type MultiModalOutput = {
     plainText: string;
     pointUsage: number;
     isComplete: boolean;
-    audio?: Buffer;
+    audio?: {
+        data: Buffer;
+        /** Seconds */
+        duration: number;
+    };
 }
 
 fal.config({
@@ -443,11 +448,16 @@ export default class AIApplication {
 
                 await this.#userSubscriptionApplication.saveSubscriptionsUsage(textToSpeechUserPointCost, subscriptions);
 
+                const duration = await getAudioDuration(modelAudioOutput.output);
+
                 return result.succeeded().setData({
                     pointUsage: totalUserPointUsage,
                     plainText: outputText,
                     isComplete: resultData.isComplete,
-                    audio: modelAudioOutput.output,
+                    audio: {
+                        data: modelAudioOutput.output,
+                        duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
+                    },
                 });
             }
 

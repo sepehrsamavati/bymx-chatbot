@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import type { ServicesType } from "../Container.js";
-import { audioConvert } from "../helpers/audioConvert.js";
 import type { User } from "../../../types/entities/user.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
