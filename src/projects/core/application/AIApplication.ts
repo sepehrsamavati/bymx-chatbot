@@ -254,7 +254,7 @@ export default class AIApplication {
         return result;
     }
 
-    async multiModalChatCompletion(
+    private async _multiModalChatCompletion(
         user: User,
         inputMessage: MultiModalInput[keyof MultiModalInput],
         messageAttachment: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {},
@@ -463,5 +463,20 @@ export default class AIApplication {
             plainText: resultData.output,
             isComplete: resultData.isComplete,
         });
+    }
+
+    public async multiModalChatCompletion(...args: Parameters<typeof this._multiModalChatCompletion>): Promise<OperationResultWithData<MultiModalOutput>> {
+        const user = args[0];
+
+        if (this.#messageLock.isLocked(user.id))
+            return new OperationResultWithData<MultiModalOutput>().failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const result = await this._multiModalChatCompletion(...args);
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
     }
 }
