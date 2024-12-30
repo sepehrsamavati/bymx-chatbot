@@ -136,35 +136,45 @@ export default class OpenAIService implements IOpenAIService {
     }
 
     async textToSpeech(opts: IOpenAITextToSpeechRequest): Promise<IOpenAIAudioResult | null> {
-        const result = await this.#client.audio.speech.create({
-            input: opts.inputMessage,
-            model: "tts-1",
-            voice: opts.voice,
-            response_format: "mp3",
-        });
+        try {
+            const result = await this.#client.audio.speech.create({
+                input: opts.inputMessage,
+                model: "tts-1",
+                voice: opts.voice,
+                response_format: "mp3",
+            });
 
-        const buffer = Buffer.from(await result.arrayBuffer());
+            const buffer = Buffer.from(await result.arrayBuffer());
 
-        return {
-            output: buffer,
-            pmu: 15,
-        };
+            return {
+                output: buffer,
+                pmu: 15,
+            };
+        } catch (err) {
+            errorLogger("OpenAI text to speech", err);
+            return null;
+        }
     }
 
     async speechToText(opts: IOpenAISpeechToTextRequest): Promise<IOpenAISpeechToTextResult | null> {
-        const result = await this.#client.audio.transcriptions.create({
-            file: fs.createReadStream(opts.inputAudioPath),
-            model: "whisper-1",
-            language: opts.language,
-            prompt: opts.prompt,
-            response_format: "verbose_json",
-        });
+        try {
+            const result = await this.#client.audio.transcriptions.create({
+                file: fs.createReadStream(opts.inputAudioPath),
+                model: "whisper-1",
+                language: opts.language,
+                prompt: opts.prompt,
+                response_format: "verbose_json",
+            });
 
-        return {
-            duration: Math.ceil(Number.parseInt(result.duration) || 20),
-            output: result.text,
-            pmu: 100,
-        };
+            return {
+                duration: Math.ceil(Number.parseInt(result.duration) || 20),
+                output: result.text,
+                pmu: 100,
+            };
+        } catch (err) {
+            errorLogger("OpenAI speech to text", err);
+            return null;
+        }
     }
 
     async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile> {
