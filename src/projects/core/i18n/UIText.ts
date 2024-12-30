@@ -177,6 +177,8 @@ const keys = [
     "voiceResponse",
     "sound",
     "voiceType",
+    "currentVoiceType",
+    "changeVoiceType",
     "inputVoiceLanguage",
     "automatic",
     "selectingInputVoiceLanguageWouldHelp",

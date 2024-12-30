@@ -168,6 +168,8 @@
     "voiceResponse": "پاسخ صوتی",
     "sound": "صدا",
     "voiceType": "جنس صدا",
+    "currentVoiceType": "جنس صدای فعلی",
+    "changeVoiceType": "تغییر جنس صدا",
     "inputVoiceLanguage": "زبان وُیس ورودی",
     "automatic": "خودکار",
     "selectingInputVoiceLanguageWouldHelp": "انتخاب زبان/لهجه ورودی (وُیس ارسالی شما به بات) به خروجی بهتر کمک می‌کند"

@@ -13,6 +13,7 @@ import type { User, UserInfoModel } from "../../../types/entities/user.js";
 import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
+import { aiVoices } from "../../../types/enums/aiVoice.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
@@ -198,12 +199,29 @@ export const getVoiceResponsePanel = async (context: RequestContext) => {
             `${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `🟢 ${context.uiText.enabled}` : `🔵 ${context.uiText.disabled}`}`
             + `\n\n${emojiIcon.speaker} ${context.uiText.voiceType}: ${context.user.voiceResponse.type}`
             + `\n\n${emojiIcon.speaking} ${context.uiText.inputVoiceLanguage}: ${context.user.voiceResponse.languagePrompt || context.uiText.automatic}`
-            + `\n* ${context.uiText.selectingInputVoiceLanguageWouldHelp}`
+            // + `\n* ${context.uiText.selectingInputVoiceLanguageWouldHelp}`
         )
         ,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }]
+                [{ text: `${emojiIcon.speaker} ${context.uiText.changeVoiceType}`, callback_data: "selectVoiceResponseType" }],
+                [{ text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }],
+            ]
+        }
+    };
+};
+
+export const getChangeVoiceResponseTypePanel = async (context: RequestContext) => {
+    return {
+        text: (
+            `${context.uiText.changeVoiceType}`
+            + `\n\n${emojiIcon.speaker} ${context.uiText.currentVoiceType}: ${context.user.voiceResponse.type}`
+        )
+        ,
+        reply_markup: {
+            inline_keyboard: [
+                ...aiVoices.map(aiVoice => [{ text: `${aiVoice}`, callback_data: `selectVoiceResponseType_${aiVoice}` }]),
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "voiceResponsePanel" }],
             ]
         }
     };
