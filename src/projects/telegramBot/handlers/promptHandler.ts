@@ -1,6 +1,7 @@
 import config from "../../core/config.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { getChatListPanel } from "../helpers/messages.js";
+import { getDocumentInfo } from "../helpers/fileHelper.js";
 import { UserMode } from "../../../types/enums/userMode.js";
 import stringHelper from "../../core/helpers/stringHelper.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
@@ -8,17 +9,115 @@ import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { convertToTelegramMarkdown } from "../helpers/telegramMarkdown.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
-import { openAiSupportedFileExtensions } from "../../core/helpers/fileHelper.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import type { IOpenAITextResult, IOpenAITextResultWithFile } from "../../../types/contracts/services.js";
-import { getDocumentInfo } from "../helpers/fileHelper.js";
 
 export const promptHandler: IUpdateHandler = {
     name: import.meta.filename,
-    updateType: TelegramUpdateType.TextMessage,
+    updateType: [
+        TelegramUpdateType.TextMessage,
+        TelegramUpdateType.Voice,
+    ],
     mode: UserMode.General.Normal,
     async handler(context, update) {
-        const text = update.message?.text as string;
+        const text = update.message?.text;
+        const voice = update.message?.voice;
+
+        let userVoiceFile: UserTempFile | null = null;
+
+        if (voice) {
+
+            if (voice.duration > 120)
+                return {
+                    call: {
+                        text: stringHelper.formatter(context.uiText.voiceTooLong, 2)
+                    }
+                };
+
+            if (context.services.fileProcessingLockCache.isLocked(context.user.id))
+                return {
+                    call: {
+                        text: "stillProcessingPreviousFile"
+                    }
+                };
+
+            context.services.fileProcessingLockCache.lock(context.user.id);
+            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
+
+            const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(voice.file_unique_id);
+
+            let tempFile: UserTempFile | null = null;
+
+            if (cachedFile.ok && cachedFile.data)
+                tempFile = {
+                    ...cachedFile.data,
+                    user: context.user
+                };
+
+            if (!tempFile) {
+                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: voice.file_id });
+
+                if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
+                    const maxValidFileSizeMB = 5; // 5MB
+                    const maxValidFileSizeBytes = maxValidFileSizeMB * Math.pow(1024, 2);
+                    if (fileInfo.result.file_size > maxValidFileSizeBytes) {
+                        unlockFileProcessing();
+                        return {
+                            call: {
+                                text: stringHelper.digitLocalization(
+                                    stringHelper.formatter(context.uiText.fileSizeExceededError, maxValidFileSizeMB),
+                                    context.user.lang
+                                )
+                            }
+                        };
+                    }
+
+                    const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
+
+                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    if (downloadResult.ok) {
+                        tempFile = {
+                            extension: fileExtension,
+                            fsId: downloadResult.data,
+                            size: fileInfo.result.file_size,
+                            tgId: fileInfo.result.file_id,
+                            tgUniqueId: fileInfo.result.file_unique_id,
+                            vectorIds: [],
+                            user: context.user,
+                            lastAccessed: new Date()
+                        };
+                    }
+                    else {
+                        unlockFileProcessing();
+                        return null;
+                    }
+                }
+                else {
+                    unlockFileProcessing();
+                    return null;
+                }
+            }
+
+            if (!cachedFile.data) { // if file is not stored in db -> add to db
+                const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
+
+                if (!fileAddResult.ok) {
+                    unlockFileProcessing();
+                    return null;
+                }
+            }
+
+            userVoiceFile = tempFile;
+            unlockFileProcessing();
+        }
+
+        const multiModalInput = userVoiceFile ? { voice: userVoiceFile } : (text ? { text: text } : null);
+
+        if (!multiModalInput)
+            return {
+                call: {
+                    text: "invalidInput"
+                }
+            };
 
         if (update.message?.reply_to_message?.document) {
 
@@ -159,9 +258,7 @@ export const promptHandler: IUpdateHandler = {
 
             const res = await context.services.aiApplication.multiModalChatCompletion(
                 context.user,
-                {
-                    text: text
-                },
+                multiModalInput,
                 {
                     file: tempFile
                 },
@@ -229,7 +326,7 @@ export const promptHandler: IUpdateHandler = {
             TelegramMethods.SendChatAction,
             {
                 chat_id: update.message?.chat.id,
-                action: "typing"
+                action: context.user.voiceResponse.on ? "record_voice" : "typing"
             }
         );
 
@@ -258,9 +355,7 @@ export const promptHandler: IUpdateHandler = {
 
         const res = await context.services.aiApplication.multiModalChatCompletion(
             context.user,
-            {
-                text: text,
-            },
+            multiModalInput,
             {
                 imageUrl
             }

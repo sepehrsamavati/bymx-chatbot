@@ -4,7 +4,6 @@ import { createContainer, asClass, asValue } from "awilix";
 import AIApplication from "./application/AIApplication.js";
 import UserApplication from "./application/UserApplication.js";
 import PlanApplication from "./application/PlanApplication.js";
-import OpenAIApplication from "./application/OpenAIApplication.js";
 import AIChatApplication from "./application/AIChatApplication.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import CacheStorage from "./infrastructure/services/CacheStorage.js";
@@ -58,7 +57,6 @@ type Applications = {
     userApplication: UserApplication;
     userTempFileApplication: UserTempFileApplication;
     aiApplication: AIApplication;
-    openAIApplication: OpenAIApplication;
     planApplication: PlanApplication;
     aiChatApplication: AIChatApplication;
     aiModelApplication: AIModelApplication;
@@ -126,7 +124,6 @@ export default class CoreServices {
             userApplication: asClass(UserApplication, { lifetime: "SCOPED" }),
             userTempFileApplication: asClass(UserTempFileApplication, { lifetime: "SCOPED" }),
             aiApplication: asClass(AIApplication, { lifetime: "SCOPED" }),
-            openAIApplication: asClass(OpenAIApplication, { lifetime: "SCOPED" }),
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
             aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),

@@ -162,5 +162,7 @@
     "yourInviteLink": "لینک دعوت شما",
     "invitedCount": "تعداد دعوتی",
     "planDays": "روزه",
-    "chatMessagesCleared": "پیام‌های چت حذف شدند"
+    "chatMessagesCleared": "پیام‌های چت حذف شدند",
+    "invalidInput": "ورودی نامعتبر",
+    "voiceTooLong": "مدت زمان وُیس بیشتر از %s1 دقیقه می‌باشد!"
 }

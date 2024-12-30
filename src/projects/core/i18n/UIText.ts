@@ -172,6 +172,8 @@ const keys = [
     "invitedCount",
     "planDays",
     "chatMessagesCleared",
+    "invalidInput",
+    "voiceTooLong",
 ] as const;
 
 export type UITextKey = typeof keys[number];
