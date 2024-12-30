@@ -21,6 +21,7 @@ export const promptHandler: IUpdateHandler = {
     async handler(context, update) {
         const text = update.message?.text;
         const voice = update.message?.voice;
+        const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
         let userVoiceFile: UserTempFile | null = null;
 
@@ -41,7 +42,6 @@ export const promptHandler: IUpdateHandler = {
                 };
 
             context.services.fileProcessingLockCache.lock(context.user.id);
-            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(voice.file_unique_id);
 
@@ -119,6 +119,9 @@ export const promptHandler: IUpdateHandler = {
                 }
             };
 
+        let attachmentFile: UserTempFile | undefined;
+        let pleaseWaitMessageId = 0;
+
         if (update.message?.reply_to_message?.document) {
 
             if (context.user.selectedChat && !context.user.selectedChat.model.assistants.fileSearch)
@@ -136,7 +139,6 @@ export const promptHandler: IUpdateHandler = {
                 };
 
             context.services.fileProcessingLockCache.lock(context.user.id);
-            const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
 
             const canDoFileProcessing = await context.services.userApplication.getUserFileProcessingStatus(context.user.id);
             if (!canDoFileProcessing.ok) { // user file processing rate limit reached
@@ -169,6 +171,9 @@ export const promptHandler: IUpdateHandler = {
                     text: '⏳'
                 }
             );
+
+            if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
+                pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
 
@@ -256,83 +261,21 @@ export const promptHandler: IUpdateHandler = {
                 }
             }
 
-            const res = await context.services.aiApplication.multiModalChatCompletion(
-                context.user,
-                multiModalInput,
-                {
-                    file: tempFile
-                },
-            );
-
-            if (pleaseWaitMessage?.ok && pleaseWaitMessage?.result)
-                await tgCall(
-                    TelegramMethods.DeleteMessage,
-                    {
-                        chat_id: update.message?.chat.id,
-                        message_id: pleaseWaitMessage.result.message_id
-                    }
-                );
-
-            unlockFileProcessing();
-
-            const result = res.ok && res.data ? res.data : null;
-
-            if (result) {
-                if (result.audio) {
-                    const form = new FormData();
-
-                    form.append("chat_id", update.message?.chat.id.toString());
-                    form.append("reply_to_message_id", update.message?.message_id.toString());
-                    form.append("reply_markup", JSON.stringify({
-                        inline_keyboard: [
-                            [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
-                        ]
-                    }));
-                    form.append('duration', result.audio.duration.toString());
-                    form.append('voice', new Blob([result.audio.data]));
-
-                    await tgCall(
-                        TelegramMethods.SendVoice,
-                        form
-                    );
-                } else {
-                    await tgCall(
-                        TelegramMethods.SendMessage,
-                        {
-                            chat_id: update.message?.chat.id,
-                            reply_to_message_id: update.message?.message_id,
-                            text: convertToTelegramMarkdown(result.plainText),
-                            parse_mode: result.isComplete ? "Markdown" : undefined,
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
-                                ]
-                            }
-                        }
-                    );
-                }
-            }
-            else
-                return {
-                    call: {
-                        text: res.message
-                    }
-                };
-
-            return { shouldContinue: false };
+            attachmentFile = tempFile;
         }
 
-        await tgCall(
-            TelegramMethods.SendChatAction,
-            {
-                chat_id: update.message?.chat.id,
-                action: context.user.voiceResponse.on ? "record_voice" : "typing"
-            }
-        );
+        if (!pleaseWaitMessageId)
+            await tgCall(
+                TelegramMethods.SendChatAction,
+                {
+                    chat_id: update.message?.chat.id,
+                    action: context.user.voiceResponse.on ? "record_voice" : "typing"
+                }
+            );
 
         let imageUrl: string | undefined;
 
-        if (update.message?.reply_to_message?.photo) {
+        if (!attachmentFile && update.message?.reply_to_message?.photo) {
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
                 return {
                     call: {
@@ -357,9 +300,22 @@ export const promptHandler: IUpdateHandler = {
             context.user,
             multiModalInput,
             {
-                imageUrl
+                imageUrl,
+                file: attachmentFile
             }
         );
+
+        if (attachmentFile)
+            unlockFileProcessing();
+
+        if (pleaseWaitMessageId)
+            tgCall(
+                TelegramMethods.DeleteMessage,
+                {
+                    chat_id: update.message?.chat.id,
+                    message_id: pleaseWaitMessageId,
+                }
+            );
 
         const result = res.ok && res.data ? res.data : null;
 
@@ -376,6 +332,12 @@ export const promptHandler: IUpdateHandler = {
                 }));
                 form.append('duration', result.audio.duration.toString());
                 form.append('voice', new Blob([result.audio.data]));
+
+                if (result.plainText.length < 1024) {
+                    form.append("caption", convertToTelegramMarkdown(result.plainText));
+                    if (result.isComplete)
+                        form.append("parse_mode", "Markdown");
+                }
 
                 await tgCall(
                     TelegramMethods.SendVoice,
