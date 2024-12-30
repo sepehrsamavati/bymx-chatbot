@@ -113,20 +113,18 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		required: false,
 	},
 	voiceResponse: {
+		on: {
+			type: Boolean,
+			required: true,
+		},
 		type: {
-			on: {
-				type: Boolean,
-				required: true,
-			},
-			type: {
-				type: String,
-				required: true,
-				enum: aiVoices,
-			},
-			languagePrompt: {
-				type: String,
-				required: false,
-			},
+			type: String,
+			required: true,
+			enum: aiVoices,
+		},
+		languagePrompt: {
+			type: String,
+			required: false,
 		},
 		// required: true,
 	},
