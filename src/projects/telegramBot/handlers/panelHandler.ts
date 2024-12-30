@@ -4,7 +4,7 @@ import { UserMode } from "../../../types/enums/userMode.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList } from "../helpers/messages.js";
+import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 
 export const panelHandler: IUpdateHandler = {
@@ -80,6 +80,16 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             };
+            case "voiceResponsePanel":
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ...await getVoiceResponsePanel(context)
+                    }
+                );
+                return { shouldContinue: false };
             case "myInviteLink": {
                 await tgCall(
                     TelegramMethods.EditMessageText,

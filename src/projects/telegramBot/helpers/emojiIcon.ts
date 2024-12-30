@@ -33,6 +33,8 @@ const emojiIcon = Object.freeze({
     link: '🔗',
     refresh: '🔄',
     time: '🕐',
+    speaking: '🗣',
+    speaker: '🔊',
 });
 
 export default emojiIcon;

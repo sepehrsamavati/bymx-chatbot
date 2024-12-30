@@ -164,5 +164,11 @@
     "planDays": "روزه",
     "chatMessagesCleared": "پیام‌های چت حذف شدند",
     "invalidInput": "ورودی نامعتبر",
-    "voiceTooLong": "مدت زمان وُیس بیشتر از %s1 دقیقه می‌باشد!"
+    "voiceTooLong": "مدت زمان وُیس بیشتر از %s1 دقیقه می‌باشد!",
+    "voiceResponse": "پاسخ صوتی",
+    "sound": "صدا",
+    "voiceType": "جنس صدا",
+    "inputVoiceLanguage": "زبان وُیس ورودی",
+    "automatic": "خودکار",
+    "selectingInputVoiceLanguageWouldHelp": "انتخاب زبان/لهجه ورودی (وُیس ارسالی شما به بات) به خروجی بهتر کمک می‌کند"
 }

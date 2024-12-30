@@ -22,10 +22,10 @@ export const getChatPanel = async (context: RequestContext, chatId: string) => {
 
     return {
         text: `ℹ ${context.uiText.title}: ${chat.title || context.uiText.noTitle}`
-            + `\n\n🤖 ${context.uiText.model}: ${chat.model.title}`,
+            + `\n\n${emojiIcon.model} ${context.uiText.model}: ${chat.model.title}`,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }, { text: `🤖 ${context.uiText.changeModel}`, callback_data: "changeChatModel" }],
+                [{ text: `✍ ${context.uiText.changeTitle}`, callback_data: `renameChat_${chat.id}` }, { text: `${emojiIcon.model} ${context.uiText.changeModel}`, callback_data: "changeChatModel" }],
                 [{ text: `${emojiIcon.delete} ${context.uiText.delete}`, callback_data: `confirmDeleteChat_${chat.id}` }],
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }],
             ]
@@ -135,8 +135,11 @@ export const getPanel = async (context: RequestContext) => {
             (
                 context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }
             ),
-            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }
+            { text: `${emojiIcon.speaking} ${context.uiText.voiceResponse}`, callback_data: "voiceResponsePanel" }
         ],
+        [
+            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }
+        ]
     ];
 
     if (accessHelper(UserType.Admin, context.user.type))
@@ -184,6 +187,23 @@ export const getAdminPanel = async (context: RequestContext) => {
             inline_keyboard: [
                 [{ text: `${emojiIcon.channel} ${context.uiText.joinRequired}`, callback_data: "joinRequiredChatsPanel" }],
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getVoiceResponsePanel = async (context: RequestContext) => {
+    return {
+        text: (
+            `${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `🟢 ${context.uiText.enabled}` : `🔵 ${context.uiText.disabled}`}`
+            + `\n\n${emojiIcon.speaker} ${context.uiText.voiceType}: ${context.user.voiceResponse.type}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.inputVoiceLanguage}: ${context.user.voiceResponse.languagePrompt || context.uiText.automatic}`
+            + `\n* ${context.uiText.selectingInputVoiceLanguageWouldHelp}`
+        )
+        ,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }]
             ]
         }
     };
@@ -302,7 +322,7 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
                 ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }]),
                 (changeChatModel
                     ? [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
-                    : [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }, { text: `🤖 ${context.uiText.panel}`, callback_data: "panel" }]),
+                    : [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }, { text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }]),
             ]
         }
     };

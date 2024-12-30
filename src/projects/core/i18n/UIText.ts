@@ -174,6 +174,12 @@ const keys = [
     "chatMessagesCleared",
     "invalidInput",
     "voiceTooLong",
+    "voiceResponse",
+    "sound",
+    "voiceType",
+    "inputVoiceLanguage",
+    "automatic",
+    "selectingInputVoiceLanguageWouldHelp",
 ] as const;
 
 export type UITextKey = typeof keys[number];

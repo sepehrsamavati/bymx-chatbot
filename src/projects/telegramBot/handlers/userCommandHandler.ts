@@ -6,7 +6,7 @@ import { UserStatus } from "../../../types/enums/userStatus.js";
 import type { IUpdateHandler } from "../../../types/telegram.js";
 import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
-import { getPanel, getModelUsageListPanel, getPlanList } from "../helpers/messages.js";
+import { getPanel, getModelUsageListPanel, getPlanList, getVoiceResponsePanel } from "../helpers/messages.js";
 
 export const userCommandHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -131,6 +131,17 @@ export const userCommandHandler: IUpdateHandler = {
                         text: `${emojiIcon.contact} ${context.uiText.contactSupport}: ${config.telegramSupportAccount}`
                     }
                 };
+            case "/voice":
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        ...await getVoiceResponsePanel(context)
+                    }
+                );
+
+                return { shouldContinue: false };
             case "/panel":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

@@ -6,6 +6,7 @@ import { accessHelper } from "../helpers/accessHelper.js";
 import { AIChat } from "../../../types/entities/aiChat.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
+import { aiVoices, AIVoice } from "../../../types/enums/aiVoice.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
@@ -292,5 +293,41 @@ export default class UserApplication {
         unlock();
 
         return result.succeeded().setData({ inviter });
+    }
+
+    async toggleVoiceResponse(userId: string, activate: boolean) {
+        const result = new OperationResult();
+
+        if (await this.#userRepository.update(userId, {
+            voiceResponseActive: activate
+        }))
+            result.succeeded();
+
+        return result;
+    }
+
+    async setVoiceResponseType(userId: string, type: AIVoice) {
+        const result = new OperationResult();
+
+        if (!aiVoices.includes(type))
+            result.failed("invalidInput");
+        else if (await this.#userRepository.update(userId, {
+            voiceResponseType: type
+        }))
+            result.succeeded();
+
+        return result;
+    }
+
+    /** Pass null to unset */
+    async setVoiceResponseLanguagePrompt(userId: string, languagePrompt: string | null) {
+        const result = new OperationResult();
+
+        if (await this.#userRepository.update(userId, {
+            voiceResponseLanguagePrompt: languagePrompt === null ? undefined : languagePrompt
+        }))
+            result.succeeded();
+
+        return result;
     }
 }
