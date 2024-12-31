@@ -32,12 +32,12 @@ type MultiModalInput = {
         voice: {
             file: UserTempFile;
             duration?: number;
-        };
+        } | undefined;
     };
 };
 
 type MultiModalInputAttachment = {
-    file: { file: UserTempFile; };
+    file: { file: UserTempFile | undefined; };
     imageUrl: { imageUrl: string; };
 }
 
@@ -286,7 +286,7 @@ export default class AIApplication {
         let inputText = 'text' in inputMessage ? inputMessage.text : "";
 
         // Convert user speech to text (to send to model)
-        if ('voice' in inputMessage) {
+        if ('voice' in inputMessage && inputMessage.voice) {
             if (inputMessage.voice.duration) {
                 const predictedPointCost = calculatePointUsage({ usd: (inputMessage.voice.duration * this.#openAI.speechToTextPmu) / 1e6 });
                 if (totalRemainingPoints - predictedPointCost < 1)
@@ -332,7 +332,7 @@ export default class AIApplication {
         if (predictedCost.inputLimit)
             return result.failed();
 
-        if ('file' in messageAttachment && openAiSupportedFileExtensions.plainTexts.includes(messageAttachment.file.extension)) {
+        if ('file' in messageAttachment && messageAttachment.file && openAiSupportedFileExtensions.plainTexts.includes(messageAttachment.file.extension)) {
             const byteArrayData = await fs.readFile(getTempFilePath(messageAttachment.file));
             inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${byteArrayData.toString()}`;
         }
@@ -341,7 +341,7 @@ export default class AIApplication {
         const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
 
         // File search (PDF, ...)
-        if ('file' in messageAttachment && openAiSupportedFileExtensions.fileSearch.includes(messageAttachment.file.extension)) {
+        if ('file' in messageAttachment && messageAttachment.file && openAiSupportedFileExtensions.fileSearch.includes(messageAttachment.file.extension)) {
             const startTime = performance.now();
             const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
                 inputMessage: inputText,
