@@ -1,6 +1,7 @@
 import config from "../../core/config.js";
 import getPlanInfoView from "./getPlanInfoView.js";
 import startLinkGenerator from "./startLinkGenerator.js";
+import { aiVoices } from "../../../types/enums/aiVoice.js";
 import { UserType } from "../../../types/enums/userTypes.js";
 import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
 import { UITextOptionalKey } from "../../core/i18n/UIText.js";
@@ -13,7 +14,7 @@ import type { User, UserInfoModel } from "../../../types/entities/user.js";
 import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
-import { aiVoices } from "../../../types/enums/aiVoice.js";
+import { AIChatHistoryMemory } from "../../../types/enums/aiChatHistoryMemory.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
@@ -136,15 +137,25 @@ export const getPanel = async (context: RequestContext) => {
             (
                 context.user.saveMessages ? { text: context.uiText.deactivateSaveMessages, callback_data: "deactivateSaveMessages" } : { text: context.uiText.activateSaveMessages, callback_data: "activateSaveMessages" }
             ),
-            { text: `${emojiIcon.speaking} ${context.uiText.voiceResponse}`, callback_data: "voiceResponsePanel" }
+            { text: `${emojiIcon.history} ${context.uiText.changeMemoryAmount}`, callback_data: "changeMemoryAmount" }
         ],
         [
-            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" }
+            { text: `${emojiIcon.speaking} ${context.uiText.voiceResponse}`, callback_data: "voiceResponsePanel" },
+        ],
+        [
+            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" },
         ]
     ];
 
     if (accessHelper(UserType.Admin, context.user.type))
         inlineKeyboard.push([{ text: context.uiText.adminPanel, callback_data: "adminPanel" }]);
+
+    const memoryUIT = ({
+        [AIChatHistoryMemory.None]: context.uiText.errorOccurred,
+        [AIChatHistoryMemory.Short]: context.uiText.low,
+        [AIChatHistoryMemory.Normal]: context.uiText.normal,
+        [AIChatHistoryMemory.Long]: context.uiText.high,
+    })[context.user.memoryAmount] || context.uiText.errorOccurred;
 
     return {
         text: stringHelper.digitLocalization(
@@ -157,7 +168,7 @@ export const getPanel = async (context: RequestContext) => {
                     ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${userInfo?.paidSubscriptionsRemainingPoints?.toLocaleString("en-US")}`
                     : ""
             )
-            + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${stringHelper.formatter(context.uiText.memoryAmount, context.user.memoryAmount)})` : `🔵 ${context.uiText.disabled}`}`
+            + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${context.uiText.memory}: ${memoryUIT})` : `🔵 ${context.uiText.disabled}`}`
             , context.user.lang
         ),
         reply_markup: {

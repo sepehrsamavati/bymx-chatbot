@@ -6,7 +6,7 @@
     "chats": "چت‌ها",
     "dailyFreePoints": "امتیاز رایگان روزانه",
     "saveAndUseHistory": "ذخیره پیام‌ها",
-    "memoryAmount": "حافظه: %s1 پیام",
+    "memory": "حافظه",
     "enabled": "فعال",
     "disabled": "غیر فعال",
     "return": "بازگشت",
@@ -27,6 +27,7 @@
     "titleChangedSuccessfully": "عنوان با موفقیت تغییر پیدا کرد",
     "itemChangedSuccessfully": "%s1 با موفقیت تغییر پیدا کرد",
     "activateSaveMessages": "فعال‌سازی ذخیره پیام",
+    "activateSaveMessagesFirst": "ابتدا ذخیره‌سازی پیام‌ها را فعال کنید!",
     "deactivateSaveMessages": "غیر فعال‌سازی ذخیره پیام",
     "lowCost": "کم هزینه",
     "affordable": "مقرون به صرفه",
@@ -174,5 +175,10 @@
     "automatic": "خودکار",
     "selectingInputVoiceLanguageWouldHelp": "انتخاب زبان/لهجه ورودی (وُیس ارسالی شما به بات) به خروجی بهتر کمک می‌کند",
     "activate": "فعال‌سازی",
-    "deactivate": "غیر فعال‌سازی"
+    "deactivate": "غیر فعال‌سازی",
+    "changeMemoryAmount": "تغییر میزان حافظه",
+    "short": "کوتاه",
+    "low": "کم",
+    "normal": "معمولی",
+    "high": "زیاد"
 }

@@ -325,7 +325,8 @@ export default class AIApplication {
         const predictedCost = modelCostPredication({
             inputUnits: inputUnits,
             model: selectedChat.model,
-            pointUsageLimit: totalRemainingPoints
+            pointUsageLimit: totalRemainingPoints,
+            offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
         });
 
         if (predictedCost.inputLimit)

@@ -45,6 +45,7 @@ export const modelCostPredication = (opts: {
     /** Default: `false` */
     isAudio?: boolean;
     model: AIModel;
+    offsetCost?: number;
 }) => {
     const { feePercentage } = config.openAI;
 
@@ -53,7 +54,7 @@ export const modelCostPredication = (opts: {
         outputUnits: 0
     });
 
-    const notRoundedInputPointCost = inputCost.price * pointsPerDollar;
+    const notRoundedInputPointCost = ((opts.offsetCost ?? 0) * pointsPerDollar) + inputCost.price * pointsPerDollar;
 
     if (notRoundedInputPointCost >= opts.pointUsageLimit)
         return {

@@ -6,6 +6,7 @@ import { TelegramMethods } from "../../../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../../../types/enums/telegramUpdateHandler.js";
 import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
+import { AIChatHistoryMemory } from "../../../types/enums/aiChatHistoryMemory.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -193,6 +194,60 @@ export const panelHandler: IUpdateHandler = {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id,
                         ...modelUsageList
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "changeMemoryAmount": {
+                if (!context.user.saveMessages) {
+                    await tgCall(
+                        TelegramMethods.AnswerCallbackQuery,
+                        {
+                            callback_query_id: update.callback_query?.id,
+                            text: context.uiText.activateSaveMessagesFirst,
+                            show_alert: true,
+                            cache_time: 1,
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                const newMemoryAmount = ({
+                    [AIChatHistoryMemory.None]: AIChatHistoryMemory.Short,
+                    [AIChatHistoryMemory.Short]: AIChatHistoryMemory.Normal,
+                    [AIChatHistoryMemory.Normal]: AIChatHistoryMemory.Long,
+                    [AIChatHistoryMemory.Long]: AIChatHistoryMemory.Short,
+                })[context.user.memoryAmount];
+
+                const res = await context.services.userApplication.setMemoryAmount(context.user.id, newMemoryAmount);
+
+                if (!res.ok) {
+                    await tgCall(
+                        TelegramMethods.AnswerCallbackQuery,
+                        {
+                            callback_query_id: update.callback_query?.id,
+                            text: context.getUit(res.message),
+                            show_alert: true,
+                            cache_time: 1,
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                context.user.memoryAmount = newMemoryAmount;
+
+                const _panel = await getPanel(context);
+
+                if (!_panel)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.EditMessageText,
+                    {
+                        chat_id: update.callback_query?.message.chat.id,
+                        message_id: update.callback_query?.message.message_id,
+                        ..._panel
                     }
                 );
 

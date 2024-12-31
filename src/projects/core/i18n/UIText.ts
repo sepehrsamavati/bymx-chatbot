@@ -13,7 +13,7 @@ const keys = [
     "chats",
     "dailyFreePoints",
     "saveAndUseHistory",
-    "memoryAmount",
+    "memory",
     "enabled",
     "disabled",
     "return",
@@ -34,6 +34,7 @@ const keys = [
     "titleChangedSuccessfully",
     "itemChangedSuccessfully",
     "activateSaveMessages",
+    "activateSaveMessagesFirst",
     "deactivateSaveMessages",
     "activate",
     "deactivate",
@@ -184,6 +185,11 @@ const keys = [
     "inputVoiceLanguage",
     "automatic",
     "selectingInputVoiceLanguageWouldHelp",
+    "changeMemoryAmount",
+    "short",
+    "low",
+    "normal",
+    "high",
 ] as const;
 
 export type UITextKey = typeof keys[number];
