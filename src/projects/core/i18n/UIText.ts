@@ -35,6 +35,8 @@ const keys = [
     "itemChangedSuccessfully",
     "activateSaveMessages",
     "deactivateSaveMessages",
+    "activate",
+    "deactivate",
     "lowCost",
     "affordable",
     "costly",

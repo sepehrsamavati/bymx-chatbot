@@ -196,15 +196,20 @@ export const getAdminPanel = async (context: RequestContext) => {
 export const getVoiceResponsePanel = async (context: RequestContext) => {
     return {
         text: (
-            `${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `🟢 ${context.uiText.enabled}` : `🔵 ${context.uiText.disabled}`}`
-            + `\n\n${emojiIcon.speaker} ${context.uiText.voiceType}: ${context.user.voiceResponse.type}`
-            + `\n\n${emojiIcon.speaking} ${context.uiText.inputVoiceLanguage}: ${context.user.voiceResponse.languagePrompt || context.uiText.automatic}`
+            `${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `${emojiIcon.volumeHigh} ${context.uiText.enabled}` : `${emojiIcon.volumeMute} ${context.uiText.disabled}`}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.voiceType}: ${context.user.voiceResponse.type}`
+            + `\n\n${emojiIcon.studioMicrophone} ${context.uiText.inputVoiceLanguage}: ${context.user.voiceResponse.languagePrompt || context.uiText.automatic}`
             // + `\n* ${context.uiText.selectingInputVoiceLanguageWouldHelp}`
         )
         ,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.speaker} ${context.uiText.changeVoiceType}`, callback_data: "selectVoiceResponseType" }],
+                [
+                    { text: `${emojiIcon.speaking} ${context.uiText.changeVoiceType}`, callback_data: "selectVoiceResponseType" },
+                    (
+                        context.user.voiceResponse.on ? { text: `${emojiIcon.volumeMute} ${context.uiText.deactivate}`, callback_data: "deactivateVoiceResponse" } : { text: `${emojiIcon.volumeHigh} ${context.uiText.activate}`, callback_data: "activateVoiceResponse" }
+                    ),
+                ],
                 [{ text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }],
             ]
         }
@@ -215,7 +220,7 @@ export const getChangeVoiceResponseTypePanel = async (context: RequestContext) =
     return {
         text: (
             `${context.uiText.changeVoiceType}`
-            + `\n\n${emojiIcon.speaker} ${context.uiText.currentVoiceType}: ${context.user.voiceResponse.type}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.currentVoiceType}: ${context.user.voiceResponse.type}`
         )
         ,
         reply_markup: {

@@ -34,7 +34,13 @@ const emojiIcon = Object.freeze({
     refresh: '🔄',
     time: '🕐',
     speaking: '🗣',
-    speaker: '🔊',
+    speaker: '📢',
+    microphone: '🎤',
+    studioMicrophone: '🎙',
+    volumeHigh: '🔊',
+    volumeLow: '🔉',
+    volumeOff: '🔈',
+    volumeMute: '🔇',
 });
 
 export default emojiIcon;

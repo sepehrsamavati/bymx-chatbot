@@ -65,8 +65,9 @@ export const voiceResponseManageHandler: IUpdateHandler = {
                 }
             );
             return { shouldContinue: false };
-        } else if (queryData === "toggleVoiceResponse") {
-            const res = await context.services.userApplication.toggleVoiceResponse(context.user.id, !context.user.voiceResponse.on);
+        } else if (queryData === "activateVoiceResponse" || queryData === "deactivateVoiceResponse") {
+            const activate = queryData === "activateVoiceResponse";
+            const res = await context.services.userApplication.toggleVoiceResponse(context.user.id, activate);
 
             if (!res.ok) {
                 await tgCall(
@@ -81,7 +82,7 @@ export const voiceResponseManageHandler: IUpdateHandler = {
                 return { shouldContinue: false };
             }
 
-            context.user.voiceResponse.on = !context.user.voiceResponse.on;
+            context.user.voiceResponse.on = activate;
 
             await tgCall(
                 TelegramMethods.EditMessageText,
