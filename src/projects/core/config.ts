@@ -2,6 +2,7 @@ import fs from "node:fs";
 import * as dotenv from "dotenv";
 import configError from "./helpers/configError.js";
 import { setGlobalDispatcher, ProxyAgent } from "undici";
+import configWarn from "./helpers/configWarn.js";
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ const config = {
     tempFileCleanupAge: Number.parseInt(process.env.BYMX_FILE_CLEANUP_AGE ?? "5"),
     httpProxyUri: process.env.BYMX_HTTP_PROXY ? new URL(process.env.BYMX_HTTP_PROXY).toString() : undefined,
     usdToIrtMultiplier: Number.parseInt(process.env.BYMX_PRICE_USD_TO_IRT_MULTIPLIER ?? "0"),
+    ffmpegPath: process.env.BYMX_FFMPEG_PATH ?? "",
+    ffprobePath: process.env.BYMX_FFPROBE_PATH ?? "",
     fileUploadLimit: {
         /** Minutes */
         timePeriod: Number.parseInt(process.env.BYMX_FILE_UPLOAD_LIMIT_PERIOD ?? "20"),
@@ -46,6 +49,16 @@ const config = {
 };
 
 Object.freeze(config);
+
+configWarn(
+    "ffmpeg path is not defined",
+    !config.ffmpegPath
+);
+
+configWarn(
+    "ffprobe path is not defined",
+    !config.ffprobePath
+);
 
 configError(
     "MongoDB connection string not defined",
