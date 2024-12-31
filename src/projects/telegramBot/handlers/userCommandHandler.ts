@@ -97,10 +97,12 @@ export const userCommandHandler: IUpdateHandler = {
                             chat_id: update.message?.chat.id,
                             text: context.uiText._tgHelp
                                 + `\n\n\n${emojiIcon.play} ${context.uiText.restart}: /start`
-                                + `\n${emojiIcon.textDocument} ${context.uiText.termsOfService}: /terms`
-                                + `\n${emojiIcon.panel} ${context.uiText.panel}: /panel`
-                                + `\n${emojiIcon.model} ${context.uiText.modelsCost}: /models`
-                                + `\n${emojiIcon.help} ${context.uiText.help}: /help`
+                                + `\n\n${emojiIcon.textDocument} ${context.uiText.termsOfService}: /terms`
+                                + `\n\n${emojiIcon.panel} ${context.uiText.panel}: /panel`
+                                + `\n\n${emojiIcon.speaking} ${context.uiText.voiceSettings}: /voice`
+                                + `\n\n${emojiIcon.model} ${context.uiText.modelsCost}: /models`
+                                + `\n\n${emojiIcon.recycle} ${context.uiText.clearCurrentChatHistory}: /clear`
+                                + `\n\n${emojiIcon.help} ${context.uiText.help}: /help`
                         }
                     )
                 ]);
@@ -137,12 +139,14 @@ export const userCommandHandler: IUpdateHandler = {
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
                         ...await getVoiceResponsePanel(context)
                     }
                 );
 
                 return { shouldContinue: false };
             case "/panel":
+            case "/settings":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 

@@ -22,6 +22,7 @@ const emojiIcon = Object.freeze({
     forbidden: '🚫',
     contact: '☎',
     ok: '✅',
+    checked: '✅',
     failed: '❌',
     delete: '❌',
     plus: '➕',
@@ -42,6 +43,7 @@ const emojiIcon = Object.freeze({
     volumeOff: '🔈',
     volumeMute: '🔇',
     history: '📝',
+    recycle: '🗑',
 });
 
 export default emojiIcon;

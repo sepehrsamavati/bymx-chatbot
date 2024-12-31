@@ -15,6 +15,7 @@ import { modelUsageCalculator } from "../../core/helpers/costCalculator.js";
 import type { Payment } from "../../staticPayment/types/entities/payment.js";
 import { PaymentStatus } from "../../staticPayment/types/enums/paymentStatus.js";
 import { AIChatHistoryMemory } from "../../../types/enums/aiChatHistoryMemory.js";
+import reduceTo2DArray from "../../core/helpers/reduceTo2DArray.js";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {
     const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
@@ -169,6 +170,7 @@ export const getPanel = async (context: RequestContext) => {
                     : ""
             )
             + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${context.uiText.memory}: ${memoryUIT})` : `🔵 ${context.uiText.disabled}`}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `${emojiIcon.volumeHigh} ${context.uiText.enabled}` : `${emojiIcon.volumeMute} ${context.uiText.disabled}`}`
             , context.user.lang
         ),
         reply_markup: {
@@ -208,7 +210,7 @@ export const getVoiceResponsePanel = async (context: RequestContext) => {
     return {
         text: (
             `${context.uiText.voiceResponse}: ${context.user.voiceResponse.on ? `${emojiIcon.volumeHigh} ${context.uiText.enabled}` : `${emojiIcon.volumeMute} ${context.uiText.disabled}`}`
-            + `\n\n${emojiIcon.speaking} ${context.uiText.voiceType}: ${context.user.voiceResponse.type}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.voiceType}: ${stringHelper.capitalizeFirstLetter(context.user.voiceResponse.type)}`
             + `\n\n${emojiIcon.studioMicrophone} ${context.uiText.inputVoiceLanguage}: ${context.user.voiceResponse.languagePrompt || context.uiText.automatic}`
             // + `\n* ${context.uiText.selectingInputVoiceLanguageWouldHelp}`
         )
@@ -231,12 +233,12 @@ export const getChangeVoiceResponseTypePanel = async (context: RequestContext) =
     return {
         text: (
             `${context.uiText.changeVoiceType}`
-            + `\n\n${emojiIcon.speaking} ${context.uiText.currentVoiceType}: ${context.user.voiceResponse.type}`
+            + `\n\n${emojiIcon.speaking} ${context.uiText.currentVoiceType}: ${stringHelper.capitalizeFirstLetter(context.user.voiceResponse.type)}`
         )
         ,
         reply_markup: {
             inline_keyboard: [
-                ...aiVoices.map(aiVoice => [{ text: `${aiVoice}`, callback_data: `selectVoiceResponseType_${aiVoice}` }]),
+                ...reduceTo2DArray(aiVoices.map(aiVoice => ({ text: `${context.user.voiceResponse.type === aiVoice ? `${emojiIcon.checked} ` : ""}${stringHelper.capitalizeFirstLetter(aiVoice)}`, callback_data: `selectVoiceResponseType_${aiVoice}` }))),
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "voiceResponsePanel" }],
             ]
         }

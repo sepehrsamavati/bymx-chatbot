@@ -190,6 +190,8 @@ const keys = [
     "low",
     "normal",
     "high",
+    "voiceSettings",
+    "clearCurrentChatHistory",
 ] as const;
 
 export type UITextKey = typeof keys[number];
