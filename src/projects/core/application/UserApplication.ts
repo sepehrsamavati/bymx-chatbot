@@ -8,6 +8,7 @@ import { UserType } from "../../../types/enums/userTypes.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
 import { aiVoices, AIVoice } from "../../../types/enums/aiVoice.js";
 import { UserMode, type UserModeType } from "../../../types/enums/userMode.js";
+import { AIChatHistoryMemory } from "../../../types/enums/aiChatHistoryMemory.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../../../types/entities/user.js";
 
@@ -298,9 +299,11 @@ export default class UserApplication {
     async toggleVoiceResponse(userId: string, activate: boolean) {
         const result = new OperationResult();
 
-        if (await this.#userRepository.update(userId, {
+        const updateResult = await this.#userRepository.update(userId, {
             voiceResponseActive: activate
-        }))
+        });
+
+        if (updateResult?.ok)
             result.succeeded();
 
         return result;
@@ -310,10 +313,13 @@ export default class UserApplication {
         const result = new OperationResult();
 
         if (!aiVoices.includes(type))
-            result.failed("invalidInput");
-        else if (await this.#userRepository.update(userId, {
+            return result.failed("invalidInput");
+
+        const updateResult = await this.#userRepository.update(userId, {
             voiceResponseType: type
-        }))
+        });
+
+        if (updateResult?.ok)
             result.succeeded();
 
         return result;
@@ -323,9 +329,25 @@ export default class UserApplication {
     async setVoiceResponseLanguagePrompt(userId: string, languagePrompt: string | null) {
         const result = new OperationResult();
 
-        if (await this.#userRepository.update(userId, {
+        const updateResult = await this.#userRepository.update(userId, {
             voiceResponseLanguagePrompt: languagePrompt === null ? undefined : languagePrompt
-        }))
+        });
+
+        if (updateResult?.ok)
+            result.succeeded();
+
+        return result;
+    }
+
+    async setMemoryAmount(userId: string, memoryAmount: AIChatHistoryMemory) {
+        const result = new OperationResult();
+
+        if (![AIChatHistoryMemory.Short, AIChatHistoryMemory.Normal, AIChatHistoryMemory.Long].includes(memoryAmount))
+            return result.failed("invalidInput");
+
+        const updateResult = await this.#userRepository.update(userId, { memoryAmount });
+
+        if (updateResult?.ok)
             result.succeeded();
 
         return result;
