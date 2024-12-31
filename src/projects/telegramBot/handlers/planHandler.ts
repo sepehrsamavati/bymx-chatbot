@@ -54,7 +54,7 @@ export const planHandler: IUpdateHandler = {
             ]);
 
             const savePaymentResult = await context.services.paymentApplication.approveByUser(context.user.id);
-            if (!savePaymentResult.ok)
+            if (!(savePaymentResult.ok && savePaymentResult.data))
                 return {
                     call: {
                         text: submitErrorMessage

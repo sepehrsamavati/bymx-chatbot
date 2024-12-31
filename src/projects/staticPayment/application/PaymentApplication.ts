@@ -37,7 +37,7 @@ export default class PaymentApplication {
 
         const openPayment = await this.#getUserOpenPayment(userId);
 
-        if (openPayment.ok) {
+        if (openPayment.ok && openPayment.data) {
             if (await this.#paymentRepository.update({
                 id: openPayment.data.id,
                 status: status,

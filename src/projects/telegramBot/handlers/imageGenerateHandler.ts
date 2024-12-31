@@ -24,7 +24,7 @@ export const imageGenerateHandler: IUpdateHandler = {
 
             const imageGenerateResult = await context.services.aiApplication.fluxImageGenerate(context.user, message);
 
-            if (imageGenerateResult.ok) {
+            if (imageGenerateResult.ok && imageGenerateResult.data) {
                 await tgCall(
                     TelegramMethods.SendPhoto,
                     {

@@ -8,7 +8,7 @@ type IOperationResult = {
 type IOperationResultWithData<T> = {
     ok: boolean;
     message: UITextOptionalKey;
-    data: T;
+    data: T | null;
 }
 
 
@@ -36,9 +36,9 @@ export class OperationResult implements IOperationResult {
 }
 
 export class OperationResultWithData<T> extends OperationResult implements IOperationResultWithData<T> {
-    public data!: T;
+    public data: T | null = null;
 
-    public setData(data: T) {
+    public setData(data: IOperationResultWithData<T>['data']) {
         this.data = data;
         return this;
     }

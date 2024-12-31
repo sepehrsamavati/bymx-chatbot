@@ -13,7 +13,7 @@ export const inviteHandler: IUpdateHandler = {
 
         if (context.user.invite?.used === false) {
             const useInviteRes = await context.services.userApplication.useInvite(context.user);
-            if (useInviteRes.ok)
+            if (useInviteRes.ok && useInviteRes.data)
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {

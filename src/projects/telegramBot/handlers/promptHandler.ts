@@ -74,7 +74,7 @@ export const promptHandler: IUpdateHandler = {
                     const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
 
                     const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
-                    if (downloadResult.ok) {
+                    if (downloadResult.ok && downloadResult.data) {
                         tempFile = {
                             extension: fileExtension,
                             fsId: downloadResult.data,
@@ -232,7 +232,7 @@ export const promptHandler: IUpdateHandler = {
                     }
 
                     const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
-                    if (downloadResult.ok) {
+                    if (downloadResult.ok && downloadResult.data) {
                         tempFile = {
                             extension: fileExtension,
                             fsId: downloadResult.data,
@@ -330,7 +330,7 @@ export const promptHandler: IUpdateHandler = {
                 form.append("reply_to_message_id", update.message?.message_id.toString() as string);
                 form.append("reply_markup", JSON.stringify({
                     inline_keyboard: [
-                        [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                        [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                     ]
                 }));
                 form.append('duration', result.audio.duration.toString());
