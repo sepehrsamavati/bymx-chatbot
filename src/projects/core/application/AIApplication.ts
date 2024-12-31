@@ -38,7 +38,7 @@ type MultiModalInput = {
 
 type MultiModalInputAttachment = {
     file: { file: UserTempFile | undefined; };
-    imageUrl: { imageUrl: string; };
+    imageUrl: { imageUrl: string | undefined; };
 }
 
 type MultiModalOutput = {
