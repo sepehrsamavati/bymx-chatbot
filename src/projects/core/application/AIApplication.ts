@@ -7,6 +7,7 @@ import { errorLogger } from "../helpers/logger.js";
 import translate from "@iamtraction/google-translate";
 import { User } from "../../../types/entities/user.js";
 import { AIChat } from "../../../types/entities/aiChat.js";
+import { getAudioDuration } from "../helpers/audioUtils.js";
 import { PlanType } from "../../../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../../../types/enums/userStatus.js";
@@ -18,7 +19,6 @@ import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { UserTempFile } from "../../../types/entities/userTempFile.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { getAudioDuration } from "../helpers/audioUtils.js";
 
 type AIGeneratedImageResponse = {
     url: string;
@@ -63,7 +63,6 @@ export default class AIApplication {
     #userSubscriptionApplication;
     #openAI;
     #aiChatRepository;
-    #userApplication;
     #userRepository;
     #userTempFileApplication;
 
@@ -76,7 +75,6 @@ export default class AIApplication {
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#openAI = container.openAI;
         this.#aiChatRepository = container.aiChatRepository;
-        this.#userApplication = container.userApplication;
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
     }
@@ -281,6 +279,7 @@ export default class AIApplication {
         const { subscriptions, selectedChat, historyMessages } = _middlewareResult;
         let { totalRemainingPoints } = _middlewareResult;
         const result = new OperationResultWithData<MultiModalOutput>();
+        const userWantsVoiceResponse = user.voiceResponse.on;
 
         /** Use only in view / Do not use in app logic / Call saveSubscriptionsUsage after each step */
         let totalUserPointUsage = 0;
@@ -351,7 +350,7 @@ export default class AIApplication {
                 languageCode: sendLangToGpt ? user.lang : undefined,
                 systemMessages: [
                     systemMessageMapper(selectedChat.behavior),
-                    user.voiceResponse.on ? systemMessageMapper("audio_output") : null
+                    userWantsVoiceResponse ? systemMessageMapper("audio_output") : null
                 ],
             });
             const responseTime = performance.now() - startTime;
@@ -402,7 +401,7 @@ export default class AIApplication {
                 model: selectedChat.model,
                 systemMessages: [
                     systemMessageMapper(selectedChat.behavior),
-                    user.voiceResponse.on ? systemMessageMapper("audio_output") : null
+                    userWantsVoiceResponse ? systemMessageMapper("audio_output") : null
                 ],
                 userId: user.id,
                 tokenLimit: predictedCost.outputTokens,
@@ -445,9 +444,7 @@ export default class AIApplication {
         }
 
         const outputText = resultData.output;
-
-        // * Skip generate audio for long output
-        const shouldGenerateAudio = user.voiceResponse.on && outputText.length < 500;
+        const shouldGenerateAudio = userWantsVoiceResponse && outputText.length < 500;
 
         if (shouldGenerateAudio) {
             const textToSpeechUserPointCost = calculatePointUsage({ usd: (outputText.length * this.#openAI.textToSpeechPmu) / 1e6 });
