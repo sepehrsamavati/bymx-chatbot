@@ -1,13 +1,16 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import ffmpeg from 'fluent-ffmpeg';
 import config from "../config.js";
+import ffmpeg from 'fluent-ffmpeg';
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import { errorLogger } from "../helpers/logger.js";
 
-ffmpeg.setFfmpegPath(config.ffmpegPath);
-ffmpeg.setFfprobePath(config.ffprobePath);
+if (config.ffmpegPath)
+    ffmpeg.setFfmpegPath(config.ffmpegPath);
+
+if (config.ffprobePath)
+    ffmpeg.setFfprobePath(config.ffprobePath);
 
 export async function audioConvert(inBuffer: Buffer, format: string) {
     return new Promise<Buffer | null>(resolve => {

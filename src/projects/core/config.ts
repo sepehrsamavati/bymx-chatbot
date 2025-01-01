@@ -2,7 +2,6 @@ import fs from "node:fs";
 import * as dotenv from "dotenv";
 import configError from "./helpers/configError.js";
 import { setGlobalDispatcher, ProxyAgent } from "undici";
-import configWarn from "./helpers/configWarn.js";
 
 dotenv.config();
 
@@ -49,16 +48,6 @@ const config = {
 };
 
 Object.freeze(config);
-
-configWarn(
-    "ffmpeg path is not defined",
-    !config.ffmpegPath
-);
-
-configWarn(
-    "ffprobe path is not defined",
-    !config.ffprobePath
-);
 
 configError(
     "MongoDB connection string not defined",
