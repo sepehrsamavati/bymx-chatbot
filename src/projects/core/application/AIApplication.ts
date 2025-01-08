@@ -83,7 +83,9 @@ export default class AIApplication {
      * - Used as ToS guard
      * - Initialize and select user chat if not created before
      * - Get subscriptions and chat history
-     * - Get points remaining */
+     * - Get points remaining
+     * @returns Info on success / Operation result on error/fail
+     */
     private async middleware(user: User) {
         const result = new OperationResultWithData<any>().failed("errorOccurred");
 
@@ -281,7 +283,7 @@ export default class AIApplication {
         const result = new OperationResultWithData<MultiModalOutput>();
         const userWantsVoiceResponse = user.voiceResponse.on;
 
-        /** Use only in view / Do not use in app logic / Call saveSubscriptionsUsage after each step */
+        /** Use only in view / Do not use in app logic -> Call saveSubscriptionsUsage after each step */
         let totalUserPointUsage = 0;
         let inputText = 'text' in inputMessage ? inputMessage.text : "";
 
