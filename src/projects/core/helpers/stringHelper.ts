@@ -29,6 +29,9 @@ const stringHelper = {
             return '';
         }
         return word.charAt(0).toUpperCase() + word.slice(1);
+    },
+    thousandSeparator(numericValue: number | string) {
+        return numericValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 }
 

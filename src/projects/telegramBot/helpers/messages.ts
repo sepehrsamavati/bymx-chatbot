@@ -166,7 +166,7 @@ export const getPanel = async (context: RequestContext) => {
             + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount}`
             + (
                 userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
-                    ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${userInfo?.paidSubscriptionsRemainingPoints?.toLocaleString("en-US")}`
+                    ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${stringHelper.thousandSeparator(userInfo?.paidSubscriptionsRemainingPoints ?? "")}`
                     : ""
             )
             + `\n\n📝 ${context.uiText.saveAndUseHistory}: ${context.user.saveMessages ? `🟢 ${context.uiText.enabled} (${context.uiText.memory}: ${memoryUIT})` : `🔵 ${context.uiText.disabled}`}`
@@ -338,7 +338,7 @@ export const getModelUsageListPanel = async (context: RequestContext) => {
             + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
             + models.map(model =>
                 `${modelTitleGenerator(context, model)}`
-                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(modelUsageCalculator(model).normalLengthTextMessage.toLocaleString(), context.user.lang)}`
+                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(stringHelper.thousandSeparator(modelUsageCalculator(model).normalLengthTextMessage), context.user.lang)}`
             ).join('\n\n'),
         reply_markup: {
             inline_keyboard: [
