@@ -238,7 +238,7 @@ export default class AIApplication {
                     .setData({
                         url: generatedImage.url,
                         pointUsage: userPointCost,
-                        modelName: model.name,
+                        modelName: model.title,
                     });
 
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
