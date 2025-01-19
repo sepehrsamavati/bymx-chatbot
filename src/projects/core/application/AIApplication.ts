@@ -353,7 +353,7 @@ export default class AIApplication {
                 languageCode: sendLangToGpt ? user.lang : undefined,
                 systemMessages: [
                     systemMessageMapper(selectedChat.behavior),
-                    userWantsVoiceResponse ? systemMessageMapper("audio_output") : null
+                    userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
                 ],
             });
             const responseTime = performance.now() - startTime;
@@ -404,7 +404,7 @@ export default class AIApplication {
                 model: selectedChat.model,
                 systemMessages: [
                     systemMessageMapper(selectedChat.behavior),
-                    userWantsVoiceResponse ? systemMessageMapper("audio_output") : null
+                    userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
                 ],
                 userId: user.id,
                 tokenLimit: predictedCost.outputTokens,
