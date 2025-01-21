@@ -69,6 +69,17 @@ type Voice = {
     mime_type?: string;
 }
 
+type Audio = {
+    file_id: string;
+    file_unique_id: string;
+    duration: number;
+    performer?: string;
+    title?: string;
+    file_name?: string;
+    mime_type?: string;
+    file_size?: number;
+}
+
 export type MessageOriginUser = {
     type: "user";
     date: number;
@@ -115,7 +126,7 @@ export type TelegramMessage = {
         phone_number: string;
     };
     document?: Document;
-    audio?: unknown;
+    audio?: Audio;
     voice?: Voice;
     photo?: PhotoSize[];
     forward_origin?: MessageOrigin;

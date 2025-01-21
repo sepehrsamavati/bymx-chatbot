@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import fs from "node:fs/promises";
+import mimetype from 'mime-types';
 import { config, CoreServices, logger, storageHelper } from "bymx-core/server";
 
 const coreServices = new CoreServices();
@@ -9,7 +10,7 @@ const fastify = Fastify({
     logger: true,
 });
 
-fastify.addHook('onRequest', function (req, _, done) {
+fastify.addHook('onRequest', function (req, res, done) {
     const scope = coreServices.createApplicationScope();
 
     req.locals = {
@@ -18,7 +19,7 @@ fastify.addHook('onRequest', function (req, _, done) {
         applications: scope.applications,
     };
 
-    req.socket.once('finish', async () => {
+    res.raw.once('finish', async () => {
         await scope.dispose();
     });
 
@@ -31,7 +32,9 @@ fastify.register((instance, _, next) => {
         const { id } = request.params as { id: string };
 
         if (typeof id === "string" && id.length > 0) {
+            console.log(id)
             const tempFile = await request.locals.applications.userTempFileApplication.getByFsId(id);
+            console.log(tempFile)
 
             if (tempFile.ok && tempFile.data) {
                 const filePath = storageHelper.getTempFilePath({
@@ -42,7 +45,9 @@ fastify.register((instance, _, next) => {
                 const file = await fs.readFile(filePath);
 
                 if (file) {
-                    reply.send(file);
+                    reply
+                    .header('Content-Type', mimetype.lookup(tempFile.data.extension) || "application/octet-stream")
+                    .send(file);
                 } else {
                     reply.status(404).send({ error: "File not found" });
                 }

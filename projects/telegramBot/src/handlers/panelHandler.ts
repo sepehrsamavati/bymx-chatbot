@@ -5,7 +5,7 @@ import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
+import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -91,7 +91,7 @@ export const panelHandler: IUpdateHandler = {
                         {
                             chat_id: update.callback_query?.message.chat.id,
                             message_id: update.callback_query?.message.message_id,
-                            ...await getTextBasedCommunicationPanel(context)
+                            ...await getMusicWithLyricsGenerationPanel(context)
                         }
                     );
                     return { shouldContinue: false };

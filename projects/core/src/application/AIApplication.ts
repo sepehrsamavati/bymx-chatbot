@@ -7,7 +7,7 @@ import { errorLogger } from "../helpers/logger.js";
 import translate from "@iamtraction/google-translate";
 import { User } from "../types/entities/user.js";
 import { AIChat } from "../types/entities/aiChat.js";
-import { getAudioDuration } from "../helpers/audioUtils.js";
+import { audioConvert, getAudioDuration } from "../helpers/audioUtils.js";
 import { PlanType } from "../types/enums/planTypes.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../types/enums/userStatus.js";
@@ -67,6 +67,7 @@ export default class AIApplication {
     #userTempFileApplication;
 
     #fluxModelName = "fal-ai/flux/schnell";
+    #minimaxModelName = "fal-ai/minimax-music";
 
     constructor(container: ServicesType) {
         this.#aiModelCache = container.aiModelCache;
@@ -249,6 +250,97 @@ export default class AIApplication {
                     isDeleted: false,
                     input: message,
                     output: generatedImage.url,
+                    points: userPointCost,
+                    model: model.name,
+                    saved: false,
+                    usages: savedUsageIds ?? [],
+                    promptUser: user,
+                    responseTime: responseTime,
+                });
+            }
+        }
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
+    async musicGenerateWithLyrics(user: User, opts: {
+        audioFile: UserTempFile;
+        lyrics: string;
+    }): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
+        const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
+
+        const model = this.#aiModelCache.getModelByName(this.#minimaxModelName);
+        if (!model)
+            return result.failed();
+
+        const hostedFileUrl = new URL(config.apiServer.baseAddress);
+        hostedFileUrl.pathname = `/api/v1/tempFile/${opts.audioFile.fsId}`;
+
+        const costUsdCent = model.pricePmu.outputAudio / (1_000_000 * 100);
+        // const costUsdCent = 3.5;
+        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
+
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+
+        if (!(subscriptions && totalRemainingPoints !== undefined))
+            return result.failed();
+
+        if (totalRemainingPoints <= 0)
+            return result.failed("noPointAvailable");
+
+        if (totalRemainingPoints < userPointCost)
+            return result.failed("pointNotEnough");
+
+        if (this.#messageLock.isLocked(user.id))
+            return result.failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        // const inputAudioData = await fs.readFile(
+        //     filePath
+        // );
+
+        // const convertedInput = await audioConvert(
+        //     inputAudioData,
+        //     "mp3"
+        // );
+
+        const startTime = performance.now();
+
+        const falResponse = await fal.subscribe(this.#minimaxModelName, {
+            input: {
+                prompt: opts.lyrics,
+                reference_audio_url: hostedFileUrl.toString(),
+            },
+        });
+
+        const responseTime = performance.now() - startTime;
+
+        const generatedMusic = falResponse.data?.audio;
+        if (generatedMusic) {
+            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            if (contentPolicyViolation) {
+                result.failed("promptContentNotAllowed");
+            }
+            else {
+                result
+                    .succeeded()
+                    .setData({
+                        url: generatedMusic.url,
+                        pointUsage: userPointCost,
+                        modelName: model.title,
+                    });
+
+                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+                await this.#promptRepository.create({
+                    cost: costUsdCent / 100,
+                    insertDate: new Date(),
+                    isDeleted: false,
+                    input: "TEST",
+                    output: generatedMusic.url,
                     points: userPointCost,
                     model: model.name,
                     saved: false,

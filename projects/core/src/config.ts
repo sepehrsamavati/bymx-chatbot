@@ -30,7 +30,8 @@ const config = {
     ffmpegPath: process.env.BYMX_FFMPEG_PATH ?? "",
     ffprobePath: process.env.BYMX_FFPROBE_PATH ?? "",
     apiServer: {
-        port: 3017,
+        port: Number.parseInt(process.env.BYMX_API_SERVER_PORT ?? "3017"),
+        baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? ""
     },
     fileUploadLimit: {
         /** Minutes */
@@ -62,6 +63,11 @@ Object.freeze(config);
 configError(
     "API server port is not valid (1-65535 integer range)",
     !Number.isInteger(config.apiServer.port) || config.apiServer.port <= 0 || config.apiServer.port > 65535
+);
+
+configError(
+    "API server base address is not defined",
+    !URL.canParse(config.apiServer.baseAddress)
 );
 
 configError(

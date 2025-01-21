@@ -281,7 +281,7 @@ export const getTextBasedCommunicationPanel = async (context: RequestContext) =>
 export const getMusicWithLyricsGenerationPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(
-            context.uiText.getMusicWithLyricsGenerationHelp + "\n\n" + context.uiText.getMusicWithLyricsGenerationTgHelp,
+            context.uiText.musicWithLyricsGenerationHelp + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp,
             context.user.lang
         ),
         reply_markup: {

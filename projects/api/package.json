@@ -1,10 +1,17 @@
 {
   "name": "api",
   "packageManager": "yarn@4.4.1",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx ./dist/app.js"
+  },
   "dependencies": {
-    "fastify": "^5.2.1"
+    "fastify": "^5.2.1",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
+    "@types/mime-types": "^2.1.4",
     "typescript": "^5.7.3"
   }
 }

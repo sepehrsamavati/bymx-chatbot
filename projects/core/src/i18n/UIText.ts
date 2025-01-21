@@ -114,6 +114,7 @@ const keys = [
     "createPicture",
     "describePictureInText",
     "cancelImageGeneration",
+    "cancelMusicGeneration",
     "pointNotEnough",
     "promptContentNotAllowed",
     "noItemToShow",
@@ -177,6 +178,7 @@ const keys = [
     "chatMessagesCleared",
     "invalidInput",
     "voiceTooLong",
+    "musicTooLong",
     "voiceResponse",
     "sound",
     "voiceType",
@@ -197,8 +199,10 @@ const keys = [
     "textBasedCommunicationTgHelp",
     "selectAiToolFromList",
     "createSongWithLyrics",
-    "getMusicWithLyricsGenerationHelp",
-    "getMusicWithLyricsGenerationTgHelp",
+    "musicWithLyricsGenerationHelp",
+    "musicWithLyricsGenerationTgHelp",
+    "nowReplyLyricsToAudio",
+    "creatingMusicPleaseWait",
 ] as const;
 
 export type UITextKey = typeof keys[number];
