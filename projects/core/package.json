@@ -1,0 +1,51 @@
+{
+  "name": "bymx-core",
+  "version": "0.5.3",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    "./server": {
+      "import": "./dist/export/sdk.js",
+      "require": "./dist/export/sdk.js",
+      "types": "./dist/export/sdk.d.ts"
+    },
+    "./types": {
+      "import": "./dist/export/types.js",
+      "require": "./dist/export/types.js",
+      "types": "./dist/export/types.d.ts"
+    },
+    "./shared": {
+      "import": "./dist/export/shared.js",
+      "require": "./dist/export/shared.js",
+      "types": "./dist/export/shared.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "unsetWebhook": "node ./dist/scripts/unsetWebhook.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/node": "^22.10.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.2.1",
+    "@iamtraction/google-translate": "^2.0.1",
+    "awilix": "^12.0.2",
+    "dotenv": "^16.4.5",
+    "fluent-ffmpeg": "^2.1.3",
+    "franc-min": "^6.2.0",
+    "https-proxy-agent": "^7.0.5",
+    "mongoose": "^8.7.1",
+    "openai": "^4.71.1",
+    "undici": "^6.21.0",
+    "winston": "^3.15.0"
+  }
+}
