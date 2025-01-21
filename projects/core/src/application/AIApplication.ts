@@ -340,7 +340,7 @@ export default class AIApplication {
                     cost: costUsdCent / 100,
                     insertDate: new Date(),
                     isDeleted: false,
-                    input: "TEST",
+                    input: opts.lyrics,
                     output: generatedMusic.url,
                     points: userPointCost,
                     model: model.name,

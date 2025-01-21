@@ -147,6 +147,8 @@ export const musicGenerateHandler: IUpdateHandler = {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
                         audio: musicGenerateResult.data.url,
+                        performer: `@${context.botUsername} - ${musicGenerateResult.data.modelName}`,
+                        title: audio.title,
                         reply_markup: {
                             inline_keyboard: [
                                 [
