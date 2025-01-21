@@ -192,6 +192,13 @@ const keys = [
     "high",
     "voiceSettings",
     "clearCurrentChatHistory",
+    "chatWithChatGpt",
+    "textBasedCommunicationHelp",
+    "textBasedCommunicationTgHelp",
+    "selectAiToolFromList",
+    "createSongWithLyrics",
+    "getMusicWithLyricsGenerationHelp",
+    "getMusicWithLyricsGenerationTgHelp",
 ] as const;
 
 export type UITextKey = typeof keys[number];

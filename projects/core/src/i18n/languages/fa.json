@@ -182,5 +182,12 @@
     "normal": "معمولی",
     "high": "زیاد",
     "voiceSettings": "تنظیمات صدا",
-    "clearCurrentChatHistory": "پاکسازی پیام‌های چت فعلی"
+    "clearCurrentChatHistory": "پاکسازی پیام‌های چت فعلی",
+    "chatWithChatGpt": "چت با ChatGPT",
+    "textBasedCommunicationHelp": "الان میتونی پیامت رو بفرستی تا ChatGPT به اون جواب بده",
+    "textBasedCommunicationTgHelp": "امکان ارسال وُیس به جای متن و ریپلای کردن به فایل‌های متنی، کد، عکس و همچنین PDF انگلیسی وجود داره.",
+    "selectAiToolFromList": "لیست ابزار‌های هوش مصنوعی\n\nکافیه هر کدوم رو میخوای انتخاب کنی:",
+    "createSongWithLyrics": "ساخت آهنگ (به همراه متن)",
+    "getMusicWithLyricsGenerationHelp": "ساخت آهنگ؛ این حالت اینجوری کار میکنه که یک آهنگ پایه و همچنین متن و شعر دلخواهتون رو مشخص می‌کنید تا هوش مصنوعی بر اساس اون براتون آهنگ جدید بسازه.",
+    "getMusicWithLyricsGenerationTgHelp": "حالا میتونی آهنگ خودت رو بسازی؛\n\n1. اول آهنگ رو اینجا ارسال کن\n2. بعد متن آهنگ رو بهش ریپلای بزن"
 }

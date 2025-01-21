@@ -5,7 +5,7 @@ import { UserMode, UserStatus } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getPanel, getModelUsageListPanel, getPlanList, getVoiceResponsePanel } from "../helpers/messages.js";
+import { getPanel, getModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel } from "../helpers/messages.js";
 
 export const userCommandHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -160,6 +160,17 @@ export const userCommandHandler: IUpdateHandler = {
                         chat_id: update.message?.chat.id,
                         reply_to_message_id: update.message?.message_id,
                         ..._panel
+                    }
+                );
+
+                return { shouldContinue: false };
+            case "/ai":
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_to_message_id: update.message?.message_id,
+                        ...await getAiToolsPanel(context)
                     }
                 );
 

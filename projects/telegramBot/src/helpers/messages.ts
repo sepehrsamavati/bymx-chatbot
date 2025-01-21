@@ -195,6 +195,28 @@ export const getAdminPanel = async (context: RequestContext) => {
     };
 };
 
+
+export const getAiToolsPanel = async (context: RequestContext) => {
+    const inlineKeyboard = [
+        [
+            { text: `${emojiIcon.chat} ${context.uiText.chatWithChatGpt}`, callback_data: "textBasedCommunication" },
+        ],
+        [
+            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" },
+        ],
+        [
+            { text: `${emojiIcon.music} ${context.uiText.createSongWithLyrics}`, callback_data: "generateMusicWithLyrics" },
+        ]
+    ];
+
+    return {
+        text: context.uiText.selectAiToolFromList,
+        reply_markup: {
+            inline_keyboard: inlineKeyboard
+        }
+    };
+};
+
 export const getVoiceResponsePanel = async (context: RequestContext) => {
     return {
         text: (
@@ -237,6 +259,31 @@ export const getChangeVoiceResponseTypePanel = async (context: RequestContext) =
 export const getImageGenerateModePanel = async (context: RequestContext) => {
     return {
         text: context.uiText.describePictureInText,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getTextBasedCommunicationPanel = async (context: RequestContext) => {
+    return {
+        text: context.uiText.textBasedCommunicationHelp + "\n\n" + context.uiText.textBasedCommunicationTgHelp,
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getMusicWithLyricsGenerationPanel = async (context: RequestContext) => {
+    return {
+        text: stringHelper.digitLocalization(
+            context.uiText.getMusicWithLyricsGenerationHelp + "\n\n" + context.uiText.getMusicWithLyricsGenerationTgHelp,
+            context.user.lang
+        ),
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]

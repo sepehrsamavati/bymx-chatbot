@@ -44,6 +44,8 @@ const emojiIcon = Object.freeze({
     volumeMute: '🔇',
     history: '📝',
     recycle: '🗑',
+    chat: '💬',
+    music: '🎶',
 });
 
 export default emojiIcon;

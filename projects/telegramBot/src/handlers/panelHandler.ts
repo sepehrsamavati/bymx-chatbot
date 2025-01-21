@@ -5,7 +5,7 @@ import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
+import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -56,6 +56,42 @@ export const panelHandler: IUpdateHandler = {
                             chat_id: update.callback_query?.message.chat.id,
                             message_id: update.callback_query?.message.message_id,
                             ...await getImageGenerateModePanel(context)
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                return null;
+            };
+            case "textBasedCommunication": {
+                if ((await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok) {
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ...await getTextBasedCommunicationPanel(context)
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                return null;
+            };
+            case "generateMusicWithLyrics": {
+                if (
+                    (
+                        await context.services
+                            .userApplication
+                            .setUserMode(context.user.id, UserMode.UserPrompt.MusicWithLyricsAndTemplateGeneration)
+                    ).ok
+                ) {
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ...await getTextBasedCommunicationPanel(context)
                         }
                     );
                     return { shouldContinue: false };
