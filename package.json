@@ -5,9 +5,9 @@
   "main": "index.js",
   "license": "MIT",
   "workspaces": [
-    "projects/common",
     "projects/core",
     "projects/staticPayment",
-    "projects/telegramBot"
+    "projects/telegramBot",
+    "projects/api"
   ]
 }

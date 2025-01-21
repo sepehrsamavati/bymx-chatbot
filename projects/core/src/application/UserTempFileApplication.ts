@@ -28,6 +28,20 @@ export default class UserTempFileApplication {
         return result;
     }
 
+    async getByFsId(fsId: UserTempFile['fsId']) {
+        const result = new OperationResultWithData<Omit<UserTempFile, 'user'>>();
+
+        const res = await this.#userTempFileRepository.get({
+            isDeleted: false,
+            fsId: fsId,
+        });
+
+        if (res)
+            result.succeeded().setData(res);
+
+        return result;
+    }
+
     async getByTgUniqueId(id: UserTempFile['tgUniqueId']) {
         const result = new OperationResultWithData<Omit<UserTempFile, 'user'>>();
 

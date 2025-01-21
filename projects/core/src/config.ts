@@ -29,6 +29,9 @@ const config = {
     usdToIrtMultiplier: Number.parseInt(process.env.BYMX_PRICE_USD_TO_IRT_MULTIPLIER ?? "0"),
     ffmpegPath: process.env.BYMX_FFMPEG_PATH ?? "",
     ffprobePath: process.env.BYMX_FFPROBE_PATH ?? "",
+    apiServer: {
+        port: 3017,
+    },
     fileUploadLimit: {
         /** Minutes */
         timePeriod: Number.parseInt(process.env.BYMX_FILE_UPLOAD_LIMIT_PERIOD ?? "20"),
@@ -55,6 +58,11 @@ const config = {
 };
 
 Object.freeze(config);
+
+configError(
+    "API server port is not valid (1-65535 integer range)",
+    !Number.isInteger(config.apiServer.port) || config.apiServer.port <= 0 || config.apiServer.port > 65535
+);
 
 configError(
     "MongoDB connection string not defined",

@@ -4,6 +4,7 @@ export * from "../types/enums/exitCodes.js";
 export { default as config } from "../config.js";
 export * from "../types/enums/aiChatBehavior.js";
 export * as fileHelper from "../helpers/fileHelper.js";
+export * as storageHelper from "../helpers/storageHelper.js";
 export * as costCalculator from "../helpers/costCalculator.js";
 export { default as exitHelper } from "../helpers/exitHelper.js";
 export { ServicesType, default as CoreServices } from "../Container.js";
