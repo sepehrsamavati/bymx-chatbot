@@ -312,6 +312,7 @@ export default class AIApplication {
         const falResponse = await fal.subscribe(this.#minimaxModelName, {
             input: {
                 prompt: opts.lyrics,
+                enable_safety_checker: true,
                 reference_audio_url: hostedFileUrl.toString(),
             },
         });
@@ -320,7 +321,7 @@ export default class AIApplication {
 
         const generatedMusic = falResponse.data?.audio;
         if (generatedMusic) {
-            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            const contentPolicyViolation = 'has_nsfw_concepts' in falResponse.data && falResponse.data.has_nsfw_concepts.includes(true);
             if (contentPolicyViolation) {
                 result.failed("promptContentNotAllowed");
             }

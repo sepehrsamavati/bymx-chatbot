@@ -32,9 +32,7 @@ fastify.register((instance, _, next) => {
         const { id } = request.params as { id: string };
 
         if (typeof id === "string" && id.length > 0) {
-            console.log(id)
             const tempFile = await request.locals.applications.userTempFileApplication.getByFsId(id);
-            console.log(tempFile)
 
             if (tempFile.ok && tempFile.data) {
                 const filePath = storageHelper.getTempFilePath({
