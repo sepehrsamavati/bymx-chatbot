@@ -204,6 +204,7 @@ const keys = [
     "nowReplyLyricsToAudio",
     "creatingMusicPleaseWait",
     "modelSupportsEnglishInputBetterHint",
+    "lyricsTooLong",
 ] as const;
 
 export type UITextKey = typeof keys[number];

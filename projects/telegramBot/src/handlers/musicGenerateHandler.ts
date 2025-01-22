@@ -1,11 +1,11 @@
-import tgCall, { downloadFile, getFileUrl } from "../helpers/call.js";
 import emojiIcon from "../helpers/emojiIcon.js";
+import { stringHelper } from "bymx-core/shared";
+import { UserTempFileEntity } from "bymx-core/types";
+import tgCall, { downloadFile } from "../helpers/call.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { UserMode } from "../../../core/dist/types/enums/userMode.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { stringHelper } from "bymx-core/shared";
-import { UserTempFileEntity } from "bymx-core/types";
 
 export const musicGenerateHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -18,7 +18,14 @@ export const musicGenerateHandler: IUpdateHandler = {
         const message = update.message?.text;
         const audio = update.message?.audio;
 
-        if (message && update.message?.reply_to_message?.audio && message.length < 1500) {
+        if (message && update.message?.reply_to_message?.audio) {
+            if (message.length <= 600)
+                return {
+                    call: {
+                        text: "lyricsTooLong"
+                    }
+                };
+
             const audio = update.message?.reply_to_message?.audio;
             let pleaseWaitMessageId = 0;
             const unlockFileProcessing = () => {

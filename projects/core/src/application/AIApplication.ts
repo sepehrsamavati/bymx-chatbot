@@ -270,6 +270,18 @@ export default class AIApplication {
         lyrics: string;
     }): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
         const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
+        const maxLyricsLength = 600;
+
+        if (opts.lyrics.length > maxLyricsLength)
+            return result.failed("lyricsTooLong");
+
+        const audioFileData = await fs.readFile(
+            getTempFilePath(opts.audioFile)
+        );
+        const audioLength = await getAudioDuration(audioFileData);
+
+        if (!audioLength || audioLength <= 15 || audioLength >= 360)
+            return result.failed("invalidInput");
 
         const model = this.#aiModelCache.getModelByName(this.#minimaxModelName);
         if (!model)
@@ -298,14 +310,13 @@ export default class AIApplication {
 
         this.#messageLock.lock(user.id);
 
-        // const inputAudioData = await fs.readFile(
-        //     filePath
-        // );
+        opts.lyrics = opts.lyrics.trim();
 
-        // const convertedInput = await audioConvert(
-        //     inputAudioData,
-        //     "mp3"
-        // );
+        if (opts.lyrics.length < 550 && opts.lyrics.includes('\n') && !(opts.lyrics.startsWith('##') || opts.lyrics.endsWith('##'))) {
+            const lyricsWithAccompaniment = `## ${opts.lyrics} ##`;
+            if (lyricsWithAccompaniment.length <= 600)
+                opts.lyrics = lyricsWithAccompaniment;
+        }
 
         const startTime = performance.now();
 
