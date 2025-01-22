@@ -6,7 +6,7 @@ import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { UserMode } from "../../../core/dist/types/enums/userMode.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { fileHelper, storageHelper } from "bymx-core/server";
+import { errorLogger, fileHelper, storageHelper } from "bymx-core/server";
 
 export const musicGenerateHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -158,27 +158,52 @@ export const musicGenerateHandler: IUpdateHandler = {
                     }
                 );
 
-                await tgCall(
-                    TelegramMethods.SendAudio,
-                    {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
-                        audio: musicGenerateResult.data.url,
-                        performer: `@${context.botUsername} - ${musicGenerateResult.data.modelName}`,
-                        title: audio.title,
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    { text: `${emojiIcon.point} ${musicGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
-                                    { text: `${emojiIcon.model} ${musicGenerateResult.data.modelName}`, callback_data: "modelProcessedThisMessage" },
-                                ],
-                                [
-                                    { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
-                                ]
-                            ]
+                const chatId = update.message?.chat.id;
+                const messageId = update.message?.message_id;
+                const performer = `@${context.botUsername} - ${musicGenerateResult.data.modelName}`;
+                const title = audio.title || `Telegram: @${context.botUsername}`;
+                const replyMarkup = {
+                    inline_keyboard: [
+                        [
+                            { text: `${emojiIcon.point} ${musicGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
+                            { text: `${emojiIcon.model} ${musicGenerateResult.data.modelName}`, callback_data: "modelProcessedThisMessage" },
+                        ],
+                        [
+                            { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
+                        ]
+                    ]
+                }
+
+                try { // download/upload manually to set performer/title
+                    const song = await fetch(musicGenerateResult.data.url).then(r => r.blob());
+
+                    const form = new FormData();
+
+                    form.append("chat_id", chatId.toString());
+                    form.append('reply_to_message_id', messageId.toString());
+                    form.append('audio', song);
+                    form.append('performer', performer);
+                    form.append('title', title);
+                    form.append('reply_markup', JSON.stringify(replyMarkup));
+
+                    await tgCall(
+                        TelegramMethods.SendAudio,
+                        form
+                    );
+                } catch (err) {
+                    errorLogger("Music generate upload failed", err);
+                    await tgCall(
+                        TelegramMethods.SendAudio,
+                        {
+                            chat_id: chatId,
+                            reply_to_message_id: messageId,
+                            audio: musicGenerateResult.data.url,
+                            performer: performer,
+                            title: title,
+                            reply_markup: replyMarkup,
                         }
-                    }
-                );
+                    );
+                }
             } else {
                 return {
                     call: {
