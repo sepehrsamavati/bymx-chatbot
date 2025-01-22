@@ -203,6 +203,7 @@ const keys = [
     "musicWithLyricsGenerationTgHelp",
     "nowReplyLyricsToAudio",
     "creatingMusicPleaseWait",
+    "modelSupportsEnglishInputBetterHint",
 ] as const;
 
 export type UITextKey = typeof keys[number];

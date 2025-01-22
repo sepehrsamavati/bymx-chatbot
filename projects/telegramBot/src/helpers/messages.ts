@@ -258,7 +258,7 @@ export const getChangeVoiceResponseTypePanel = async (context: RequestContext) =
 
 export const getImageGenerateModePanel = async (context: RequestContext) => {
     return {
-        text: context.uiText.describePictureInText,
+        text: context.uiText.describePictureInText + `\n\n${emojiIcon.warning} ${context.uiText.modelSupportsEnglishInputBetterHint}`,
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
@@ -281,7 +281,7 @@ export const getTextBasedCommunicationPanel = async (context: RequestContext) =>
 export const getMusicWithLyricsGenerationPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(
-            context.uiText.musicWithLyricsGenerationHelp + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp,
+            context.uiText.musicWithLyricsGenerationHelp + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp + `\n\n${emojiIcon.warning} ${context.uiText.modelSupportsEnglishInputBetterHint}`,
             context.user.lang
         ),
         reply_markup: {
