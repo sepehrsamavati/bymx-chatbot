@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start:tsx": "tsx ./src/projects/telegramBot/main.ts"
+    "start:tsx": "tsx ./src/main.ts"
   },
   "keywords": [],
   "author": "",

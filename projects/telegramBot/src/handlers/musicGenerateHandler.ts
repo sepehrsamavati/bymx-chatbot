@@ -6,6 +6,7 @@ import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { UserMode } from "../../../core/dist/types/enums/userMode.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
+import { fileHelper, storageHelper } from "bymx-core/server";
 
 export const musicGenerateHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -19,12 +20,6 @@ export const musicGenerateHandler: IUpdateHandler = {
         const audio = update.message?.audio;
 
         if (message && update.message?.reply_to_message?.audio) {
-            if (message.length <= 600)
-                return {
-                    call: {
-                        text: "lyricsTooLong"
-                    }
-                };
 
             const audio = update.message?.reply_to_message?.audio;
             let pleaseWaitMessageId = 0;
@@ -39,6 +34,21 @@ export const musicGenerateHandler: IUpdateHandler = {
                         }
                     );
             };
+
+            if (!fileHelper.falAiSupportedFileExtensions.isSupportedMinimaxMusicGen(audio.mime_type ?? "")) {
+                return {
+                    call: {
+                        text: "invalidInput"
+                    }
+                };
+            }
+
+            if (message.length > 600)
+                return {
+                    call: {
+                        text: "lyricsTooLong"
+                    }
+                };
 
             if (audio.duration > 360) {
                 return {
@@ -83,7 +93,7 @@ export const musicGenerateHandler: IUpdateHandler = {
                 const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: audio.file_id });
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
-                    const maxValidFileSizeMB = 5; // 5MB
+                    const maxValidFileSizeMB = 10; // 10MB
                     const maxValidFileSizeBytes = maxValidFileSizeMB * Math.pow(1024, 2);
                     if (fileInfo.result.file_size > maxValidFileSizeBytes) {
                         unlockFileProcessing();
@@ -97,7 +107,7 @@ export const musicGenerateHandler: IUpdateHandler = {
                         };
                     }
 
-                    const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
+                    const fileExtension = fileHelper.tryGetFileExtension(fileInfo.result.file_path);
 
                     const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {

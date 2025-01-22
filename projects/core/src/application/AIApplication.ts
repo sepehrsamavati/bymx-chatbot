@@ -3,21 +3,21 @@ import config from "../config.js";
 import fs from "node:fs/promises";
 import { fal } from "@fal-ai/client";
 import { ServicesType } from "../Container.js";
-import { errorLogger } from "../helpers/logger.js";
-import translate from "@iamtraction/google-translate";
 import { User } from "../types/entities/user.js";
+import { errorLogger } from "../helpers/logger.js";
 import { AIChat } from "../types/entities/aiChat.js";
-import { audioConvert, getAudioDuration } from "../helpers/audioUtils.js";
+import translate from "@iamtraction/google-translate";
 import { PlanType } from "../types/enums/planTypes.js";
-import { getTempFilePath } from "../helpers/storageHelper.js";
 import { UserStatus } from "../types/enums/userStatus.js";
+import { getAudioDuration } from "../helpers/audioUtils.js";
+import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
-import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
 import { IOpenAITextResult } from "../types/contracts/services.js";
-import { openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
-import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
+import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 
 type AIGeneratedImageResponse = {
@@ -274,6 +274,9 @@ export default class AIApplication {
 
         if (opts.lyrics.length > maxLyricsLength)
             return result.failed("lyricsTooLong");
+
+        if (!falAiSupportedFileExtensions.isSupportedMinimaxMusicGen(opts.audioFile.extension))
+            return result.failed("invalidInput");
 
         const audioFileData = await fs.readFile(
             getTempFilePath(opts.audioFile)

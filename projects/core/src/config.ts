@@ -66,7 +66,7 @@ configError(
 );
 
 configError(
-    "API server base address is not defined",
+    "API server base address is not defined/valid URL",
     !URL.canParse(config.apiServer.baseAddress)
 );
 
