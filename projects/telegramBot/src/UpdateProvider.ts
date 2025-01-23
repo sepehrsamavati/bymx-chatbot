@@ -6,7 +6,7 @@ import { UserMode, UIText } from "bymx-core/shared";
 import BroadcastHandler from "./BroadcastHandler.js";
 import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
-import { CoreServices, ExitCode, PaymentServices, errorLogger, exitHelper, logger, type IServices } from "bymx-core/server";
+import { ExitCode, errorLogger, exitHelper, logger, type IServices } from "bymx-core/server";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
@@ -17,17 +17,14 @@ export class UpdateProvider {
 
     async #dispose() {
         await this.#broadcastHandler.dispose();
-        await this.#services.core.destroy();
+        this.#services.dispose();
     }
 
-    constructor(coreServices: CoreServices, paymentServices: PaymentServices) {
-        this.#services = {
-            core: coreServices,
-            payment: paymentServices,
-        };
+    constructor(services: IServices) {
+        this.#services = services;
         this.#broadcastHandler = new BroadcastHandler(
-            coreServices.applications.userApplication,
-            coreServices.applications.telegramBroadcastApplication
+            services.core.applications.userApplication,
+            services.core.applications.telegramBroadcastApplication
         );
 
         initPaymentMessageCleanupJob(async item => {
@@ -50,11 +47,7 @@ export class UpdateProvider {
             }
         });
 
-        coreServices
-            .diReady()
-            .then(() => {
-                this.#startBot();
-            });
+        this.#startBot();
     }
 
     async #startBot() {

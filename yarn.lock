@@ -537,17 +537,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"api@workspace:projects/api":
-  version: 0.0.0-use.local
-  resolution: "api@workspace:projects/api"
-  dependencies:
-    "@types/mime-types": "npm:^2.1.4"
-    fastify: "npm:^5.2.1"
-    mime-types: "npm:^2.1.35"
-    typescript: "npm:^5.7.3"
-  languageName: unknown
-  linkType: soft
-
 "async@npm:^0.2.9":
   version: 0.2.10
   resolution: "async@npm:0.2.10"
@@ -644,6 +633,17 @@ __metadata:
   checksum: 10c0/2a905fbbcde73cc5d8bd18d1caa23715d5f83a5935867c2329f0ac06104204ba7947be098fe1317fbd8830e26090ff8e764f08cd14fefc977bb248c3487bcbd0
   languageName: node
   linkType: hard
+
+"bymx-api-server@workspace:projects/api":
+  version: 0.0.0-use.local
+  resolution: "bymx-api-server@workspace:projects/api"
+  dependencies:
+    "@types/mime-types": "npm:^2.1.4"
+    fastify: "npm:^5.2.1"
+    mime-types: "npm:^2.1.35"
+    typescript: "npm:^5.7.3"
+  languageName: unknown
+  linkType: soft
 
 "bymx-chatbot@workspace:.":
   version: 0.0.0-use.local

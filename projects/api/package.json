@@ -1,7 +1,11 @@
 {
-  "name": "api",
+  "name": "bymx-api-server",
   "packageManager": "yarn@4.4.1",
   "type": "module",
+  "exports": {
+    ".": "./dist/HttpServer.js"
+  },
+  "types": "./dist/HttpServer.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "tsx ./dist/app.js"

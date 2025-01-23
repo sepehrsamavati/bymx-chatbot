@@ -8,6 +8,7 @@
     "projects/core",
     "projects/staticPayment",
     "projects/telegramBot",
-    "projects/api"
+    "projects/api",
+    "projects/start"
   ]
 }

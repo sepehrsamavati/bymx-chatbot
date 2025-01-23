@@ -4,4 +4,5 @@ import type PaymentServices from "../infrastructure/services/staticPayment/Conta
 export type IServices = {
     core: CoreServices;
     payment: PaymentServices;
+    dispose: () => void;
 };

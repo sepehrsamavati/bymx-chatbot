@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": "./dist/UpdateProvider.js"
+  },
+  "types": "./dist/UpdateProvider.d.ts",
   "scripts": {
     "build": "tsc",
     "start:tsx": "tsx ./src/main.ts"
