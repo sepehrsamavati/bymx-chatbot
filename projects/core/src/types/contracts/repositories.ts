@@ -9,6 +9,7 @@ import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTe
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
+import { GenerationTask, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../entities/generationTask";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -117,4 +118,11 @@ export type ITelegramJoinRequiredChatRepository = {
     getOne(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat | null>;
     getMany(filter: SearchTelegramJoinRequiredChat): Promise<TelegramJoinRequiredChat[] | null>;
     updateOne(update: UpdateTelegramJoinRequiredChat): Promise<boolean | null>;
+}
+
+export type IGenerationTaskRepository = {
+    create(task: GenerationTask): Promise<boolean | null>;
+    getOne(filter: SearchGenerationTaskModel): Promise<GenerationTask | null>;
+    getMany(filter: SearchGenerationTaskModel): Promise<GenerationTask[] | null>;
+    updateOne(update: UpdateGenerationTaskModel): Promise<boolean | null>;
 }
