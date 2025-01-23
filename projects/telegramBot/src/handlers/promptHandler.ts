@@ -275,7 +275,7 @@ export const promptHandler: IUpdateHandler = {
                 }
             );
 
-        let imageUrl: string | undefined;
+        let imageFile: UserTempFileEntity.UserTempFile | undefined = undefined;
 
         if (!attachmentFile && update.message?.reply_to_message?.photo) {
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
@@ -289,10 +289,69 @@ export const promptHandler: IUpdateHandler = {
 
             const photo = update.message?.reply_to_message?.photo.at(-1);
             if (photo) {
-                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: photo.file_id });
-                if (fileInfo?.ok && fileInfo.result.file_path) {
-                    imageUrl = getFileUrl(fileInfo.result.file_path);
+                const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(photo.file_unique_id);
+
+                let tempFile: UserTempFileEntity.UserTempFile | null = null;
+
+                if (cachedFile.ok && cachedFile.data)
+                    tempFile = {
+                        ...cachedFile.data,
+                        user: context.user
+                    };
+
+                if (!tempFile) {
+                    const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: photo.file_id });
+
+                    if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
+                        const fileExtension = "jpg";
+                        const maxValidFileSizeMB = 5; // 5MB for file search | 1MB for plain text
+                        const maxValidFileSizeBytes = maxValidFileSizeMB * Math.pow(1024, 2);
+                        if (fileInfo.result.file_size > maxValidFileSizeBytes) {
+                            unlockFileProcessing();
+                            return {
+                                call: {
+                                    text: stringHelper.digitLocalization(
+                                        stringHelper.formatter(context.uiText.fileSizeExceededError, maxValidFileSizeMB),
+                                        context.user.lang
+                                    )
+                                }
+                            };
+                        }
+
+                        const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                        if (downloadResult.ok && downloadResult.data) {
+                            tempFile = {
+                                extension: fileExtension,
+                                fsId: downloadResult.data,
+                                size: fileInfo.result.file_size,
+                                tgId: fileInfo.result.file_id,
+                                tgUniqueId: fileInfo.result.file_unique_id,
+                                vectorIds: [],
+                                user: context.user,
+                                lastAccessed: new Date()
+                            };
+                        }
+                        else {
+                            unlockFileProcessing();
+                            return null;
+                        }
+                    }
+                    else {
+                        unlockFileProcessing();
+                        return null;
+                    }
                 }
+
+                if (!cachedFile.data) { // if file is not stored in db -> add to db
+                    const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
+
+                    if (!fileAddResult.ok) {
+                        unlockFileProcessing();
+                        return null;
+                    }
+                }
+
+                imageFile = tempFile;
             }
 
             context.services.fileProcessingLockCache.unlock(context.user.id);
@@ -302,7 +361,7 @@ export const promptHandler: IUpdateHandler = {
             context.user,
             multiModalInput,
             {
-                imageUrl,
+                image: imageFile,
                 file: attachmentFile
             }
         );

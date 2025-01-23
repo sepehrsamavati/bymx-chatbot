@@ -38,7 +38,7 @@ type MultiModalInput = {
 
 type MultiModalInputAttachment = {
     file: { file: UserTempFile | undefined; };
-    imageUrl: { imageUrl: string | undefined; };
+    image: { image: UserTempFile | undefined; };
 }
 
 type MultiModalOutput = {
@@ -428,8 +428,8 @@ export default class AIApplication {
             inputText = userTextMessage.output;
         }
 
-        const imageUrl = 'imageUrl' in messageAttachment ? messageAttachment.imageUrl : undefined;
-        const inputUnits = inputText.split(' ').length + (imageUrl ? 500 : 0);
+        const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
+        const inputUnits = inputText.split(' ').length + (image ? 500 : 0);
 
         const predictedCost = modelCostPredication({
             inputUnits: inputUnits,
@@ -504,6 +504,14 @@ export default class AIApplication {
                 responseTime: responseTime,
             });
         } else { // Plain text chat completion
+
+            let imageUrl: string | undefined = undefined;
+            if (image) {
+                const hostedFileUrl = new URL(config.apiServer.baseAddress);
+                hostedFileUrl.pathname = `/api/v1/tempFile/${image.fsId}`;
+                imageUrl = hostedFileUrl.toString();
+            }
+
             const startTime = performance.now();
             const res = await this.#openAI.multiTextMessage({
                 inputMessage: inputText,
@@ -599,15 +607,21 @@ export default class AIApplication {
         });
     }
 
-    public async multiModalChatCompletion(...args: Parameters<typeof this._multiModalChatCompletion>): Promise<OperationResultWithData<MultiModalOutput>> {
-        const user = args[0];
-
+    public async multiModalChatCompletion(
+        user: User,
+        inputMessage: MultiModalInput[keyof MultiModalInput],
+        messageAttachment: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {},
+        opts?: {
+            /** Optional; Prevent double getting data and validations */
+            middlewareResult?: Awaited<ReturnType<typeof AIApplication.prototype.middleware>>;
+        }
+    ): Promise<OperationResultWithData<MultiModalOutput>> {
         if (this.#messageLock.isLocked(user.id))
             return new OperationResultWithData<MultiModalOutput>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
 
-        const result = await this._multiModalChatCompletion(...args);
+        const result = await this._multiModalChatCompletion(user, inputMessage, messageAttachment, opts);
 
         this.#messageLock.unlock(user.id);
 

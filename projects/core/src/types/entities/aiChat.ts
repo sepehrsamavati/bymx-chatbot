@@ -1,7 +1,7 @@
-import type { User } from "./user"
-import type { AIModel } from "./aiModel";
-import type { AIChatBehavior } from "../enums/aiChatBehavior";
-import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
+import type { User } from "./user.js"
+import type { AIModel } from "./aiModel.js";
+import type { AIChatBehavior } from "../enums/aiChatBehavior.js";
+import type { FlattenToIDs, StoredEntity } from "../contracts/entities.js";
 
 export type AIChat = {
     id: string;

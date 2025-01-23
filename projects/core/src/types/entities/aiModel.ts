@@ -1,6 +1,6 @@
-import type { AIModelType } from "../enums/aiModelType";
-import type { StoredEntity } from "../contracts/entities";
-import type { AIModelProvider } from "../enums/aiModelProvider";
+import type { AIModelType } from "../enums/aiModelType.js";
+import type { StoredEntity } from "../contracts/entities.js";
+import type { AIModelProvider } from "../enums/aiModelProvider.js";
 
 export type AIModel = {
     id: string;
