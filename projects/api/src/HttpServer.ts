@@ -1,7 +1,10 @@
+import "reflect-metadata";
 import Fastify from 'fastify';
 import fs from "node:fs/promises";
 import mimetype from 'mime-types';
 import { config, IServices, logger, storageHelper } from "bymx-core/server";
+import { dtoValidator } from './middlewares/dtoValidator.js';
+import FalAiResult from './dto/FalAiResult.js';
 
 export default class HttpServer {
     constructor(private services: IServices) {
@@ -33,7 +36,7 @@ export default class HttpServer {
 
         this.#fastify.register((instance, _, next) => {
 
-            instance.get('/tempFile/:id', async (request, reply) => {
+            instance.get("/tempFile/:id", async (request, reply) => {
                 const { id } = request.params as { id: string };
 
                 if (typeof id === "string" && id.length > 0) {
@@ -64,6 +67,16 @@ export default class HttpServer {
                     reply.status(400).send({ error: "Invalid id" });
                 }
             });
+
+            instance.post("/setTaskResult/fal-ai/:id",
+                { preValidation: dtoValidator(FalAiResult) },
+                async (request, reply) => {
+                    const { id } = request.params as { id: string };
+
+                    if (typeof id !== "string" || id.length > 40 || id.length === 0) {
+                        reply.status(400).send({ error: "Invalid id" });
+                    }
+                });
 
             next();
         }, { prefix: "/api/v1" });
