@@ -121,8 +121,8 @@ export type ITelegramJoinRequiredChatRepository = {
 }
 
 export type IGenerationTaskRepository = {
-    create(task: GenerationTask): Promise<boolean | null>;
-    getOne(filter: SearchGenerationTaskModel): Promise<GenerationTask | null>;
-    getMany(filter: SearchGenerationTaskModel): Promise<GenerationTask[] | null>;
+    create(task: FlattenToIDs<GenerationTask, 'user' | 'usages'>): Promise<boolean | null>;
+    getOne(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask | null>;
+    getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask[] | null>;
     updateOne(update: UpdateGenerationTaskModel): Promise<boolean | null>;
 }

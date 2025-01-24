@@ -1,4 +1,4 @@
-import type { Beautifier } from "../beautifier";
+import type { Beautifier } from "../beautifier.js";
 
 export type StoredEntity<ObjectModel> = Beautifier<
     {

@@ -8,6 +8,7 @@ export type GenerationTask = {
     internalId: string;
     externalId: string;
     result: unknown;
+    expiry: Date;
     user: User;
     usages: UserSubscriptionUsage[];
     type: GenerationTaskType;
@@ -16,6 +17,6 @@ export type GenerationTask = {
 
 export type GenerationTaskDBModel = StoredEntity<GenerationTask>;
 
-export type SearchGenerationTaskModel = Partial<Omit<GenerationTaskDBModel, 'result' | 'usages'>>;
+export type SearchGenerationTaskModel = Partial<Omit<GenerationTaskDBModel, 'result' | 'usages' | 'expiry'>>;
 
-export type UpdateGenerationTaskModel = Pick<GenerationTask, 'internalId'> & Pick<Partial<GenerationTaskDBModel>, 'externalId' |'result' | 'type' | 'status'>;
+export type UpdateGenerationTaskModel = Pick<GenerationTask, 'internalId'> & Pick<Partial<GenerationTaskDBModel>, 'isDeleted' | 'externalId' |'result' | 'type' | 'status'>;
