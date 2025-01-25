@@ -84,7 +84,7 @@ export default class GenerationTaskApplication {
             expiryBefore: new Date(),
             status: GenerationTaskStatus.InProgress,
         }, {
-            status: GenerationTaskStatus.Error,
+            status: GenerationTaskStatus.Expired,
         }))
             _result.succeeded();
 
