@@ -11,14 +11,19 @@ export default class GenerationTaskApplication {
         this.#generationTaskRepository = container.generationTaskRepository;
     }
 
-    async create(task: { userId: string; usages: string[]; } & Pick<GenerationTask, 'expiry' | 'externalId' | 'type'>) {
-        const result = new OperationResultWithData<string>();
-        const internalId = randomUUID();
+    /** Use to generate UUID before calling create */
+    newId() {
+        return randomUUID();
+    }
+
+    /** Get internal id from `newId` function */
+    async create(task: { userId: string; usages: string[]; } & Pick<GenerationTask, 'expiry' | 'internalId' | 'externalId' | 'type'>) {
+        const result = new OperationResult();
 
         const created = await this.#generationTaskRepository.create({
             insertDate: new Date(),
             isDeleted: false,
-            internalId: internalId,
+            internalId: task.internalId,
             externalId: task.externalId,
             expiry: task.expiry,
             result: null,
@@ -29,7 +34,7 @@ export default class GenerationTaskApplication {
         });
 
         if (created === true)
-            result.succeeded().setData(internalId);
+            result.succeeded();
 
         return result;
     }
