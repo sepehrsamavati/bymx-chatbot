@@ -17,6 +17,6 @@ export type GenerationTask = {
 
 export type GenerationTaskDBModel = StoredEntity<GenerationTask>;
 
-export type SearchGenerationTaskModel = Partial<Omit<GenerationTaskDBModel, 'result' | 'usages' | 'expiry'>>;
+export type SearchGenerationTaskModel = { expiryBefore?: Date; } & Partial<Omit<GenerationTaskDBModel, 'result' | 'usages' | 'expiry'>>;
 
-export type UpdateGenerationTaskModel = Pick<GenerationTask, 'internalId'> & Pick<Partial<GenerationTaskDBModel>, 'isDeleted' | 'externalId' |'result' | 'type' | 'status'>;
+export type UpdateGenerationTaskModel = Pick<Partial<GenerationTaskDBModel>, 'isDeleted' | 'externalId' | 'result' | 'type' | 'status'>;

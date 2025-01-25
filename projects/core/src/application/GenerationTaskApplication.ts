@@ -56,8 +56,8 @@ export default class GenerationTaskApplication {
     async setCompleted(internalId: string, result: unknown = null) {
         const _result = new OperationResult();
 
-        if (await this.#generationTaskRepository.updateOne({
-            internalId, result,
+        if (await this.#generationTaskRepository.updateOne({ internalId }, {
+            result,
             status: GenerationTaskStatus.OK,
         }))
             _result.succeeded();
@@ -68,8 +68,22 @@ export default class GenerationTaskApplication {
     async setErrored(internalId: string, result: unknown = null) {
         const _result = new OperationResult();
 
-        if (await this.#generationTaskRepository.updateOne({
-            internalId, result,
+        if (await this.#generationTaskRepository.updateOne({ internalId }, {
+            result,
+            status: GenerationTaskStatus.Error,
+        }))
+            _result.succeeded();
+
+        return _result;
+    }
+
+    async markExpiredItems() {
+        const _result = new OperationResult();
+
+        if (await this.#generationTaskRepository.updateMany({
+            expiryBefore: new Date(),
+            status: GenerationTaskStatus.InProgress,
+        }, {
             status: GenerationTaskStatus.Error,
         }))
             _result.succeeded();

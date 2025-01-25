@@ -40,14 +40,16 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         if (filter.type !== undefined)
             _filter.type = filter.type;
 
+        if (filter.expiryBefore !== undefined)
+            _filter.expiry = {
+                $lt: filter.expiryBefore
+            };
+
         return _filter;
     }
 
     #getUpdate(update: UpdateGenerationTaskModel) {
         const _update: UpdateQuery<GenerationTaskDBModel> = {};
-
-        if (update.internalId !== undefined)
-            _update.internalId = update.internalId;
 
         if (update.externalId !== undefined)
             _update.externalId = update.externalId;
@@ -111,11 +113,16 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         return res ? res.map(item => this.#storedToView(item) as GenerationTask) : null;
     }
 
-    async updateOne(update: UpdateGenerationTaskModel): Promise<boolean | null> {
+    async updateOne(filter: Pick<GenerationTask, 'internalId'>, update: UpdateGenerationTaskModel): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramJoinRequiredChat.updateOne({
-            internalId: update.internalId
+            internalId: filter.internalId,
         }, this.#getUpdate(update));
 
         return Boolean(res.matchedCount !== 0);
+    }
+
+    async updateMany(filter: SearchModel, update: UpdateGenerationTaskModel): Promise<boolean | null> {
+        await this.#databaseConnection.models.telegramJoinRequiredChat.updateMany(this.#getFilter(filter), this.#getUpdate(update));
+        return true;
     }
 }
