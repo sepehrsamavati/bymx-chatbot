@@ -3,6 +3,7 @@ import config from "../config.js";
 import fs from "node:fs/promises";
 import { fal } from "@fal-ai/client";
 import { ServicesType } from "../Container.js";
+import urls from "../helpers/httpServerUrls.js";
 import { User } from "../types/entities/user.js";
 import { errorLogger } from "../helpers/logger.js";
 import { AIChat } from "../types/entities/aiChat.js";
@@ -290,8 +291,7 @@ export default class AIApplication {
         if (!model)
             return result.failed();
 
-        const hostedFileUrl = new URL(config.apiServer.baseAddress);
-        hostedFileUrl.pathname = `/api/v1/tempFile/${opts.audioFile.fsId}`;
+        const hostedFileUrl = urls.v1.tempFile.createUrl(opts.audioFile.fsId);
 
         const costUsdCent = model.pricePmu.outputAudio / (1_000_000 * 100);
         // const costUsdCent = 3.5;
@@ -507,9 +507,7 @@ export default class AIApplication {
 
             let imageUrl: string | undefined = undefined;
             if (image) {
-                const hostedFileUrl = new URL(config.apiServer.baseAddress);
-                hostedFileUrl.pathname = `/api/v1/tempFile/${image.fsId}`;
-                imageUrl = hostedFileUrl.toString();
+                imageUrl = urls.v1.tempFile.createUrl(image.fsId).toString();
             }
 
             const startTime = performance.now();

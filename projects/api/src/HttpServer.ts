@@ -2,7 +2,7 @@ import "reflect-metadata";
 import Fastify from 'fastify';
 import fs from "node:fs/promises";
 import mimetype from 'mime-types';
-import { config, IServices, logger, storageHelper } from "bymx-core/server";
+import { config, httpServerUrls, IServices, logger, storageHelper } from "bymx-core/server";
 import { dtoValidator } from './middlewares/dtoValidator.js';
 import FalAiResult from './dto/FalAiResult.js';
 
@@ -36,7 +36,7 @@ export default class HttpServer {
 
         this.#fastify.register((instance, _, next) => {
 
-            instance.get("/tempFile/:id", async (request, reply) => {
+            instance.get(`/${httpServerUrls.v1.tempFile.path}/:id`, async (request, reply) => {
                 const { id } = request.params as { id: string };
 
                 if (typeof id === "string" && id.length > 0) {
@@ -68,7 +68,7 @@ export default class HttpServer {
                 }
             });
 
-            instance.post("/setTaskResult/fal-ai/:id",
+            instance.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`,
                 { preValidation: dtoValidator(FalAiResult) },
                 async (request, reply) => {
                     const { id } = request.params as { id: string };
@@ -79,7 +79,7 @@ export default class HttpServer {
                 });
 
             next();
-        }, { prefix: "/api/v1" });
+        }, { prefix: httpServerUrls.v1.baseAddress });
 
         this.#fastify.listen({
             port: config.apiServer.port,
