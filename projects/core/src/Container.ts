@@ -17,6 +17,7 @@ import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import GenerationTaskApplication from "./application/GenerationTaskApplication.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
@@ -62,6 +63,7 @@ type Applications = {
     planApplication: PlanApplication;
     aiChatApplication: AIChatApplication;
     aiModelApplication: AIModelApplication;
+    generationTaskApplication: GenerationTaskApplication;
     userSubscriptionApplication: UserSubscriptionApplication;
     telegramBroadcastApplication: TelegramBroadcastApplication;
     telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
@@ -129,6 +131,7 @@ export default class CoreServices {
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
             aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),
+            generationTaskApplication: asClass(GenerationTaskApplication, { lifetime: "SCOPED" }),
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),

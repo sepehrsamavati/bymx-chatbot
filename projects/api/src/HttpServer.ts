@@ -73,9 +73,26 @@ export default class HttpServer {
                 async (request, reply) => {
                     const { id } = request.params as { id: string };
 
-                    if (typeof id !== "string" || id.length > 40 || id.length === 0) {
-                        reply.status(400).send({ error: "Invalid id" });
+                    if (typeof id !== "string" || id.length > 40 || id.length === 0)
+                        return reply.status(400).send({ error: "Invalid id" });
+
+                    const falResult = request.locals.dto as FalAiResult;
+
+                    const { data: task } = await request.locals.applications.generationTaskApplication.getInProgress({
+                        internalId: id,
+                        externalId: falResult.request_id,
+                    });
+
+                    if (!task)
+                        return reply.status(404).send({ error: "Task not found" });
+
+                    if (falResult.status === "OK") {
+                        await request.locals.applications.generationTaskApplication.setCompleted(task.internalId, falResult);
+                    } else {
+                        await request.locals.applications.generationTaskApplication.setErrored(task.internalId);
                     }
+
+                    return reply.status(200).send({ ok: true });
                 });
 
             next();
