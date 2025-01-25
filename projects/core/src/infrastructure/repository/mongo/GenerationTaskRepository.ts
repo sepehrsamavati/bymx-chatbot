@@ -4,7 +4,7 @@ import type { FlattenToIDs } from "../../../types/contracts/entities.js";
 import type { IGenerationTaskRepository } from "../../../types/contracts/repositories.js";
 import type { GenerationTask, GenerationTaskDBModel, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../../../types/entities/generationTask.js";
 
-type CreateModel = FlattenToIDs<GenerationTask, 'user' | 'usages'>;
+type CreateModel = FlattenToIDs<GenerationTaskDBModel, 'user' | 'usages'>;
 type SearchModel = FlattenToIDs<SearchGenerationTaskModel, 'user'>;
 
 export class GenerationTaskRepository implements IGenerationTaskRepository {

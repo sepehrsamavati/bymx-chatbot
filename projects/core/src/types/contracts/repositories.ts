@@ -6,10 +6,10 @@ import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUs
 import type { AIChat, AIChatDBModel, SearchAIChat, UpdateAIChat } from "../entities/aiChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
+import type { GenerationTask, GenerationTaskDBModel, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../entities/generationTask";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
 import type { CreateUserSubscription, SearchUserSubscription, UpdateUserSubscription, UserSubscription, UserSubscriptionDBModel } from "../entities/userSubscription";
 import type { SearchTelegramJoinRequiredChat, TelegramJoinRequiredChat, CreateTelegramJoinRequiredChat, UpdateTelegramJoinRequiredChat } from "../entities/telegramJoinRequiredChat";
-import { GenerationTask, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../entities/generationTask";
 
 export interface ITransaction {
     start: () => Promise<boolean>;
@@ -121,7 +121,7 @@ export type ITelegramJoinRequiredChatRepository = {
 }
 
 export type IGenerationTaskRepository = {
-    create(task: FlattenToIDs<GenerationTask, 'user' | 'usages'>): Promise<boolean | null>;
+    create(task: FlattenToIDs<GenerationTaskDBModel, 'user' | 'usages'>): Promise<boolean | null>;
     getOne(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask | null>;
     getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask[] | null>;
     updateOne(update: UpdateGenerationTaskModel): Promise<boolean | null>;

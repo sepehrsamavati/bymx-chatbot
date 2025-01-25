@@ -26,6 +26,7 @@ import { AIModelRepository } from "./infrastructure/repository/mongo/AIModelRepo
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
 import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequiredChatApplication.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
+import { GenerationTaskRepository } from "./infrastructure/repository/mongo/GenerationTaskRepository.js";
 import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/UserSubscriptionRepository.js";
 import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
 import { UserSubscriptionUsageRepository } from "./infrastructure/repository/mongo/UserSubscriptionUsageRepository.js";
@@ -49,6 +50,7 @@ type Repositories = {
     aiModelRepository: RepoInterfaces.IAIModelRepository;
     promptRepository: RepoInterfaces.IPromptRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
+    generationTaskRepository: RepoInterfaces.IGenerationTaskRepository;
     telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
     telegramJoinRequiredChatRepository: RepoInterfaces.ITelegramJoinRequiredChatRepository;
 };
@@ -147,6 +149,7 @@ export default class CoreServices {
             planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),
             promptRepository: asClass(errorCatcher(PromptRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
+            generationTaskRepository: asClass(errorCatcher(GenerationTaskRepository), { lifetime: "SCOPED" }),
             telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),
             telegramJoinRequiredChatRepository: asClass(errorCatcher(TelegramJoinRequiredChatRepository), { lifetime: "SCOPED" }),
         });
