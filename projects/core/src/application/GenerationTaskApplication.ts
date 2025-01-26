@@ -17,11 +17,13 @@ export default class GenerationTaskApplication {
     }
 
     /** Get internal id from `newId` function */
-    async create(task: { userId: string; usages: string[]; } & Pick<GenerationTask, 'expiry' | 'internalId' | 'externalId' | 'type'>) {
+    async create(task: { userId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type'>) {
         const result = new OperationResult();
 
         const created = await this.#generationTaskRepository.create({
             insertDate: new Date(),
+            startDate: task.startDate,
+            endDate: task.endDate,
             isDeleted: false,
             internalId: task.internalId,
             externalId: task.externalId,
@@ -64,6 +66,7 @@ export default class GenerationTaskApplication {
         if (await this.#generationTaskRepository.updateOne({ internalId }, {
             result,
             status: GenerationTaskStatus.OK,
+            endDate: new Date(),
         }))
             _result.succeeded();
 
@@ -76,6 +79,7 @@ export default class GenerationTaskApplication {
         if (await this.#generationTaskRepository.updateOne({ internalId }, {
             result,
             status: GenerationTaskStatus.Error,
+            endDate: new Date(),
         }))
             _result.succeeded();
 
@@ -90,6 +94,7 @@ export default class GenerationTaskApplication {
             status: GenerationTaskStatus.InProgress,
         }, {
             status: GenerationTaskStatus.Expired,
+            endDate: new Date(),
         }))
             _result.succeeded();
 

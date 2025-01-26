@@ -66,6 +66,12 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         if (update.result !== undefined)
             _update.result = update.result;
 
+        if (update.startDate !== undefined)
+            _update.startDate = update.startDate;
+
+        if (update.endDate !== undefined)
+            _update.endDate = update.endDate;
+
         return _update;
     }
 
@@ -82,6 +88,8 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             type: result.type,
             usages: result.usages,
             user: result.user,
+            startDate: result.startDate,
+            endDate: result.endDate,
         };
 
         return generationTask;

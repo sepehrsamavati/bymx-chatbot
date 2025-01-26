@@ -26,6 +26,14 @@ const schema = new mongoose.Schema<MongoStored<GenerationTaskDBModel>>({
         type: Date,
         required: true,
     },
+    startDate: {
+        type: Date,
+        required: true,
+    },
+    endDate: {
+        type: Date,
+        required: true,
+    },
     internalId: {
         type: String,
         required: true,

@@ -9,6 +9,9 @@ export type GenerationTask = {
     externalId: string;
     result: unknown;
     expiry: Date;
+    startDate: Date;
+    /** Shows when the last status change is occurred - Initial value is the same as start date */
+    endDate: Date;
     user: User;
     usages: UserSubscriptionUsage[];
     type: GenerationTaskType;
@@ -17,6 +20,6 @@ export type GenerationTask = {
 
 export type GenerationTaskDBModel = StoredEntity<GenerationTask>;
 
-export type SearchGenerationTaskModel = { expiryBefore?: Date; } & Partial<Omit<GenerationTaskDBModel, 'result' | 'usages' | 'expiry'>>;
+export type SearchGenerationTaskModel = { expiryBefore?: Date; } & Partial<Omit<GenerationTaskDBModel, 'result' | 'usages' | 'expiry' | 'startDate' | 'endDate'>>;
 
-export type UpdateGenerationTaskModel = Pick<Partial<GenerationTaskDBModel>, 'isDeleted' | 'externalId' | 'result' | 'type' | 'status'>;
+export type UpdateGenerationTaskModel = Pick<Partial<GenerationTaskDBModel>, 'isDeleted' | 'externalId' | 'result' | 'type' | 'status' | 'startDate' | 'endDate'>;
