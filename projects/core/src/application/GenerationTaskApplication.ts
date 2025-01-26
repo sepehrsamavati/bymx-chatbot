@@ -17,7 +17,7 @@ export default class GenerationTaskApplication {
     }
 
     /** Get internal id from `newId` function */
-    async create(task: { userId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type'>) {
+    async create(task: { userId: string; modelId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'cost' | 'points'>) {
         const result = new OperationResult();
 
         const created = await this.#generationTaskRepository.create({
@@ -33,6 +33,9 @@ export default class GenerationTaskApplication {
             type: task.type,
             usages: task.usages,
             user: task.userId,
+            model: task.modelId,
+            cost: task.cost,
+            points: task.points,
         });
 
         if (created === true)

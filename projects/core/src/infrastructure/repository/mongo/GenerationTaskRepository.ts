@@ -4,8 +4,8 @@ import type { FlattenToIDs } from "../../../types/contracts/entities.js";
 import type { IGenerationTaskRepository } from "../../../types/contracts/repositories.js";
 import type { GenerationTask, GenerationTaskDBModel, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../../../types/entities/generationTask.js";
 
-type CreateModel = FlattenToIDs<GenerationTaskDBModel, 'user' | 'usages'>;
-type SearchModel = FlattenToIDs<SearchGenerationTaskModel, 'user'>;
+type CreateModel = FlattenToIDs<GenerationTaskDBModel, 'user' | 'model' | 'usages'>;
+type SearchModel = FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>;
 
 export class GenerationTaskRepository implements IGenerationTaskRepository {
     #databaseConnection;
@@ -90,6 +90,9 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             user: result.user,
             startDate: result.startDate,
             endDate: result.endDate,
+            model: result.model,
+            cost: result.cost,
+            points: result.points,
         };
 
         return generationTask;

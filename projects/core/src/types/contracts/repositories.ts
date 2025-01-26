@@ -121,9 +121,9 @@ export type ITelegramJoinRequiredChatRepository = {
 }
 
 export type IGenerationTaskRepository = {
-    create(task: FlattenToIDs<GenerationTaskDBModel, 'user' | 'usages'>): Promise<boolean | null>;
-    getOne(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask | null>;
-    getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>): Promise<GenerationTask[] | null>;
+    create(task: FlattenToIDs<GenerationTaskDBModel, 'user' | 'model' | 'usages'>): Promise<boolean | null>;
+    getOne(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<GenerationTask | null>;
+    getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<GenerationTask[] | null>;
     updateOne(filter: Pick<GenerationTask, 'internalId'>, update: UpdateGenerationTaskModel): Promise<boolean | null>;
-    updateMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user'>, update: UpdateGenerationTaskModel): Promise<boolean | null>;
+    updateMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>, update: UpdateGenerationTaskModel): Promise<boolean | null>;
 }
