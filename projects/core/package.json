@@ -19,6 +19,11 @@
       "import": "./dist/export/shared.js",
       "require": "./dist/export/shared.js",
       "types": "./dist/export/shared.d.ts"
+    },
+    "./events": {
+      "import": "./dist/export/events.js",
+      "require": "./dist/export/events.js",
+      "types": "./dist/export/events.d.ts"
     }
   },
   "scripts": {

@@ -1,7 +1,8 @@
 import { Expose, Type } from "class-transformer";
-import { IsDefined, IsLowercase, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
+import type { IFalAiWebhookResult } from "bymx-core/events";
+import { IsDefined, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
 
-export default class FalAiResult {
+export default class FalAiResult implements IFalAiWebhookResult {
     @Expose()
     @Type(() => String)
     @IsString()
