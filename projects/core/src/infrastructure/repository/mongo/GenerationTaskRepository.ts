@@ -15,7 +15,7 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
     }
 
     async create(chat: CreateModel): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models.telegramJoinRequiredChat.create(chat);
+        const res = await this.#databaseConnection.models.generationTask.create(chat);
         return Boolean(typeof res?._id !== "string");
     }
 
@@ -91,8 +91,7 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             startDate: result.startDate,
             endDate: result.endDate,
             model: result.model,
-            cost: result.cost,
-            points: result.points,
+            promptInfo: result.promptInfo,
         };
 
         return generationTask;
@@ -103,7 +102,8 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             .findOne(this.#getFilter(filter))
             .populate([
                 'user',
-                'usages'
+                'usages',
+                'model',
             ] satisfies Array<keyof GenerationTask>)
             .lean()
             .exec();
@@ -116,7 +116,8 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             .find(this.#getFilter(filter))
             .populate([
                 'user',
-                'usages'
+                'usages',
+                'model',
             ] satisfies Array<keyof GenerationTask>)
             .lean()
             .exec();
@@ -125,7 +126,7 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
     }
 
     async updateOne(filter: Pick<GenerationTask, 'internalId'>, update: UpdateGenerationTaskModel): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models.telegramJoinRequiredChat.updateOne({
+        const res = await this.#databaseConnection.models.generationTask.updateOne({
             internalId: filter.internalId,
         }, this.#getUpdate(update));
 
@@ -133,7 +134,7 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
     }
 
     async updateMany(filter: SearchModel, update: UpdateGenerationTaskModel): Promise<boolean | null> {
-        await this.#databaseConnection.models.telegramJoinRequiredChat.updateMany(this.#getFilter(filter), this.#getUpdate(update));
+        await this.#databaseConnection.models.generationTask.updateMany(this.#getFilter(filter), this.#getUpdate(update));
         return true;
     }
 }

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { userModelDefinition } from "./User.js";
+import { aiChatModelDefinition } from "./AIChat.js";
 import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 import { userSubscriptionUsageModelDefinition } from "./UserSubscriptionUsage.js";
 import { GenerationTaskType } from "../../../../types/enums/generationTaskType.js";
@@ -56,7 +57,6 @@ const schema = new mongoose.Schema<MongoStored<GenerationTaskDBModel>>({
     },
     result: {
         type: mongoose.SchemaTypes.Mixed,
-        required: true
     },
     usages: {
         type: [mongoose.Types.ObjectId],
@@ -68,4 +68,24 @@ const schema = new mongoose.Schema<MongoStored<GenerationTaskDBModel>>({
         ref: userModelDefinition.model,
         required: true
     },
+    model: {
+        type: mongoose.Types.ObjectId,
+        ref: "AIModel",
+        required: true
+    },
+    promptInfo: {
+        type: {
+            input: String,
+            cost: Number,
+            points: Number,
+            chat: {
+                type: mongoose.Types.ObjectId,
+                ref: aiChatModelDefinition.model,
+                required: false,
+            },
+            saved: Boolean,
+            fileId: String,
+        },
+        required: false,
+    }
 }, { versionKey: false, collection: generationTaskModelDefinition.collection });

@@ -17,7 +17,7 @@ export default class GenerationTaskApplication {
     }
 
     /** Get internal id from `newId` function */
-    async create(task: { userId: string; modelId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'cost' | 'points'>) {
+    async create(task: { userId: string; modelId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'promptInfo'>) {
         const result = new OperationResult();
 
         const created = await this.#generationTaskRepository.create({
@@ -34,8 +34,7 @@ export default class GenerationTaskApplication {
             usages: task.usages,
             user: task.userId,
             model: task.modelId,
-            cost: task.cost,
-            points: task.points,
+            promptInfo: task.promptInfo,
         });
 
         if (created === true)
@@ -63,15 +62,23 @@ export default class GenerationTaskApplication {
         return result;
     }
 
-    async setCompleted(internalId: string, result: unknown = null) {
+    async setCompleted(internalId: string, result: unknown = null, task?: GenerationTask) {
         const _result = new OperationResult();
+
+        const nowAsEndDate = new Date();
 
         if (await this.#generationTaskRepository.updateOne({ internalId }, {
             result,
             status: GenerationTaskStatus.OK,
-            endDate: new Date(),
-        }))
+            endDate: nowAsEndDate,
+        })) {
             _result.succeeded();
+            if (task) {
+                task.result = result;
+                task.status = GenerationTaskStatus.OK;
+                task.endDate = nowAsEndDate;
+            }
+        }
 
         return _result;
     }

@@ -16,8 +16,7 @@ export type GenerationTask = {
     endDate: Date;
     user: User;
     model: AIModel;
-    cost: Prompt['cost'];
-    points: Prompt['points'];
+    promptInfo?: Pick<Prompt, 'input' | 'cost' | 'points' | 'chat' | 'saved' | 'fileId'>;
     usages: UserSubscriptionUsage[];
     type: GenerationTaskType;
     status: GenerationTaskStatus;

@@ -86,11 +86,7 @@ export default class HttpServer {
                     if (!task)
                         return reply.status(404).send({ error: "Task not found" });
 
-                    if (falResult.status === "OK") {
-                        await request.locals.applications.generationTaskApplication.setCompleted(task.internalId, falResult);
-                    } else {
-                        await request.locals.applications.generationTaskApplication.setErrored(task.internalId);
-                    }
+                    await request.locals.applications.eventHandlerApplication.processFalAiResult(falResult, task);
 
                     return reply.status(200).send({ ok: true });
                 });

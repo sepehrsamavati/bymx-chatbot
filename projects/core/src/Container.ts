@@ -15,6 +15,7 @@ import OpenAIModelCache from "./infrastructure/services/AIModelCache.js";
 import type * as RepoInterfaces from "./types/contracts/repositories.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
+import EventHandlerApplication from "./application/EventHandlerApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import GenerationTaskApplication from "./application/GenerationTaskApplication.js";
@@ -63,6 +64,7 @@ type Applications = {
     planApplication: PlanApplication;
     aiChatApplication: AIChatApplication;
     aiModelApplication: AIModelApplication;
+    eventHandlerApplication: EventHandlerApplication;
     generationTaskApplication: GenerationTaskApplication;
     userSubscriptionApplication: UserSubscriptionApplication;
     telegramBroadcastApplication: TelegramBroadcastApplication;
@@ -131,6 +133,7 @@ export default class CoreServices {
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
             aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),
+            eventHandlerApplication: asClass(EventHandlerApplication, { lifetime: "SCOPED" }),
             generationTaskApplication: asClass(GenerationTaskApplication, { lifetime: "SCOPED" }),
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),

@@ -18,15 +18,9 @@ import { IOpenAITextResult } from "../types/contracts/services.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import type { AIGeneratedImageResponse } from "../types/contracts/aiResponse.js";
 import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { GenerationTaskType } from "../types/enums/generationTaskType.js";
-
-type AIGeneratedImageResponse = {
-    url: string;
-    modelName: string;
-    pointUsage: number;
-}
 
 type MultiModalInput = {
     text: { text: string; };
@@ -197,9 +191,12 @@ export default class AIApplication {
             return result.failed("pointNotEnough");
 
         if (this.#messageLock.isLocked(user.id))
+            
             return result.failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
+
+        const startTime = performance.now();
 
         let prompt = message;
 
@@ -214,71 +211,59 @@ export default class AIApplication {
             }
         }
 
-        const startTime = new Date();
-        const internalTaskId = this.#generationTaskApplication.newId();
-
         const falResponse = await fal.subscribe(model.name, {
             input: {
                 prompt,
                 enable_safety_checker: true,
             },
-            webhookUrl: urls.v1.falAiSetResult.createUrl(internalTaskId).toString(),
+            // logs: true,
+            // onQueueUpdate: (update) => {
+            //     if (update.status === "IN_PROGRESS") {
+            //         update.logs.map((log) => log.message).forEach(console.log);
+            //     }
+            // },
         });
 
-        const externalTaskId = falResponse.requestId;
+        const responseTime = performance.now() - startTime;
 
-        // const responseTime = performance.now() - startTime;
+        const generatedImage = falResponse.data.images.at(0);
+        if (generatedImage && falResponse.data.images.length === 1) {
+            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            if (contentPolicyViolation) {
+                result.failed("promptContentNotAllowed");
+            }
+            else {
+                result
+                    .succeeded()
+                    .setData({
+                        url: generatedImage.url,
+                        pointUsage: userPointCost,
+                        modelName: model.title,
+                    });
 
-        const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
-        await this.#generationTaskApplication.create({
-            expiry: new Date(startTime.getTime() + (1000 * 60 * 60)),
-            cost: costUsdCent / 100,
-            internalId: internalTaskId,
-            externalId: externalTaskId,
-            startDate: startTime,
-            endDate: startTime,
-            modelId: model.id,
-            points: userPointCost,
-            type: GenerationTaskType.FalAiMiniMaxMusicGeneration,
-            userId: user.id,
-            usages: savedUsageIds ?? [],
-        });
-
-        // const generatedImage = falResponse.data.images.at(0);
-        // if (generatedImage && falResponse.data.images.length === 1) {
-        //     const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
-        //     if (contentPolicyViolation) {
-        //         result.failed("promptContentNotAllowed");
-        //     } else {
-        //         result
-        //             .succeeded()
-        //             .setData({
-        //                 url: generatedImage.url,
-        //                 pointUsage: userPointCost,
-        //                 modelName: model.title,
-        //             });
-
-        //         await this.#promptRepository.create({
-        //             cost: ,
-        //             insertDate: new Date(),
-        //             isDeleted: false,
-        //             input: message,
-        //             output: generatedImage.url,
-        //             points: userPointCost,
-        //             model: model.name,
-        //             saved: false,
-        //             usages: ,
-        //             promptUser: user,
-        //             responseTime: responseTime,
-        //         });
-        //     }
-        // }
+                await this.#promptRepository.create({
+                    cost: costUsdCent / 100,
+                    insertDate: new Date(),
+                    isDeleted: false,
+                    input: message,
+                    output: generatedImage.url,
+                    points: userPointCost,
+                    model: model.name,
+                    saved: false,
+                    usages: savedUsageIds ?? [],
+                    promptUser: user,
+                    responseTime: responseTime,
+                });
+            }
+        }
 
         this.#messageLock.unlock(user.id);
 
         return result;
     }
+
 
     async musicGenerateWithLyrics(user: User, opts: {
         audioFile: UserTempFile;
