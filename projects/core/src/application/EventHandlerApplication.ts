@@ -2,7 +2,7 @@ import type { ServicesType } from "../Container.js";
 import { OperationResultWithData } from "../export/shared.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
 import type { GenerationTask } from "../types/entities/generationTask.js";
-import type { AIGeneratedImageResponse } from "../types/contracts/aiResponse.js";
+import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
 import { falAiResultEventBus, type IFalAiWebhookResult } from "../events/falAiResultEventBus.js";
 
 export default class EventHandlerApplication {
@@ -22,12 +22,12 @@ export default class EventHandlerApplication {
                 case GenerationTaskType.FalAiMiniMaxMusicGeneration: {
                     const responseTime = new Date().getTime() - task.startDate.getTime();
 
-                    const result = new OperationResultWithData<AIGeneratedImageResponse>();
+                    const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("musicGenerationFailed");
                     const responseData = falAiResult.payload as object;
 
-                    if ('images' in responseData && Array.isArray(responseData.images)) {
-                        const generatedImage = responseData.images.at(0);
-                        if (generatedImage && responseData.images.length === 1) {
+                    if ('audio' in responseData) {
+                        const generatedMusic = responseData?.audio as object;
+                        if (generatedMusic && 'url' in generatedMusic && typeof generatedMusic.url === "string") {
                             const contentPolicyViolation = 'has_nsfw_concepts' in responseData && Array.isArray(responseData.has_nsfw_concepts) && responseData.has_nsfw_concepts.includes(true);
                             if (contentPolicyViolation) {
                                 result.failed("promptContentNotAllowed");
@@ -35,7 +35,7 @@ export default class EventHandlerApplication {
                                 result
                                     .succeeded()
                                     .setData({
-                                        url: generatedImage.url,
+                                        url: generatedMusic.url,
                                         pointUsage: task.promptInfo?.points ?? 0,
                                         modelName: task.model.title,
                                     });
@@ -43,22 +43,20 @@ export default class EventHandlerApplication {
                                 if (task.promptInfo)
                                     await this.#promptRepository.create({
                                         ...task.promptInfo,
+                                        promptUser: task.user,
                                         insertDate: new Date(),
                                         isDeleted: false,
-                                        output: generatedImage.url,
+                                        output: generatedMusic.url,
                                         model: task.model.name,
                                         usages: task.usages.map(u => u.id),
-                                        promptUser: task.user,
+                                        saved: false,
                                         responseTime: responseTime,
                                     });
                             }
                         }
                     }
-                    else
-                        result.failed("errorOccurred");
 
                     falAiResultEventBus.emit("internalProcessFinished", result, task);
-
                 } break;
             }
         } else {

@@ -205,6 +205,11 @@ const keys = [
     "creatingMusicPleaseWait",
     "modelSupportsEnglishInputBetterHint",
     "lyricsTooLong",
+    "estimatedResponseTime",
+    "musicIsBeingGeneratedPleaseWait",
+    "musicGenerated",
+    "musicGenerationFailed",
+    "waitForPendingTasksBeforeNewRequest",
 ] as const;
 
 export type UITextKey = typeof keys[number];

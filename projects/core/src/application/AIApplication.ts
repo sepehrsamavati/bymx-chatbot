@@ -17,8 +17,9 @@ import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
 import { IOpenAITextResult } from "../types/contracts/services.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
+import { GenerationTaskType } from "../types/enums/generationTaskType.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
-import type { AIGeneratedImageResponse } from "../types/contracts/aiResponse.js";
+import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
 import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 
@@ -47,6 +48,8 @@ type MultiModalOutput = {
         duration: number;
     };
 }
+
+type FalAiResponse = Awaited<ReturnType<typeof fal.subscribe>>;
 
 fal.config({
     credentials: config.falAI.apiToken,
@@ -169,8 +172,8 @@ export default class AIApplication {
         };
     }
 
-    async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
-        const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
+    async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedMediaResponse>> {
+        const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("errorOccurred");
 
         const model = this.#aiModelCache.getModelByName(this.#fluxModelName);
         if (!model)
@@ -191,7 +194,7 @@ export default class AIApplication {
             return result.failed("pointNotEnough");
 
         if (this.#messageLock.isLocked(user.id))
-            
+
             return result.failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
@@ -268,8 +271,8 @@ export default class AIApplication {
     async musicGenerateWithLyrics(user: User, opts: {
         audioFile: UserTempFile;
         lyrics: string;
-    }): Promise<OperationResultWithData<AIGeneratedImageResponse>> {
-        const result = new OperationResultWithData<AIGeneratedImageResponse>().failed("errorOccurred");
+    }): Promise<OperationResultWithData<string>> {
+        const result = new OperationResultWithData<string>().failed("errorOccurred");
         const maxLyricsLength = 600;
 
         if (opts.lyrics.length > maxLyricsLength)
@@ -320,50 +323,55 @@ export default class AIApplication {
                 opts.lyrics = lyricsWithAccompaniment;
         }
 
-        const startTime = performance.now();
+        const startTime = new Date();
+        const internalTaskId = this.#generationTaskApplication.newId();
 
-        const falResponse = await fal.subscribe(this.#minimaxModelName, {
-            input: {
-                prompt: opts.lyrics,
-                enable_safety_checker: true,
-                reference_audio_url: hostedFileUrl.toString(),
-            },
-        });
+        let falResponse: FalAiResponse | null = null;
 
-        const responseTime = performance.now() - startTime;
-
-        const generatedMusic = falResponse.data?.audio;
-        if (generatedMusic) {
-            const contentPolicyViolation = 'has_nsfw_concepts' in falResponse.data && falResponse.data.has_nsfw_concepts.includes(true);
-            if (contentPolicyViolation) {
-                result.failed("promptContentNotAllowed");
-            }
-            else {
-                result
-                    .succeeded()
-                    .setData({
-                        url: generatedMusic.url,
-                        pointUsage: userPointCost,
-                        modelName: model.title,
-                    });
-
-                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
-
-                await this.#promptRepository.create({
-                    cost: costUsdCent / 100,
-                    insertDate: new Date(),
-                    isDeleted: false,
-                    input: opts.lyrics,
-                    output: generatedMusic.url,
-                    points: userPointCost,
-                    model: model.name,
-                    saved: false,
-                    usages: savedUsageIds ?? [],
-                    promptUser: user,
-                    responseTime: responseTime,
-                });
-            }
+        try {
+            falResponse = await fal.subscribe(this.#minimaxModelName, {
+                input: {
+                    prompt: opts.lyrics,
+                    enable_safety_checker: true,
+                    reference_audio_url: hostedFileUrl.toString(),
+                },
+                webhookUrl: urls.v1.falAiSetResult.createUrl(internalTaskId).toString(),
+            });
+        } catch (err) {
+            errorLogger(`fal.ai music generation request failed / Task: '${internalTaskId}'`, err);
         }
+
+        if (falResponse) {
+            const externalTaskId = falResponse.requestId;
+
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+            const taskCreationResult = await this.#generationTaskApplication.create({
+                expiry: new Date(startTime.getTime() + (1000 * 60 * 60)),
+                promptInfo: {
+                    cost: costUsdCent / 100,
+                    points: userPointCost,
+                    input: opts.lyrics,
+                    saved: false,
+                    fileId: opts.audioFile.fsId,
+                },
+                internalId: internalTaskId,
+                externalId: externalTaskId,
+                startDate: startTime,
+                endDate: startTime,
+                modelId: model.id,
+                type: GenerationTaskType.FalAiMiniMaxMusicGeneration,
+                userId: user.id,
+                usages: savedUsageIds ?? [],
+            });
+
+            if (taskCreationResult.ok)
+                result.succeeded("musicIsBeingGeneratedPleaseWait").setData(internalTaskId);
+            else
+                result.failed("errorOccurred");
+        }
+        else
+            result.failed("errorOccurred");
 
         this.#messageLock.unlock(user.id);
 

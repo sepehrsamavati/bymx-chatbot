@@ -43,6 +43,21 @@ export default class GenerationTaskApplication {
         return result;
     }
 
+    async getUserInProgressTasksCount(userId: string) {
+        const result = new OperationResultWithData<number>();
+
+        const count = await this.#generationTaskRepository.count({
+            user: userId,
+            isDeleted: false,
+            status: GenerationTaskStatus.InProgress,
+        });
+
+        if(Number.isInteger(count))
+            result.succeeded().setData(count);
+
+        return result;
+    }
+
     async getInProgress(opts: {
         internalId: string;
         externalId: string;
@@ -62,6 +77,13 @@ export default class GenerationTaskApplication {
         return result;
     }
 
+    /**
+     * 
+     * @param internalId 
+     * @param result 
+     * @param task Pass to update reference value when DB call is successful
+     * @returns 
+     */
     async setCompleted(internalId: string, result: unknown = null, task?: GenerationTask) {
         const _result = new OperationResult();
 
@@ -83,15 +105,30 @@ export default class GenerationTaskApplication {
         return _result;
     }
 
-    async setErrored(internalId: string, result: unknown = null) {
+    /**
+     * 
+     * @param internalId 
+     * @param result 
+     * @param task Pass to update reference value when DB call is successful
+     * @returns 
+     */
+    async setErrored(internalId: string, result: unknown = null, task?: GenerationTask) {
         const _result = new OperationResult();
+
+        const nowAsEndDate = new Date();
 
         if (await this.#generationTaskRepository.updateOne({ internalId }, {
             result,
             status: GenerationTaskStatus.Error,
-            endDate: new Date(),
-        }))
+            endDate: nowAsEndDate,
+        })) {
             _result.succeeded();
+            if (task) {
+                task.result = result;
+                task.status = GenerationTaskStatus.Error;
+                task.endDate = nowAsEndDate;
+            }
+        }
 
         return _result;
     }

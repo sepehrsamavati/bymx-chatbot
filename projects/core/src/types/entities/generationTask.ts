@@ -1,10 +1,10 @@
+import { Prompt } from "./prompt.js";
 import type { User } from "./user.js";
 import type { AIModel } from "./aiModel.js";
 import type { StoredEntity } from "../contracts/entities.js";
 import type { UserSubscriptionUsage } from "./userSubscriptionUsage.js";
 import type { GenerationTaskType } from "../enums/generationTaskType.js";
 import type { GenerationTaskStatus } from "../enums/generationTaskStatus.js";
-import { Prompt } from "./prompt.js";
 
 export type GenerationTask = {
     internalId: string;

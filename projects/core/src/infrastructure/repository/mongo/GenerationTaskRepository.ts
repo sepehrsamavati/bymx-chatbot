@@ -102,6 +102,14 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         return generationTask;
     }
 
+    async count(filter: SearchModel): Promise<number | null> {
+        const res = await this.#databaseConnection.models.generationTask
+            .countDocuments(this.#getFilter(filter))
+            .lean()
+            .exec();
+        return res;
+    }
+
     async getOne(filter: SearchModel): Promise<GenerationTask | null> {
         const res = await this.#databaseConnection.models.generationTask
             .findOne(this.#getFilter(filter))

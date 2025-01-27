@@ -195,5 +195,10 @@
     "nowReplyLyricsToAudio": "حالا متن/شعر رو به آهنگ ریپلای کن",
     "creatingMusicPleaseWait": "در حال ساخت آهنگ؛ این مرحله ممکن است بیشتر از یک دقیقه زمان بر باشد، لطفا منتظر بمانید...",
     "modelSupportsEnglishInputBetterHint": "ورودی این مدل بهتر است انگلیسی باشد، در غیر این صورت دقت پایین‌تری خواهد داشت!",
-    "lyricsTooLong": "طول متن ترانه بیشتر از حد مجاز است!"
+    "lyricsTooLong": "طول متن ترانه بیشتر از حد مجاز است!",
+    "estimatedResponseTime": "مدت زمان تقریبی پاسخدهی",
+    "musicIsBeingGeneratedPleaseWait": "در حال ساخت آهنگ، لطفا منتظر پاسخ بمانید...",
+    "musicGenerated": "آهنگ ساخته شده!",
+    "musicGenerationFailed": "ساخت آهنگ با خطا مواجه شد!",
+    "waitForPendingTasksBeforeNewRequest": "درخواست قبلی شما همچنان در حال پردازش است! لطفا قبل از ارسال درخواست جدید منتظر پاسخ درخواست‌های قبلی خود بمانید..."
 }

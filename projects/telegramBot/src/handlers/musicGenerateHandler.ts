@@ -1,12 +1,12 @@
+import { fileHelper } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
-import { stringHelper } from "bymx-core/shared";
 import { UserTempFileEntity } from "bymx-core/types";
 import tgCall, { downloadFile } from "../helpers/call.js";
+import { stringHelper, UserMode } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { UserMode } from "../../../core/dist/types/enums/userMode.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { errorLogger, fileHelper, storageHelper } from "bymx-core/server";
+import { cache as stepBridgeCache } from "../modules/musicGenerationEventListener.js";
 
 export const musicGenerateHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -149,69 +149,17 @@ export const musicGenerateHandler: IUpdateHandler = {
 
             unlockFileProcessing();
 
-            if (musicGenerateResult.ok && musicGenerateResult.data) {
-                await tgCall(
-                    TelegramMethods.SendChatAction,
-                    {
-                        chat_id: update.message?.chat.id,
-                        action: "upload_voice"
-                    }
-                );
+            if (musicGenerateResult.data)
+                stepBridgeCache.set(musicGenerateResult.data, {
+                    internalTaskId: musicGenerateResult.data,
+                    update: update,
+                });
 
-                const chatId = update.message?.chat.id;
-                const messageId = update.message?.message_id;
-                const performer = `@${context.botUsername} - ${musicGenerateResult.data.modelName}`;
-                const title = audio.title || `Telegram: @${context.botUsername}`;
-                const replyMarkup = {
-                    inline_keyboard: [
-                        [
-                            { text: `${emojiIcon.point} ${musicGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
-                            { text: `${emojiIcon.model} ${musicGenerateResult.data.modelName}`, callback_data: "modelProcessedThisMessage" },
-                        ],
-                        [
-                            { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
-                        ]
-                    ]
+            return {
+                call: {
+                    text: `${musicGenerateResult.ok ? emojiIcon.ok : emojiIcon.failed} ${musicGenerateResult.message}`
                 }
-
-                try { // download/upload manually to set performer/title
-                    const song = await fetch(musicGenerateResult.data.url).then(r => r.blob());
-
-                    const form = new FormData();
-
-                    form.append("chat_id", chatId.toString());
-                    form.append('reply_to_message_id', messageId.toString());
-                    form.append('audio', song);
-                    form.append('performer', performer);
-                    form.append('title', title);
-                    form.append('reply_markup', JSON.stringify(replyMarkup));
-
-                    await tgCall(
-                        TelegramMethods.SendAudio,
-                        form
-                    );
-                } catch (err) {
-                    errorLogger("Music generate upload failed", err);
-                    await tgCall(
-                        TelegramMethods.SendAudio,
-                        {
-                            chat_id: chatId,
-                            reply_to_message_id: messageId,
-                            audio: musicGenerateResult.data.url,
-                            performer: performer,
-                            title: title,
-                            reply_markup: replyMarkup,
-                        }
-                    );
-                }
-            } else {
-                return {
-                    call: {
-                        text: musicGenerateResult.message
-                    }
-                };
-            }
-
+            };
         } else if (audio) {
 
             if (audio.duration > 360) {
