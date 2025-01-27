@@ -3,6 +3,7 @@ import type { FilterQuery, FlattenMaps, UpdateQuery } from "mongoose";
 import type { FlattenToIDs } from "../../../types/contracts/entities.js";
 import type { IGenerationTaskRepository } from "../../../types/contracts/repositories.js";
 import type { GenerationTask, GenerationTaskDBModel, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../../../types/entities/generationTask.js";
+import { PopulatedProperty } from "./lib/model.type.js";
 
 type CreateModel = FlattenToIDs<GenerationTaskDBModel, 'user' | 'model' | 'usages'>;
 type SearchModel = FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>;
@@ -79,6 +80,10 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         if (!result)
             return null;
 
+        const user = result.user as PopulatedProperty<GenerationTaskDBModel['user']>;
+        const model = result.model as PopulatedProperty<GenerationTaskDBModel['model']>;
+        const usages = result.usages as PopulatedProperty<GenerationTaskDBModel['usages'][number]>[];
+
         const generationTask: GenerationTask = {
             internalId: result.internalId,
             externalId: result.externalId,
@@ -86,11 +91,11 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
             result: result.result,
             status: result.status,
             type: result.type,
-            usages: result.usages,
-            user: result.user,
+            usages: usages.map(u => ({ ...u, id: u._id.toString() })),
+            user: { ...user, id: user._id.toString(), },
+            model: { ...model, id: model._id.toString(), },
             startDate: result.startDate,
             endDate: result.endDate,
-            model: result.model,
             promptInfo: result.promptInfo,
         };
 
