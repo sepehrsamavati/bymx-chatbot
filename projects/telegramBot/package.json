@@ -1,0 +1,23 @@
+{
+  "name": "bymx-tg-endpoint",
+  "version": "1.0.0-preview.1",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./dist/UpdateProvider.js"
+  },
+  "types": "./dist/UpdateProvider.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start:tsx": "tsx ./src/main.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

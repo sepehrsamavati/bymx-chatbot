@@ -1,0 +1,25 @@
+{
+  "name": "bymx-api-server",
+  "version": "0.1.0",
+  "packageManager": "yarn@4.4.1",
+  "type": "module",
+  "exports": {
+    ".": "./dist/HttpServer.js"
+  },
+  "types": "./dist/HttpServer.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx ./dist/app.js"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "fastify": "^5.2.1",
+    "mime-types": "^2.1.35",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4",
+    "typescript": "^5.7.3"
+  }
+}
