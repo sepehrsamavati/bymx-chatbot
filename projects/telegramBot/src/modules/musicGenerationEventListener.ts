@@ -15,7 +15,7 @@ export const init = (botUsername: string) => {
     falAiResultEventBus.on("internalProcessFinished", async (musicGenerateResult, task) => {
         const chatId = task.user.tgId;
         const cachedItem = cache.get(task.internalId);
-        const audio = cachedItem?.update.message?.audio;
+        const audio = cachedItem?.update.message?.reply_to_message?.audio;
 
         const context = {
             uiText: UIText.default[task.user.lang]
