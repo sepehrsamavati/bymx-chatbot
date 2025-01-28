@@ -50,6 +50,7 @@ type MultiModalOutput = {
 }
 
 type FalAiResponse = Awaited<ReturnType<typeof fal.subscribe>>;
+type FalAiQueueSubmitResponse = Awaited<ReturnType<typeof fal.queue.submit>>;
 
 fal.config({
     credentials: config.falAI.apiToken,
@@ -326,10 +327,10 @@ export default class AIApplication {
         const startTime = new Date();
         const internalTaskId = this.#generationTaskApplication.newId();
 
-        let falResponse: FalAiResponse | null = null;
+        let falResponse: FalAiQueueSubmitResponse | null = null;
 
         try {
-            falResponse = await fal.subscribe(this.#minimaxModelName, {
+            falResponse = await fal.queue.submit(this.#minimaxModelName, {
                 input: {
                     prompt: opts.lyrics,
                     enable_safety_checker: true,
@@ -342,7 +343,7 @@ export default class AIApplication {
         }
 
         if (falResponse) {
-            const externalTaskId = falResponse.requestId;
+            const externalTaskId = falResponse.request_id;
 
             const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
