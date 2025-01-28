@@ -157,7 +157,7 @@ export const musicGenerateHandler: IUpdateHandler = {
 
             return {
                 call: {
-                    text: `${musicGenerateResult.ok ? emojiIcon.ok : emojiIcon.failed} ${musicGenerateResult.message}`
+                    text: `${musicGenerateResult.ok ? emojiIcon.ok : emojiIcon.failed} ${context.getUit(musicGenerateResult.message)}`
                 }
             };
         } else if (audio) {
