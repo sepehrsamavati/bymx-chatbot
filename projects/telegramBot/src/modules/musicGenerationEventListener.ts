@@ -48,9 +48,9 @@ export const init = (botUsername: string) => {
                     { text: `${emojiIcon.point} ${musicGenerateResult.data.pointUsage}`, callback_data: "usedPointsForMessage" },
                     { text: `${emojiIcon.model} ${musicGenerateResult.data.modelName}`, callback_data: "modelProcessedThisMessage" },
                 ],
-                [
-                    { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
-                ]
+                // [
+                //     { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
+                // ]
             ]
         }
 
