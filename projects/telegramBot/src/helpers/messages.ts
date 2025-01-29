@@ -281,7 +281,10 @@ export const getTextBasedCommunicationPanel = async (context: RequestContext) =>
 export const getMusicWithLyricsGenerationPanel = async (context: RequestContext) => {
     return {
         text: stringHelper.digitLocalization(
-            context.uiText.musicWithLyricsGenerationHelp + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp + `\n\n${emojiIcon.warning} ${context.uiText.modelSupportsEnglishInputBetterHint}`,
+            context.uiText.musicWithLyricsGenerationHelp
+            + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp
+            + `\n\n${emojiIcon.warning} ${context.uiText.modelSupportsEnglishInputBetterHint}`
+            + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.millisecondsToHumanReadable(30e3, context.uiText)}`,
             context.user.lang
         ),
         reply_markup: {

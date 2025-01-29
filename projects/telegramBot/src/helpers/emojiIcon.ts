@@ -34,6 +34,7 @@ const emojiIcon = Object.freeze({
     link: '🔗',
     refresh: '🔄',
     time: '🕐',
+    watch: '⌚',
     speaking: '🗣',
     speaker: '📢',
     microphone: '🎤',

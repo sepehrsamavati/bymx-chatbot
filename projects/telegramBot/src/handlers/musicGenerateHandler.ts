@@ -22,17 +22,8 @@ export const musicGenerateHandler: IUpdateHandler = {
         if (message && update.message?.reply_to_message?.audio) {
 
             const audio = update.message?.reply_to_message?.audio;
-            let pleaseWaitMessageId = 0;
             const unlockFileProcessing = () => {
                 context.services.fileProcessingLockCache.unlock(context.user.id);
-                if (pleaseWaitMessageId)
-                    tgCall(
-                        TelegramMethods.DeleteMessage,
-                        {
-                            chat_id: update.message?.chat.id,
-                            message_id: pleaseWaitMessageId,
-                        }
-                    );
             };
 
             if (!fileHelper.falAiSupportedFileExtensions.isSupportedMinimaxMusicGen(audio.mime_type ?? "")) {
@@ -66,18 +57,6 @@ export const musicGenerateHandler: IUpdateHandler = {
                 };
 
             context.services.fileProcessingLockCache.lock(context.user.id);
-
-            const pleaseWaitMessage = await tgCall(
-                TelegramMethods.SendMessage,
-                {
-                    chat_id: update.message?.chat.id,
-                    reply_to_message_id: update.message?.message_id,
-                    text: context.uiText.creatingMusicPleaseWait
-                }
-            );
-
-            if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
-                pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(audio.file_unique_id);
 

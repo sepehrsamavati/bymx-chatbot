@@ -5,6 +5,7 @@ export const langCodes = ["fa"] as const;
 export type LangCode = typeof langCodes[number];
 
 const keys = [
+    "_langCode",
     "_tgStart",
     "_tgHelp",
     "_termsOfService",
@@ -210,6 +211,15 @@ const keys = [
     "musicGenerated",
     "musicGenerationFailed",
     "waitForPendingTasksBeforeNewRequest",
+    "second",
+    "minute",
+    "hour",
+    "day",
+    "days",
+    "week",
+    "month",
+    "year",
+    "and",
 ] as const;
 
 export type UITextKey = typeof keys[number];
