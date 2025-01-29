@@ -17,13 +17,12 @@ export default class EventHandlerApplication {
     async processFalAiResult(falAiResult: IFalAiWebhookResult, task: GenerationTask) {
         if (falAiResult.status === "OK") {
             await this.#generationTaskApplication.setCompleted(task.internalId, falAiResult, task);
+            const responseTime = new Date().getTime() - task.startDate.getTime();
+            const responseData = falAiResult.payload as object;
 
             switch (task.type) {
                 case GenerationTaskType.FalAiMiniMaxMusicGeneration: {
-                    const responseTime = new Date().getTime() - task.startDate.getTime();
-
                     const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("musicGenerationFailed");
-                    const responseData = falAiResult.payload as object;
 
                     if ('audio' in responseData) {
                         const generatedMusic = responseData?.audio as object;
@@ -33,7 +32,7 @@ export default class EventHandlerApplication {
                                 result.failed("promptContentNotAllowed");
                             } else {
                                 result
-                                    .succeeded()
+                                    .succeeded("musicGenerated")
                                     .setData({
                                         url: generatedMusic.url,
                                         pointUsage: task.promptInfo?.points ?? 0,
@@ -47,6 +46,42 @@ export default class EventHandlerApplication {
                                         insertDate: new Date(),
                                         isDeleted: false,
                                         output: generatedMusic.url,
+                                        model: task.model.name,
+                                        usages: task.usages.map(u => u.id),
+                                        saved: false,
+                                        responseTime: responseTime,
+                                    });
+                            }
+                        }
+                    }
+
+                    falAiResultEventBus.emit("internalProcessFinished", result, task);
+                } break;
+                case GenerationTaskType.FalAiTrellis3dModelGeneration: {
+                    const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("modelGenerationFailed");
+
+                    if ('model_mesh' in responseData) {
+                        const generated3D = responseData?.model_mesh as object;
+                        if (generated3D && 'url' in generated3D && typeof generated3D.url === "string") {
+                            const contentPolicyViolation = 'has_nsfw_concepts' in responseData && Array.isArray(responseData.has_nsfw_concepts) && responseData.has_nsfw_concepts.includes(true);
+                            if (contentPolicyViolation) {
+                                result.failed("promptContentNotAllowed");
+                            } else {
+                                result
+                                    .succeeded("modelGenerated")
+                                    .setData({
+                                        url: generated3D.url,
+                                        pointUsage: task.promptInfo?.points ?? 0,
+                                        modelName: task.model.title,
+                                    });
+
+                                if (task.promptInfo)
+                                    await this.#promptRepository.create({
+                                        ...task.promptInfo,
+                                        promptUser: task.user,
+                                        insertDate: new Date(),
+                                        isDeleted: false,
+                                        output: generated3D.url,
                                         model: task.model.name,
                                         usages: task.usages.map(u => u.id),
                                         saved: false,

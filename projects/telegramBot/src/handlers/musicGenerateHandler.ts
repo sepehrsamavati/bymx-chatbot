@@ -6,7 +6,7 @@ import { stringHelper, UserMode } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { cache as stepBridgeCache } from "../modules/musicGenerationEventListener.js";
+import { cache as stepBridgeCache } from "../modules/generationTaskEventListener.js";
 
 export const musicGenerateHandler: IUpdateHandler = {
     name: import.meta.filename,

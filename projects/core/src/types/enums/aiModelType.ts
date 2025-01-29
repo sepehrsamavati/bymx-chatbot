@@ -3,4 +3,5 @@ export enum AIModelType {
     TextAndAudio = 2,
     Image = 3,
     TextToMusic = 4,
+    ImageTo3D = 5,
 }

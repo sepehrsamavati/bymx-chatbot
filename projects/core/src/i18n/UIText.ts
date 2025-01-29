@@ -220,6 +220,10 @@ const keys = [
     "month",
     "year",
     "and",
+    "create3dModelFromImage",
+    "modelIsBeingGeneratedPleaseWait",
+    "modelGenerated",
+    "modelGenerationFailed",
 ] as const;
 
 export type UITextKey = typeof keys[number];

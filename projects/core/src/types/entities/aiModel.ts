@@ -18,6 +18,8 @@ export type AIModel = {
     };
     /** Price per million units (tokens, characters, minutes, ...) */
     pricePmu: {
+        input: number;
+        output: number;
         inputText: number;
         outputText: number;
         inputAudio: number;

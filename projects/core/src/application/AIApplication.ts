@@ -68,6 +68,7 @@ export default class AIApplication {
     #generationTaskApplication;
 
     #fluxModelName = "fal-ai/flux/schnell";
+    #trellisModelName = "fal-ai/trellis";
     #minimaxModelName = "fal-ai/minimax-music";
 
     constructor(container: ServicesType) {
@@ -268,6 +269,93 @@ export default class AIApplication {
         return result;
     }
 
+    async trellis3dModelGenerate(user: User, image: UserTempFile): Promise<OperationResultWithData<string>> {
+        const result = new OperationResultWithData<string>().failed("errorOccurred");
+
+        const model = this.#aiModelCache.getModelByName(this.#trellisModelName);
+        if (!model)
+            return result.failed();
+
+        const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
+
+        const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
+        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+
+        if (!(subscriptions && totalRemainingPoints !== undefined))
+            return result.failed();
+
+        if (totalRemainingPoints <= 0)
+            return result.failed("noPointAvailable");
+
+        if (totalRemainingPoints < userPointCost)
+            return result.failed("pointNotEnough");
+
+        if (this.#messageLock.isLocked(user.id))
+            return result.failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const startTime = new Date();
+        const internalTaskId = this.#generationTaskApplication.newId();
+
+        let falResponse: FalAiQueueSubmitResponse | null = null;
+
+        try {
+            falResponse = await fal.queue.submit(this.#trellisModelName, {
+                input: {
+                    image_url: hostedFileUrl.toString(),
+                    ss_guidance_strength: 7.5,
+                    ss_sampling_steps: 12,
+                    slat_guidance_strength: 3,
+                    slat_sampling_steps: 12,
+                    mesh_simplify: 0.95,
+                    texture_size: 1024,
+                    enable_safety_checker: true,
+                },
+                webhookUrl: urls.v1.falAiSetResult.createUrl(internalTaskId).toString(),
+            });
+        } catch (err) {
+            errorLogger(`fal.ai 3D model (trellis) generation request failed / Task: '${internalTaskId}'`, err);
+        }
+
+        if (falResponse) {
+            const externalTaskId = falResponse.request_id;
+
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+            const taskCreationResult = await this.#generationTaskApplication.create({
+                expiry: new Date(startTime.getTime() + (1000 * 60 * 5)),
+                promptInfo: {
+                    cost: costUsdCent / 100,
+                    points: userPointCost,
+                    input: "",
+                    saved: false,
+                    fileId: image.fsId,
+                },
+                internalId: internalTaskId,
+                externalId: externalTaskId,
+                startDate: startTime,
+                endDate: startTime,
+                modelId: model.id,
+                type: GenerationTaskType.FalAiTrellis3dModelGeneration,
+                userId: user.id,
+                usages: savedUsageIds ?? [],
+            });
+
+            if (taskCreationResult.ok)
+                result.succeeded("modelIsBeingGeneratedPleaseWait").setData(internalTaskId);
+            else
+                result.failed("errorOccurred");
+        }
+        else
+            result.failed("errorOccurred");
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
 
     async musicGenerateWithLyrics(user: User, opts: {
         audioFile: UserTempFile;
@@ -348,7 +436,7 @@ export default class AIApplication {
             const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
             const taskCreationResult = await this.#generationTaskApplication.create({
-                expiry: new Date(startTime.getTime() + (1000 * 60 * 60)),
+                expiry: new Date(startTime.getTime() + (1000 * 60 * 5)),
                 promptInfo: {
                     cost: costUsdCent / 100,
                     points: userPointCost,

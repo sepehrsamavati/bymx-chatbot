@@ -7,7 +7,7 @@ import BroadcastHandler from "./BroadcastHandler.js";
 import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
 import { ExitCode, errorLogger, exitHelper, logger, type IServices } from "bymx-core/server";
-import { init as initMusicGenerationEventListener } from "./modules/musicGenerationEventListener.js";
+import { init as initGenerationTaskEventListener } from "./modules/generationTaskEventListener.js";
 
 export class UpdateProvider {
     #nextUpdateId = 0;
@@ -68,7 +68,7 @@ export class UpdateProvider {
 
         const botUsername = botInfo.result.username as string;
 
-        initMusicGenerationEventListener(botUsername);
+        initGenerationTaskEventListener(botUsername);
 
         this.#handler = new UpdateHandler(this.#services, this.#broadcastHandler, this.#botInfo);
 

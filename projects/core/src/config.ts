@@ -29,6 +29,7 @@ const config = {
     usdToIrtMultiplier: Number.parseInt(process.env.BYMX_PRICE_USD_TO_IRT_MULTIPLIER ?? "0"),
     ffmpegPath: process.env.BYMX_FFMPEG_PATH ?? "",
     ffprobePath: process.env.BYMX_FFPROBE_PATH ?? "",
+    feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0"),
     apiServer: {
         port: Number.parseInt(process.env.BYMX_API_SERVER_PORT ?? "3017"),
         baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? ""
@@ -49,6 +50,7 @@ const config = {
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
+        /** @deprecated */
         feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0")
     },
     log: {
@@ -92,7 +94,7 @@ configError(
 
 configError(
     "Fee percentage is invalid (0-100 range)",
-    Number.isNaN(config.openAI.feePercentage)
+    Number.isNaN(config.feePercentage)
 );
 
 configError(

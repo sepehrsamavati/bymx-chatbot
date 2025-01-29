@@ -209,5 +209,9 @@
     "week": "هفته",
     "month": "ماه",
     "year": "سال",
-    "and": "و"
+    "and": "و",
+    "create3dModelFromImage": "ساخت مدل 3D از تصویر",
+    "modelIsBeingGeneratedPleaseWait": "در حال ساخت مدل، لطفا منتظر پاسخ بمانید...",
+    "modelGenerated": "مدل ساخته شده!",
+    "modelGenerationFailed": "ساخت مدل با خطا مواجه شد!"
 }
