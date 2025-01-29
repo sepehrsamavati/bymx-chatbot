@@ -224,6 +224,10 @@ const keys = [
     "modelIsBeingGeneratedPleaseWait",
     "modelGenerated",
     "modelGenerationFailed",
+    "imageUpscale",
+    "create3dModelHelp",
+    "imageUpscaleHelp",
+    "imageUpscaleTgHelp",
 ] as const;
 
 export type UITextKey = typeof keys[number];

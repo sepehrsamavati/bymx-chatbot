@@ -5,7 +5,7 @@ import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getImageGenerateModePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
+import { get3dModelGenerationPanel, getChatListPanel, getImageGenerateModePanel, getImageUpscalePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -92,6 +92,48 @@ export const panelHandler: IUpdateHandler = {
                             chat_id: update.callback_query?.message.chat.id,
                             message_id: update.callback_query?.message.message_id,
                             ...await getMusicWithLyricsGenerationPanel(context)
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                return null;
+            };
+            case "imageUpscale": {
+                if (
+                    (
+                        await context.services
+                            .userApplication
+                            .setUserMode(context.user.id, UserMode.UserPrompt.ImageUpscale)
+                    ).ok
+                ) {
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ...await getImageUpscalePanel(context)
+                        }
+                    );
+                    return { shouldContinue: false };
+                }
+
+                return null;
+            };
+            case "create3dModel": {
+                if (
+                    (
+                        await context.services
+                            .userApplication
+                            .setUserMode(context.user.id, UserMode.UserPrompt.Create3dModel)
+                    ).ok
+                ) {
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ...await get3dModelGenerationPanel(context)
                         }
                     );
                     return { shouldContinue: false };

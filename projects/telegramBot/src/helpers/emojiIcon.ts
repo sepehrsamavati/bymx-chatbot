@@ -29,6 +29,7 @@ const emojiIcon = Object.freeze({
     channel: '📣',
     warning: '⚠',
     picture: '🖼',
+    triangularRuler: '📐',
     calendar: '📅',
     price: '💳',
     link: '🔗',

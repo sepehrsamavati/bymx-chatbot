@@ -206,6 +206,12 @@ export const getAiToolsPanel = async (context: RequestContext) => {
         ],
         [
             { text: `${emojiIcon.music} ${context.uiText.createSongWithLyrics}`, callback_data: "generateMusicWithLyrics" },
+        ],
+        [
+            { text: `${emojiIcon.picture} ${context.uiText.imageUpscale}`, callback_data: "imageUpscale" },
+        ],
+        [
+            { text: `${emojiIcon.triangularRuler} ${context.uiText.create3dModelFromImage}`, callback_data: "create3dModel" },
         ]
     ];
 
@@ -284,7 +290,40 @@ export const getMusicWithLyricsGenerationPanel = async (context: RequestContext)
             context.uiText.musicWithLyricsGenerationHelp
             + "\n\n" + context.uiText.musicWithLyricsGenerationTgHelp
             + `\n\n${emojiIcon.warning} ${context.uiText.modelSupportsEnglishInputBetterHint}`
+            + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.millisecondsToHumanReadable(60e3, context.uiText)}`,
+            context.user.lang
+        ),
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const get3dModelGenerationPanel = async (context: RequestContext) => {
+    return {
+        text: stringHelper.digitLocalization(
+            context.uiText.create3dModelFromImage
+            + "\n\n" + context.uiText.create3dModelHelp
             + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.millisecondsToHumanReadable(30e3, context.uiText)}`,
+            context.user.lang
+        ),
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
+            ]
+        }
+    };
+};
+
+export const getImageUpscalePanel = async (context: RequestContext) => {
+    return {
+        text: stringHelper.digitLocalization(
+            context.uiText.imageUpscale
+            + "\n\n" + context.uiText.imageUpscaleHelp
+            + `\n\n${emojiIcon.warning} ${context.uiText.imageUpscaleTgHelp}`
+            + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.millisecondsToHumanReadable(5e3, context.uiText)}`,
             context.user.lang
         ),
         reply_markup: {

@@ -23,6 +23,8 @@ const JoinRequiredChatManagement = Object.freeze({
 const UserPrompt = Object.freeze({
     ImageGenerationPrompt: 40,
     MusicWithLyricsAndTemplateGeneration: 41,
+    Create3dModel: 42,
+    ImageUpscale: 43,
 });
 
 const Enums = Object.freeze({
