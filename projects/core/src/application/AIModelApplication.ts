@@ -1,4 +1,5 @@
 import type { ServicesType } from "../Container.js";
+import { OperationResult } from "../export/shared.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
 
 export default class AIModelApplication {
@@ -16,6 +17,19 @@ export default class AIModelApplication {
 
     getChatModels() {
         return this.#aiModelCache.getCurrentCache().filter(model => model.type === AIModelType.Text);
+    }
+
+    async renewCache() {
+        const result = new OperationResult();
+
+        const models = await this.#aiModelRepository.getAll();
+
+        if (models) {
+            result.succeeded();
+            this.#aiModelCache.setAll(models);
+        }
+
+        return result;
     }
 
     async getAll() {

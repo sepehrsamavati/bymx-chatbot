@@ -69,6 +69,7 @@ export default class AIApplication {
 
     #fluxModelName = "fal-ai/flux/schnell";
     #trellisModelName = "fal-ai/trellis";
+    #auraSrUpscaleModelName = "fal-ai/aura-sr";
     #minimaxModelName = "fal-ai/minimax-music";
 
     constructor(container: ServicesType) {
@@ -351,6 +352,96 @@ export default class AIApplication {
         }
         else
             result.failed("errorOccurred");
+
+        this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
+    async auraSrImageUpscaler(user: User, image: UserTempFile): Promise<OperationResultWithData<AIGeneratedMediaResponse>> {
+        const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("errorOccurred");
+
+        const model = this.#aiModelCache.getModelByName(this.#auraSrUpscaleModelName);
+        if (!model)
+            return result.failed();
+
+        const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
+
+        let costUsdCent = 0;
+        let userPointCost = 0;
+
+        const recalculateCost = (inferenceTime = 4) => {
+            costUsdCent = inferenceTime * (model.pricePmu.output / (1_000_000 * 100));
+            userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+        };
+
+        recalculateCost();
+
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+
+        if (!(subscriptions && totalRemainingPoints !== undefined))
+            return result.failed();
+
+        if (totalRemainingPoints <= 0)
+            return result.failed("noPointAvailable");
+
+        if (totalRemainingPoints < userPointCost)
+            return result.failed("pointNotEnough");
+
+        if (this.#messageLock.isLocked(user.id))
+            return result.failed("youHavePendingPrompts");
+
+        this.#messageLock.lock(user.id);
+
+        const startTime = performance.now();
+
+        const falResponse = await fal.subscribe(model.name, {
+            input: {
+                enable_safety_checker: true,
+                image_url: hostedFileUrl.toString(),
+                upscaling_factor: 4,
+                overlapping_tiles: true,
+                checkpoint: "v2",
+            },
+        });
+
+        const responseTime = performance.now() - startTime;
+
+        recalculateCost(Math.ceil(responseTime / 1000));
+
+        const generatedImage = falResponse.data.image;
+        if (generatedImage && generatedImage.url) {
+            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            if (contentPolicyViolation) {
+                result.failed("promptContentNotAllowed");
+            }
+            else {
+                result
+                    .succeeded()
+                    .setData({
+                        url: generatedImage.url,
+                        pointUsage: userPointCost,
+                        modelName: model.title,
+                    });
+
+                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+                await this.#promptRepository.create({
+                    cost: costUsdCent / 100,
+                    insertDate: new Date(),
+                    isDeleted: false,
+                    input: "",
+                    output: generatedImage.url,
+                    points: userPointCost,
+                    model: model.name,
+                    saved: false,
+                    usages: savedUsageIds ?? [],
+                    promptUser: user,
+                    responseTime: responseTime,
+                    fileId: image.fsId,
+                });
+            }
+        }
 
         this.#messageLock.unlock(user.id);
 
