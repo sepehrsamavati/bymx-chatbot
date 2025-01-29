@@ -35,6 +35,17 @@ export const falAiSupportedFileExtensions = Object.freeze({
             "mp3",
         ].includes(tryGetFileExtension(inp))
     ),
+    /**
+     * 
+     * @param inp Mimetype/Filename/Extension
+     */
+    isSupportedImage: (inp: string) => (
+        [
+            "png",
+            "jpg",
+            "jpeg",
+        ].includes(tryGetFileExtension(inp))
+    ),
 });
 
 type DocumentInfo = {
