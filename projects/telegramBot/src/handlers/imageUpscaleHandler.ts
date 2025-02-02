@@ -198,8 +198,6 @@ export const imageUpscaleHandler: IUpdateHandler = {
         if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
             pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
-
-        /** @todo */
         const imageUpscaleResult = await context.services.aiApplication.auraSrImageUpscaler(context.user, imageFile);
 
         if (pleaseWaitMessageId)

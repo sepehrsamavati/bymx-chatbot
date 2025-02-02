@@ -11,7 +11,9 @@ import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
+import { imageUpscaleHandler } from "./handlers/imageUpscaleHandler.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
+import { create3dModelHandler } from "./handlers/create3dModelHandler.js";
 import { musicGenerateHandler } from "./handlers/musicGenerateHandler.js";
 import { createNewChatHandler } from "./handlers/createNewChatHandler.js";
 import { receiptManageHandler } from "./handlers/receiptManageHandler.js";
@@ -43,6 +45,8 @@ const handlers: IUpdateHandler[] = [
     createNewChatHandler,
     imageGenerateHandler,
     musicGenerateHandler,
+    imageUpscaleHandler,
+    create3dModelHandler,
     promptHandler,
 ];
 
