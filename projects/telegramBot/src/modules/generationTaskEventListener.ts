@@ -52,19 +52,17 @@ export const init = (botUsername: string) => {
                             { text: `${emojiIcon.point} ${result.data.pointUsage}`, callback_data: "usedPointsForMessage" },
                             { text: `${emojiIcon.model} ${result.data.modelName}`, callback_data: "modelProcessedThisMessage" },
                         ],
-                        // [
-                        //     { text: `${emojiIcon.failed} ${context.uiText.cancelMusicGeneration}`, callback_data: "panel" },
-                        // ]
                     ]
-                }
+                };
 
                 try { // download/upload manually to set performer/title
-                    const song = await fetch(result.data.url).then(r => r.blob());
+                    const songRes = await fetch(result.data.url);
+                    const songBlob = await songRes.blob();
 
                     const form = new FormData();
 
                     form.append("chat_id", chatId.toString());
-                    form.append('audio', song);
+                    form.append('audio', songBlob);
                     form.append('performer', performer);
                     form.append('title', title);
                     form.append('reply_markup', JSON.stringify(replyMarkup));

@@ -6,7 +6,7 @@ import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 import { getDocumentInfo } from "../helpers/fileHelper.js";
-import { fileHelper } from "bymx-core/server";
+import { errorLogger, fileHelper } from "bymx-core/server";
 
 export const imageUpscaleHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -211,8 +211,52 @@ export const imageUpscaleHandler: IUpdateHandler = {
                 }
             );
 
+        if (imageUpscaleResult.ok && imageUpscaleResult.data) {
+            const chatId = update.message?.chat.id.toString() as string;
+            const replyMarkup = {
+                inline_keyboard: [
+                    [{ text: `${emojiIcon.point} ${imageUpscaleResult.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                ]
+            };
+
+            try { // download/upload manually to set performer/title
+                const songRes = await fetch(imageUpscaleResult.data.url);
+                const songBlob = await songRes.blob();
+
+                const form = new FormData();
+
+                form.append("chat_id", chatId);
+                form.append("reply_to_message_id", update.message?.message_id.toString() as string);
+                form.append("reply_markup", JSON.stringify(replyMarkup));
+                form.append('document', songBlob, `upscaled.${imageFile.extension}`);
+
+                await tgCall(
+                    TelegramMethods.SendDocument,
+                    form
+                );
+            } catch (err) {
+                errorLogger("Image upscale generate upload failed", err);
+                await tgCall(
+                    TelegramMethods.SendDocument,
+                    {
+                        chat_id: chatId,
+                        document: imageUpscaleResult.data.url,
+                        reply_markup: replyMarkup,
+                    }
+                );
+            }
+        } else {
+            return {
+                call: {
+                    text: imageUpscaleResult.message
+                }
+            };
+        }
+
         unlockFileProcessing();
 
-        return null;
+        return {
+            shouldContinue: false
+        };
     }
 }

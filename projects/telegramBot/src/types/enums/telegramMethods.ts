@@ -4,6 +4,7 @@ export enum TelegramMethods {
     SendText = "sendMessage",
     SendMessage = "sendMessage",
     SendAudio = "sendAudio",
+    SendDocument = "sendDocument",
     SendVoice = "sendVoice",
     SendPhoto = "sendPhoto",
     DeleteMessage = "deleteMessage",
