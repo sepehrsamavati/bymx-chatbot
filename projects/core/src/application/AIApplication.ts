@@ -234,7 +234,7 @@ export default class AIApplication {
 
         const generatedImage = falResponse.data.images.at(0);
         if (generatedImage && falResponse.data.images.length === 1) {
-            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            const contentPolicyViolation = 'has_nsfw_concepts' in falResponse.data && falResponse.data.has_nsfw_concepts?.includes(true);
             if (contentPolicyViolation) {
                 result.failed("promptContentNotAllowed");
             }
@@ -331,7 +331,7 @@ export default class AIApplication {
                 promptInfo: {
                     cost: costUsdCent / 100,
                     points: userPointCost,
-                    input: "",
+                    input: `[file:${image.fsId}]`,
                     saved: false,
                     fileId: image.fsId,
                 },
@@ -407,11 +407,11 @@ export default class AIApplication {
 
         const responseTime = performance.now() - startTime;
 
-        recalculateCost(Math.ceil(responseTime / 1000));
+        recalculateCost(Math.ceil((responseTime / 1000) + 0.5));
 
         const generatedImage = falResponse.data.image;
         if (generatedImage && generatedImage.url) {
-            const contentPolicyViolation = falResponse.data.has_nsfw_concepts.includes(true);
+            const contentPolicyViolation = 'has_nsfw_concepts' in falResponse.data && falResponse.data.has_nsfw_concepts?.includes(true);
             if (contentPolicyViolation) {
                 result.failed("promptContentNotAllowed");
             }
@@ -430,7 +430,7 @@ export default class AIApplication {
                     cost: costUsdCent / 100,
                     insertDate: new Date(),
                     isDeleted: false,
-                    input: "",
+                    input: `[file:${image.fsId}]`,
                     output: generatedImage.url,
                     points: userPointCost,
                     model: model.name,

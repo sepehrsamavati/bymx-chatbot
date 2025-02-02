@@ -213,7 +213,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
             const chatId = update.message?.chat.id.toString() as string;
             const replyMarkup = {
                 inline_keyboard: [
-                    [{ text: `${emojiIcon.point} ${imageUpscaleResult.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                    [{ text: `${emojiIcon.point} ${imageUpscaleResult.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${imageUpscaleResult.data.modelName}`, callback_data: "modelProcessedThisMessage" }]
                 ]
             };
 

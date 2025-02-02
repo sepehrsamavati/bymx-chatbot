@@ -86,8 +86,6 @@ export const init = (botUsername: string) => {
                 }
             } break;
             case GenerationTaskType.FalAiTrellis3dModelGeneration: {
-                const audio = cachedItem?.update.message?.reply_to_message?.audio;
-
                 if (!result.ok || !result.data) {
                     await tgCall(
                         TelegramMethods.SendMessage,
@@ -103,7 +101,7 @@ export const init = (botUsername: string) => {
                     TelegramMethods.SendChatAction,
                     {
                         chat_id: chatId,
-                        action: "upload_voice"
+                        action: "upload_document"
                     }
                 );
 
