@@ -16,7 +16,10 @@ export default class AIModelApplication {
     }
 
     getChatModels() {
-        return this.#aiModelCache.getCurrentCache().filter(model => model.type === AIModelType.Text);
+        return this.#aiModelCache
+            .getCurrentCache()
+            .filter(model => model.type === AIModelType.Text)
+            .sort((a, b) => a.pricePmu.outputText - b.pricePmu.outputText);
     }
 
     async renewCache() {
