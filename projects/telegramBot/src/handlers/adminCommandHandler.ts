@@ -27,7 +27,6 @@ export const adminCommandHandler: IUpdateHandler = {
                 update.message.text = `/receipt_${receiptId}`;
         }
 
-
         const text = update.message?.text as string;
 
         let isCommand = update.message?.entities?.at(0)?.type === "bot_command" && !text.includes('\n');
@@ -209,6 +208,13 @@ export const adminCommandHandler: IUpdateHandler = {
                         `${emojiIcon.failed} ${res?.error_code}\n${res?.description ?? '-'}`
                     )
                 },
+            };
+        } else if (text === "/refresh_models") {
+            const res = await context.services.aiModelApplication.renewCache();
+            return {
+                call: {
+                    text: res.ok ? emojiIcon.ok : emojiIcon.failed
+                }
             };
         }
 
