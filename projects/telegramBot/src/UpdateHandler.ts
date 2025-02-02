@@ -140,6 +140,10 @@ export class UpdateHandler {
                 _handlers = handlerTypeFilter[TelegramUpdateType.Voice];
             } else if (update.message.audio) {
                 _handlers = handlerTypeFilter[TelegramUpdateType.Audio];
+            } else if (update.message.photo) {
+                _handlers = handlerTypeFilter[TelegramUpdateType.Photo];
+            } else if (update.message.document) {
+                _handlers = handlerTypeFilter[TelegramUpdateType.Document];
             } else {
                 _handlers = handlerTypeFilter[TelegramUpdateType.Message];
             }
