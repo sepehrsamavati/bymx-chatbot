@@ -123,7 +123,7 @@ export default class OpenAIService implements IOpenAIService {
 
         const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {};
 
-        if (!model.name.includes('o1'))
+        if (model.name.startsWith('gpt'))
             baseChatCompletionConfig.top_p = 0.2;
 
         return await this.#chatCompletion({
