@@ -10,11 +10,6 @@ import type { IOpenAIAudioResult, IOpenAIRequest, IOpenAIService, IOpenAISpeechT
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
-const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {
-    top_p: 0.2
-};
-
-
 export default class OpenAIService implements IOpenAIService {
     #client = new OpenAI({
         apiKey: config.openAI.apiToken,
@@ -125,6 +120,11 @@ export default class OpenAIService implements IOpenAIService {
             });
         else
             _messages.push({ role: 'user', content: inputMessage });
+
+        const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {};
+
+        if (!model.name.includes('o1'))
+            baseChatCompletionConfig.top_p = 0.2;
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
