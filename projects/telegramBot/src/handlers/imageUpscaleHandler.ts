@@ -219,7 +219,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
                 ]
             };
 
-            try { // download/upload manually to set performer/title
+            try {
                 const songRes = await fetch(imageUpscaleResult.data.url);
                 const songBlob = await songRes.blob();
 
