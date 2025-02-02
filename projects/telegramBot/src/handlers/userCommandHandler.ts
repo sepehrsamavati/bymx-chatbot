@@ -165,6 +165,8 @@ export const userCommandHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             case "/ai":
+            case "/tools":
+            case "/ai_tools":
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {

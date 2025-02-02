@@ -133,7 +133,7 @@ export const getPanel = async (context: RequestContext) => {
             { text: `${emojiIcon.speaking} ${context.uiText.voiceResponse}`, callback_data: "voiceResponsePanel" },
         ],
         [
-            { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" },
+            { text: `${emojiIcon.tools} ${context.uiText.tools}`, callback_data: "aiTools" },
         ]
     ];
 
@@ -195,7 +195,6 @@ export const getAdminPanel = async (context: RequestContext) => {
     };
 };
 
-
 export const getAiToolsPanel = async (context: RequestContext) => {
     const inlineKeyboard = [
         [
@@ -212,7 +211,8 @@ export const getAiToolsPanel = async (context: RequestContext) => {
         ],
         [
             { text: `${emojiIcon.triangularRuler} ${context.uiText.create3dModelFromImage}`, callback_data: "create3dModel" },
-        ]
+        ],
+        [{ text: `${emojiIcon.return} ${context.uiText.panel}`, callback_data: "panel" }]
     ];
 
     return {

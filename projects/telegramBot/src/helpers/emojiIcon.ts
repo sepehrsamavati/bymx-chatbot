@@ -48,6 +48,7 @@ const emojiIcon = Object.freeze({
     recycle: '🗑',
     chat: '💬',
     music: '🎶',
+    tools: '🛠',
 });
 
 export default emojiIcon;

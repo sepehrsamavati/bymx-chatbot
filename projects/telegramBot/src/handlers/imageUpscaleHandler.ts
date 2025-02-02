@@ -1,12 +1,12 @@
-import tgCall, { downloadFile } from "../helpers/call.js";
 import emojiIcon from "../helpers/emojiIcon.js";
+import tgCall, { downloadFile } from "../helpers/call.js";
 import { stringHelper, UserMode } from "bymx-core/shared";
 import type { UserTempFileEntity } from "bymx-core/types";
 import type { IUpdateHandler } from "../types/telegram.js";
-import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 import { getDocumentInfo } from "../helpers/fileHelper.js";
 import { errorLogger, fileHelper } from "bymx-core/server";
+import { TelegramMethods } from "../types/enums/telegramMethods.js";
+import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 
 export const imageUpscaleHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -111,15 +111,13 @@ export const imageUpscaleHandler: IUpdateHandler = {
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(document.file_unique_id);
 
-            let tempFile: UserTempFileEntity.UserTempFile | null = null;
-
             if (cachedFile.ok && cachedFile.data)
-                tempFile = {
+                imageFile = {
                     ...cachedFile.data,
                     user: context.user
                 };
 
-            if (!tempFile) {
+            if (!imageFile) {
                 const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: document.file_id });
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
@@ -149,7 +147,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
 
                     const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {
-                        tempFile = {
+                        imageFile = {
                             extension: fileExtension,
                             fsId: downloadResult.data,
                             size: fileInfo.result.file_size,
@@ -172,7 +170,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
             }
 
             if (!cachedFile.data) { // if file is not stored in db -> add to db
-                const fileAddResult = await context.services.userTempFileApplication.addTempFile(tempFile);
+                const fileAddResult = await context.services.userTempFileApplication.addTempFile(imageFile);
 
                 if (!fileAddResult.ok) {
                     unlockFileProcessing();
