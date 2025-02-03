@@ -227,7 +227,7 @@ export default class UserRepository extends Transactional implements IUserReposi
         const result = await this.#databaseConnection.models.user.updateOne(_filter, _update, { session: this.transaction.session }).lean().exec();
 
         return {
-            ok: result.modifiedCount === 1
+            ok: Boolean(result)
         };
     }
 

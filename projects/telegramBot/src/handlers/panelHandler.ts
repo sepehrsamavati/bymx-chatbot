@@ -75,7 +75,9 @@ export const panelHandler: IUpdateHandler = {
                 return { shouldContinue: false };
             };
             case "textBasedCommunication": {
-                if ((await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok) {
+                const changeModeResult = await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+
+                if (changeModeResult.ok) {
                     await tgCall(
                         TelegramMethods.EditMessageText,
                         {
@@ -87,7 +89,11 @@ export const panelHandler: IUpdateHandler = {
                     return { shouldContinue: false };
                 }
 
-                return null;
+                return {
+                    call: {
+                        text: changeModeResult.message
+                    }
+                };
             };
             case "generateMusicWithLyrics": {
                 if (

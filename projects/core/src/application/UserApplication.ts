@@ -91,7 +91,7 @@ export default class UserApplication {
     }
 
     async setUserMode(userId: User['id'], mode: UserModeType) {
-        const result = new OperationResult();
+        const result = new OperationResult().failed("errorOccurred");
 
         const updateResult = await this.#userRepository.update(userId, {
             mode: mode

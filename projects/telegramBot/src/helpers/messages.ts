@@ -278,7 +278,7 @@ export const getTextBasedCommunicationPanel = async (context: RequestContext) =>
         text: context.uiText.textBasedCommunicationHelp + "\n\n" + context.uiText.textBasedCommunicationTgHelp,
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
+                [{ text: `${emojiIcon.tools} ${context.uiText.tools}`, callback_data: "aiTools" }]
             ]
         }
     };
