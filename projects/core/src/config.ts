@@ -53,6 +53,9 @@ const config = {
         /** @deprecated */
         feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0")
     },
+    openRouter: {
+        apiToken: process.env.BYMX_OPEN_ROUTER_API_TOKEN ?? "",
+    },
     log: {
         disable: process.argv.includes("--silent-logger"),
         maxLogSize: 10 * 1024 * 1024,
@@ -80,6 +83,11 @@ configError(
 configError(
     "Telegram bot API token not defined",
     !config.telegramBotToken
+);
+
+configError(
+    "Open Router API token not defined",
+    !config.openRouter.apiToken
 );
 
 configError(

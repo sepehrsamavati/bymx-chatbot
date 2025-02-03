@@ -15,6 +15,7 @@ import OpenAIModelCache from "./infrastructure/services/AIModelCache.js";
 import type * as RepoInterfaces from "./types/contracts/repositories.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
+import OpenRouterService from "./infrastructure/services/OpenRouterService.js";
 import EventHandlerApplication from "./application/EventHandlerApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
@@ -79,6 +80,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
+    openRouter: ServiceInterfaces.IOpenRouterService;
     aiModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Lock invite calculation when it's being processed */
@@ -140,6 +142,7 @@ export default class CoreServices {
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
+            openRouter: asClass(OpenRouterService, { lifetime: "SINGLETON" }),
             aiModelCache: asClass(OpenAIModelCache, { lifetime: "SINGLETON" }),
             aiMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),

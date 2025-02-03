@@ -22,6 +22,8 @@ import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
 import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { model } from "mongoose";
+import { AIModelProvider } from "../types/enums/aiModelProvider.js";
 
 type MultiModalInput = {
     text: { text: string; };
@@ -62,6 +64,7 @@ export default class AIApplication {
     #aiModelCache;
     #userSubscriptionApplication;
     #openAI;
+    #openRouter;
     #aiChatRepository;
     #userRepository;
     #userTempFileApplication;
@@ -78,6 +81,7 @@ export default class AIApplication {
         this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
         this.#openAI = container.openAI;
+        this.#openRouter = container.openRouter;
         this.#aiChatRepository = container.aiChatRepository;
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
@@ -618,6 +622,9 @@ export default class AIApplication {
         const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
         const inputUnits = inputText.split(' ').length + (image ? 500 : 0);
 
+        if (image && selectedChat.model.provider !== AIModelProvider.OpenAI)
+            return result.failed("modelOnlySupportsText");
+
         const predictedCost = modelCostPredication({
             inputUnits: inputUnits,
             model: selectedChat.model,
@@ -638,6 +645,9 @@ export default class AIApplication {
 
         // File search (PDF, ...)
         if ('file' in messageAttachment && messageAttachment.file && openAiSupportedFileExtensions.fileSearch.includes(messageAttachment.file.extension)) {
+            if (selectedChat.model.provider !== AIModelProvider.OpenAI)
+                return result.failed("modelOnlySupportsText");
+
             const startTime = performance.now();
             const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
                 inputMessage: inputText,
@@ -659,7 +669,7 @@ export default class AIApplication {
 
             if ((!messageAttachment.file.openAiFileId || messageAttachment.file.vectorIds.length === 0) // file oai info not stored
                 && (fileUpdateInfo.fileId || fileUpdateInfo.vectorIds)) // file oai info is available
-                await this.#userTempFileApplication.setOpenAiInfo(messageAttachment.file.fsId, { // stored file info
+                await this.#userTempFileApplication.setOpenAiInfo(messageAttachment.file.fsId, { // store file info
                     openAiFileId: fileUpdateInfo.fileId,
                     vectorIds: fileUpdateInfo.vectorIds
                 });
@@ -698,7 +708,7 @@ export default class AIApplication {
             }
 
             const startTime = performance.now();
-            const res = await this.#openAI.multiTextMessage({
+            const res = await (selectedChat.model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
                 inputMessage: inputText,
                 messages: historyMessages,
                 model: selectedChat.model,

@@ -229,6 +229,7 @@ const keys = [
     "imageUpscaleHelp",
     "imageUpscaleTgHelp",
     "tools",
+    "modelOnlySupportsText",
 ] as const;
 
 export type UITextKey = typeof keys[number];

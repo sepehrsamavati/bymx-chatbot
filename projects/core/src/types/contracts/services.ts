@@ -72,6 +72,10 @@ export type IOpenAIService = {
     // simpleImageGenerate(userId: string | undefined, prompt: string): Promise<IOpenAIImageResult | null>
 }
 
+export type IOpenRouterService = {
+    multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
+}
+
 export type IAIModelCache = {
     setAll(models: AIModel[]): void;
     getCurrentCache(): AIModel[];
