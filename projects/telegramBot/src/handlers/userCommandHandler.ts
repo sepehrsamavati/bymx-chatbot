@@ -5,7 +5,7 @@ import { UserMode, UserStatus } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getPanel, getModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel } from "../helpers/messages.js";
+import { getPanel, getModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel, getModelListPanel } from "../helpers/messages.js";
 
 export const userCommandHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -71,6 +71,32 @@ export const userCommandHandler: IUpdateHandler = {
                         text: canceled ? "canceled" : "noOperationToCancel"
                     }
                 };
+            case "/change_model":
+                if (!context.user.selectedChat)
+                    return {
+                        call: {
+                            text: "selectChatBeforeUse"
+                        }
+                    };
+
+                const _modelListPanel = await getModelListPanel(context, context.user.selectedChat.id);
+
+                if (!_modelListPanel)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        reply_parameters: {
+                            allow_sending_without_reply: true,
+                            message_id: update.message?.message_id,
+                        },
+                        ..._modelListPanel
+                    }
+                );
+
+                return { shouldContinue: false };
             case "/help":
                 if (context.user.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

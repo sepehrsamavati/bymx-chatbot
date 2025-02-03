@@ -17,9 +17,14 @@ export default class OpenRouterService implements IOpenRouterService {
         try {
             const chatCompletion = await this.#client.chat.completions.create(opts);
 
+            if (!Array.isArray(chatCompletion.choices)) {
+                debugger
+                return null;
+            }
+
             const lastMessage = opts.messages[opts.messages.length - 1]?.content;
 
-            if (chatCompletion.choices?.length !== 1) {
+            if (chatCompletion.choices.length !== 1) {
                 logger.warn(`Multiple choices retorted for input: ${lastMessage}`);
                 return null;
             }
