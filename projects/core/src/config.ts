@@ -1,18 +1,28 @@
 import fs from "node:fs";
 import * as dotenv from "dotenv";
+import { bymx } from "./helpers/asciiArt.js";
 import configError from "./helpers/configError.js";
 import { setGlobalDispatcher, ProxyAgent } from "undici";
+import { projectVersion, projectsVersions } from "./helpers/configVersion.js";
 
 dotenv.config({
     path: [
         ".env",
+        "../core/.env",
         "../.env",
         "../../.env",
         "../../../.env",
     ]
 });
 
+console.debug(
+    `\n${bymx}`
+    + `\n v${projectVersion}`
+    + `\n\n${projectsVersions.map(info => `${`${info.project.toUpperCase()}:`.padEnd(15, ' ')} v${info.version}`).join('\n')}\n`
+);
+
 const config = {
+    version: projectVersion,
     alwaysConsoleLog: false,
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
