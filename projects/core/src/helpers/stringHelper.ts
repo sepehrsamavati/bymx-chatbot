@@ -51,23 +51,21 @@ const stringHelper = {
             output.push(`${years} ${stringHelper.toPlural(uiText._langCode, years, uiText.year)}`);
             days -= years * 365;
         }
-
-        if (months > 0) {
-            output.push(`${months} ${stringHelper.toPlural(uiText._langCode, months, uiText.month)} `);
+        else if (months > 0) {
+            output.push(`${months} ${stringHelper.toPlural(uiText._langCode, months, uiText.month)}`);
             days -= months * 30;
         }
-
-        if (weeks > 0) {
+        else if (weeks > 0) {
             output.push(`${weeks} ${stringHelper.toPlural(uiText._langCode, weeks, uiText.week)}`);
             days -= weeks * 7;
         }
 
-        if (days > 0) {
-            output.push(`${days} ${stringHelper.toPlural(uiText._langCode, days, uiText.day)}`);
-            hours -= days * 24;
-        }
+        if (output.length === 0) {
+            if (days > 0) {
+                output.push(`${days} ${stringHelper.toPlural(uiText._langCode, days, uiText.day)}`);
+                hours -= days * 24;
+            }
 
-        if (output.length <= 1) {
             if (hours > 0) {
                 output.push(`${hours} ${stringHelper.toPlural(uiText._langCode, hours, uiText.hour)}`);
                 minutes -= hours * 60;
