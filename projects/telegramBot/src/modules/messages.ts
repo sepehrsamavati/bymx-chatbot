@@ -33,13 +33,16 @@ export const getSubscriptionInfoPanel = async (context: RequestContext, subscrip
 
     const { remainingPoints, subscription } = info;
 
+    const remainingMilliseconds = subscription.expiry.getTime() - new Date().getTime();
+    const remainingTimeString = stringHelper.digitLocalization(stringHelper.millisecondsToHumanReadable(remainingMilliseconds, context.uiText), context.user.lang);
+
     return {
         text: (
             `${emojiIcon.extraPoint} ${context.uiText.pointPackage}`
             + `\n\n${emojiIcon.info} ${context.uiText.title}: ${context.getUit(subscription.plan.title)}`
             + stringHelper.digitLocalization(
                 `\n\n${emojiIcon.point} ${context.uiText.remainingPoints}: ${remainingPoints}/${subscription.plan.points}`
-                + `\n${emojiIcon.calendar} ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)}`,
+                + `\n${emojiIcon.calendar} ${context.uiText.expireDate}: ${subscription.expiry.toLocaleString(context.user.lang)} (${remainingTimeString})`,
                 context.user.lang
             )
         ),
@@ -303,12 +306,9 @@ export const getMusicWithLyricsGenerationPanel = async (context: RequestContext)
 
 export const get3dModelGenerationPanel = async (context: RequestContext) => {
     return {
-        text: stringHelper.digitLocalization(
-            context.uiText.create3dModelFromImage
+        text: context.uiText.create3dModelFromImage
             + "\n\n" + context.uiText.create3dModelHelp
-            + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.millisecondsToHumanReadable(30e3, context.uiText)}`,
-            context.user.lang
-        ),
+            + `\n\n${emojiIcon.watch} ${context.uiText.estimatedResponseTime}: ${stringHelper.digitLocalization(stringHelper.millisecondsToHumanReadable(30e3, context.uiText), context.user.lang)}`,
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "panel" }]
