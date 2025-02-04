@@ -83,7 +83,7 @@ const stringHelper = {
             }
         }
 
-        return output.join(uiText.and);
+        return output.join(` ${uiText.and} `);
     },
     toPlural(lang: string, count: number, word: string, postfix = 's') {
         if (lang === 'en')
