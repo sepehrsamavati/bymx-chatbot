@@ -198,7 +198,7 @@ export const getAdminPanel = async (context: RequestContext) => {
 export const getAiToolsPanel = async (context: RequestContext) => {
     const inlineKeyboard = [
         [
-            { text: `${emojiIcon.chat} ${context.uiText.chatWithChatGpt}`, callback_data: "textBasedCommunication" },
+            { text: `${emojiIcon.chat} ${context.uiText.chatWithAi}`, callback_data: "textBasedCommunication" },
         ],
         [
             { text: `${emojiIcon.picture} ${context.uiText.createPicture}`, callback_data: "generateImage" },
@@ -398,7 +398,10 @@ export const getGivePhoneNumberPanel = (context: RequestContext) => {
     }
 };
 
-const modelTitleGenerator = (context: RequestContext, model: AiModelEntity.AIModel) => {
+const textModelTitleGenerator = (context: RequestContext, model: AiModelEntity.AIModel) => {
+    if (model.pricePmu.outputText === 0)
+        return `⚪ ${model.title} (${context.uiText.free})`;
+
     if (model.pricePmu.outputText <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;
 
@@ -408,16 +411,17 @@ const modelTitleGenerator = (context: RequestContext, model: AiModelEntity.AIMod
     return `🔴 ${model.title} (${context.uiText.costly})`;
 };
 
-export const getModelUsageListPanel = async (context: RequestContext) => {
+export const getTextModelUsageListPanel = async (context: RequestContext) => {
     const models = context.services.aiModelApplication.getChatModels();
 
     return {
         text: stringHelper.digitLocalization(`👇 ${context.uiText.modelUsageHelper}`
-            + `\n\n⚠ ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
+            + `\n\n${emojiIcon.warning} ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
             + models.map(model =>
-                `${modelTitleGenerator(context, model)}`
-                + `\n${context.uiText.approximateMessageCount}: ${stringHelper.digitLocalization(stringHelper.thousandSeparator(costCalculator.modelUsageCalculator(model).normalLengthTextMessage), context.user.lang)}`
-            ).join('\n\n'),
+                `${textModelTitleGenerator(context, model)}`
+                + `\n${model.pricePmu.outputText === 0 ? "** " : ""}${context.uiText.approximateMessageCount}: ${model.pricePmu.outputText === 0 ? context.uiText.unlimited : stringHelper.digitLocalization(stringHelper.thousandSeparator(costCalculator.modelUsageCalculator(model).normalLengthTextMessage), context.user.lang)}`
+            ).join('\n\n')
+            + `\n\n** ${emojiIcon.warning} ${context.uiText.textIsFreeTtsIsCostly}`,
         reply_markup: {
             inline_keyboard: [
                 [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }],
@@ -433,7 +437,7 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
         text: context.uiText.selectModel,
         reply_markup: {
             inline_keyboard: [
-                ...models.map(model => [{ text: modelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }]),
+                ...models.map(model => [{ text: textModelTitleGenerator(context, model), callback_data: `${changeChatModel ? "changeChatModel_" : "selectChatModel_"}${model.id}` }]),
                 (changeChatModel
                     ? [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: `manageChat_${changeChatModel}` }]
                     : [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "chats" }, { text: `${emojiIcon.panel} ${context.uiText.panel}`, callback_data: "panel" }]),

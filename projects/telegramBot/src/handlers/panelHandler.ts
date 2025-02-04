@@ -5,7 +5,7 @@ import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { get3dModelGenerationPanel, getAiToolsPanel, getChatListPanel, getImageGenerateModePanel, getImageUpscalePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../modules/messages.js";
+import { get3dModelGenerationPanel, getAiToolsPanel, getChatListPanel, getImageGenerateModePanel, getImageUpscalePanel, getTextModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../modules/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -277,7 +277,7 @@ export const panelHandler: IUpdateHandler = {
                 return { shouldContinue: false };
             };
             case "modelsUsage": {
-                const modelUsageList = await getModelUsageListPanel(context);
+                const modelUsageList = await getTextModelUsageListPanel(context);
 
                 if (!modelUsageList)
                     return null;
