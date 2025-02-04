@@ -2,7 +2,7 @@ import { config } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { UserTempFileEntity } from "bymx-core/types";
 import { stringHelper, UserMode } from "bymx-core/shared";
-import { getChatListPanel } from "../helpers/messages.js";
+import { getChatListPanel } from "../modules/messages.js";
 import { getDocumentInfo } from "../helpers/fileHelper.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";

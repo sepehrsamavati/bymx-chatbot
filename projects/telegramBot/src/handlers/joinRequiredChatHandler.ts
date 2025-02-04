@@ -2,7 +2,7 @@ import tgCall from "../helpers/call.js";
 import { accessHelper, UserType } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { getJoinChatsPanel, getPanel } from "../helpers/messages.js";
+import { getJoinChatsPanel, getPanel } from "../modules/messages.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 
 export const joinRequiredChatHandler: IUpdateHandler = {

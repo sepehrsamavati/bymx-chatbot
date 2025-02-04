@@ -5,7 +5,7 @@ import { setTimeout } from 'node:timers/promises';
 import { isContactSupported } from "bymx-core/server";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { getGivePhoneNumberPanel, getPanel } from "../helpers/messages.js";
+import { getGivePhoneNumberPanel, getPanel } from "../modules/messages.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 
 export const termsOfServiceHandler: IUpdateHandler = {

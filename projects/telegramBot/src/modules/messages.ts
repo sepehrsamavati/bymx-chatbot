@@ -1,9 +1,9 @@
-import getPlanInfoView from "./getPlanInfoView.js";
-import startLinkGenerator from "./startLinkGenerator.js";
+import getPlanInfoView from "../helpers/getPlanInfoView.js";
+import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { config, costCalculator } from "bymx-core/server";
 import type { RequestContext } from "../types/telegram.js";
 import { AiModelEntity, PaymentEntity, UserEntity } from "bymx-core/types";
-import emojiIcon, { paymentStatusIcon } from "./emojiIcon.js";
+import emojiIcon, { paymentStatusIcon } from "../helpers/emojiIcon.js";
 import { accessHelper, AIChatHistoryMemory, aiVoices, PaymentStatus, reduceTo2DArray, stringHelper, UIText, UserStatus, UserType } from "bymx-core/shared";
 
 export const getChatPanel = async (context: RequestContext, chatId: string) => {

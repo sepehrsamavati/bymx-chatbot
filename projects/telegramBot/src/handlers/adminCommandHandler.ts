@@ -4,7 +4,7 @@ import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { UserType, UserStatus, accessHelper } from "bymx-core/shared";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getStaticPaymentReceiptPanel, getUserManagementText } from "../helpers/messages.js";
+import { getStaticPaymentReceiptPanel, getUserManagementText } from "../modules/messages.js";
 
 export const adminCommandHandler: IUpdateHandler = {
     name: import.meta.filename,

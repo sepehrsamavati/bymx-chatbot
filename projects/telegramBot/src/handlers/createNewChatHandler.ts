@@ -1,7 +1,7 @@
 import tgCall from "../helpers/call.js";
 import { stringHelper } from "bymx-core/shared";
 import { AIChatBehavior, config } from "bymx-core/server";
-import { getModelListPanel } from "../helpers/messages.js";
+import { getModelListPanel } from "../modules/messages.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";

@@ -3,7 +3,7 @@ import { aiVoices } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getChangeVoiceResponseTypePanel, getVoiceResponsePanel } from "../helpers/messages.js";
+import { getChangeVoiceResponseTypePanel, getVoiceResponsePanel } from "../modules/messages.js";
 
 export const voiceResponseManageHandler: IUpdateHandler = {
     name: import.meta.filename,

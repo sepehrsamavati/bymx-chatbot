@@ -1,6 +1,6 @@
 import tgCall from "../helpers/call.js";
 import type { IUpdateHandler } from "../types/telegram.js";
-import { getSubscriptionInfoPanel } from "../helpers/messages.js";
+import { getSubscriptionInfoPanel } from "../modules/messages.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 

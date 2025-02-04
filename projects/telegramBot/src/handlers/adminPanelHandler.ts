@@ -1,5 +1,5 @@
 import tgCall from "../helpers/call.js";
-import { getAdminPanel } from "../helpers/messages.js";
+import { getAdminPanel } from "../modules/messages.js";
 import { accessHelper, UserType } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";

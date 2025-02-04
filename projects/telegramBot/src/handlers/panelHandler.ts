@@ -5,7 +5,7 @@ import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { get3dModelGenerationPanel, getAiToolsPanel, getChatListPanel, getImageGenerateModePanel, getImageUpscalePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../helpers/messages.js";
+import { get3dModelGenerationPanel, getAiToolsPanel, getChatListPanel, getImageGenerateModePanel, getImageUpscalePanel, getModelUsageListPanel, getMusicWithLyricsGenerationPanel, getPanel, getTextBasedCommunicationPanel, getUserSubscriptionsList, getVoiceResponsePanel } from "../modules/messages.js";
 
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,

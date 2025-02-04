@@ -6,7 +6,7 @@ import { PaymentStatus, UserMode } from "bymx-core/shared";
 import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../helpers/messages.js";
+import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../modules/messages.js";
 
 export const planHandler: IUpdateHandler = {
     name: import.meta.filename,

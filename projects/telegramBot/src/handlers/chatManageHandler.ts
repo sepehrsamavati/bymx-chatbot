@@ -3,7 +3,7 @@ import { stringHelper, UserMode } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel, getModelListPanel } from "../helpers/messages.js";
+import { getChatListPanel, getChatPanel, getDeleteChatConfirmPanel, getModelListPanel } from "../modules/messages.js";
 
 export const chatManageHandler: IUpdateHandler = {
     name: import.meta.filename,

@@ -3,7 +3,7 @@ import emojiIcon from "../helpers/emojiIcon.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { accessHelper, UserMode, UserType } from "bymx-core/shared";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getJoinRequiredChatPanel, getJoinRequiredChatsPanel } from "../helpers/messages.js";
+import { getJoinRequiredChatPanel, getJoinRequiredChatsPanel } from "../modules/messages.js";
 import type { Chat, IUpdateHandler, MessageOriginChannel, MessageOriginChat } from "../types/telegram.js";
 
 export const adminJoinChatPanelHandler: IUpdateHandler = {
