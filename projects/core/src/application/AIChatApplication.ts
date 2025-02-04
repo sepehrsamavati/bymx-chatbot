@@ -90,7 +90,7 @@ export default class AIChatApplication {
             return result.failed();
 
         if (modelId === chat.model.id)
-            return result.failed();
+            return result.succeeded();
 
         if (_model.type !== AIModelType.Text)
             return result.failed();
