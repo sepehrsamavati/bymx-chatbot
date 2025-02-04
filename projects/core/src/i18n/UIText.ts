@@ -195,7 +195,7 @@ const keys = [
     "high",
     "voiceSettings",
     "clearCurrentChatHistory",
-    "chatWithChatGpt",
+    "chatWithAi",
     "textBasedCommunicationHelp",
     "textBasedCommunicationTgHelp",
     "selectAiToolFromList",
