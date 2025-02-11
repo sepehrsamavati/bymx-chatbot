@@ -6,7 +6,7 @@ import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
-import { getPanel, getTextModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel, getModelListPanel } from "../modules/messages.js";
+import { getPanel, getTextModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel, getModelListPanel, getUserSubscriptionsList } from "../modules/messages.js";
 
 export const userCommandHandler: IUpdateHandler = {
     name: import.meta.filename,
@@ -135,6 +135,7 @@ export const userCommandHandler: IUpdateHandler = {
                                 + `\n\n\n${emojiIcon.play} ${context.uiText.restart}: /start`
                                 + `\n\n${emojiIcon.textDocument} ${context.uiText.termsOfService}: /terms`
                                 + `\n\n${emojiIcon.panel} ${context.uiText.panel}: /panel`
+                                + `\n\n${emojiIcon.tools} ${context.uiText.tools}: /ai`
                                 + `\n\n${emojiIcon.speaking} ${context.uiText.voiceSettings}: /voice`
                                 + `\n\n${emojiIcon.model} ${context.uiText.modelsCost}: /models`
                                 + `\n\n${emojiIcon.recycle} ${context.uiText.clearCurrentChatHistory}: /clear`
@@ -230,7 +231,8 @@ export const userCommandHandler: IUpdateHandler = {
                 );
 
                 return { shouldContinue: false };
-            case "/plans":
+            case "/buy_plan":
+            case "/buy_plans":
                 const planList = await getPlanList(context);
 
                 if (!planList)
@@ -256,6 +258,25 @@ export const userCommandHandler: IUpdateHandler = {
                         }
                     );
                 }
+                return { shouldContinue: false };
+            case "/plans":
+                const subscriptionsList = await getUserSubscriptionsList(context);
+
+                if (!subscriptionsList)
+                    return null;
+
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        message_id: update.message?.message_id,
+                        reply_parameters: {
+                            allow_sending_without_reply: true,
+                            message_id: update.message?.message_id
+                        },
+                        ...subscriptionsList
+                    }
+                );
                 return { shouldContinue: false };
         }
 
