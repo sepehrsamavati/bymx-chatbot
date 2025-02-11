@@ -26,10 +26,7 @@ const config = {
     alwaysConsoleLog: false,
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
-    telegramBotToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
-    staticPaymentReceiptTgChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
     chatCountLimit: 5,
-    telegramSupportAccount: process.env.BYMX_TELEGRAM_SUPPORT_ACCOUNT ?? "",
     cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
     activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
@@ -40,6 +37,11 @@ const config = {
     ffmpegPath: process.env.BYMX_FFMPEG_PATH ?? "",
     ffprobePath: process.env.BYMX_FFPROBE_PATH ?? "",
     feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0"),
+    telegram: {
+        apiToken: process.env.BYMX_TG_BOT_TOKEN ?? "",
+        supportAccountUsername: process.env.BYMX_TELEGRAM_SUPPORT_ACCOUNT ?? "",
+        staticPaymentReceiptChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
+    },
     apiServer: {
         port: Number.parseInt(process.env.BYMX_API_SERVER_PORT ?? "3017"),
         baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? ""
@@ -92,7 +94,7 @@ configError(
 
 configError(
     "Telegram bot API token not defined",
-    !config.telegramBotToken
+    !config.telegram.apiToken
 );
 
 configError(
@@ -144,7 +146,7 @@ configError(
 
 configError(
     "Define receipt chat ID for static payments",
-    !config.staticPaymentReceiptTgChatId
+    !config.telegram.staticPaymentReceiptChatId
 );
 
 configError(

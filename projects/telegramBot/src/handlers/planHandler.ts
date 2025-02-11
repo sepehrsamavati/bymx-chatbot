@@ -66,7 +66,7 @@ export const planHandler: IUpdateHandler = {
             const sendToReceiptChatResult = await tgCall(
                 TelegramMethods.CopyMessage,
                 {
-                    chat_id: config.staticPaymentReceiptTgChatId,
+                    chat_id: config.telegram.staticPaymentReceiptChatId,
                     from_chat_id: update.message.chat.id,
                     message_id: update.message.message_id,
                     ...getStaticPaymentReceiptInfoKeyboard({

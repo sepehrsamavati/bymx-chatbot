@@ -167,7 +167,7 @@ export const userCommandHandler: IUpdateHandler = {
             case "/support":
                 return {
                     call: {
-                        text: `${emojiIcon.contact} ${context.uiText.contactSupport}: ${config.telegramSupportAccount}`
+                        text: `${emojiIcon.contact} ${context.uiText.contactSupport}: ${config.telegram.supportAccountUsername}`
                     }
                 };
             case "/voice":

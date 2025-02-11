@@ -9,8 +9,8 @@ import { OperationResultWithData } from "bymx-core/shared";
 import type { TelegramResponse } from "../types/telegram.js";
 import type { TelegramMethods } from "../types/enums/telegramMethods.js";
 
-const botUrl = "https://api.telegram.org/bot" + config.telegramBotToken + "/";
-const botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegramBotToken + "/";
+const botUrl = "https://api.telegram.org/bot" + config.telegram.apiToken + "/";
+const botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegram.apiToken + "/";
 
 export const getFileUrl = (tgFilePath: string) => botUrlFileStorage + tgFilePath;
 

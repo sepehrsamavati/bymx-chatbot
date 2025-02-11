@@ -28,7 +28,7 @@ export const receiptManageHandler: IUpdateHandler = {
 
         if (context.chat?.type !== "private") {
 
-            if (update.callback_query?.message.chat.id?.toString() === config.staticPaymentReceiptTgChatId) {
+            if (update.callback_query?.message.chat.id?.toString() === config.telegram.staticPaymentReceiptChatId) {
                 if (queryData?.startsWith("refreshReceipt_")) {
                     const paymentId = queryData.replace("refreshReceipt_", "");
 
