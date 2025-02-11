@@ -75,6 +75,12 @@ const config = {
     }
 };
 
+for (const key of Object.keys(config)) {
+    const value = config[key as keyof typeof config];
+    if (value && typeof value === "object")
+        Object.freeze(value);
+}
+
 Object.freeze(config);
 
 configError(
