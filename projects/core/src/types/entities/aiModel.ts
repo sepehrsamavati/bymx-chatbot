@@ -4,6 +4,7 @@ import type { AIModelProvider } from "../enums/aiModelProvider.js";
 
 export type AIModel = {
     id: string;
+    isDeleted: boolean;
     /** Model name */
     name: string;
     /** Title for user view */

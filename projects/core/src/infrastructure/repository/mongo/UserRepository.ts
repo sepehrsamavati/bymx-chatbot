@@ -150,6 +150,7 @@ export default class UserRepository extends Transactional implements IUserReposi
                 id: selectedChat._id.toString(),
                 model: {
                     id: chatModel._id.toString(),
+                    isDeleted: chatModel.isDeleted,
                     name: chatModel.name,
                     pricePmu: chatModel.pricePmu,
                     title: chatModel.title,
@@ -160,7 +161,7 @@ export default class UserRepository extends Transactional implements IUserReposi
                 title: selectedChat.title,
                 behavior: selectedChat.behavior,
                 isHidden: selectedChat.isHidden,
-                user: user
+                user: user,
             };
         }
 

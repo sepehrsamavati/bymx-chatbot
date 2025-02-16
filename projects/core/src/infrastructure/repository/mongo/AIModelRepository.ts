@@ -16,6 +16,7 @@ export class AIModelRepository implements IAIModelRepository {
         )
             .map(item => ({
                 id: item._id.toString(),
+                isDeleted: item.isDeleted,
                 name: item.name,
                 pricePmu: item.pricePmu,
                 title: item.title,
@@ -29,9 +30,10 @@ export class AIModelRepository implements IAIModelRepository {
     async getById(id: string): Promise<AIModel | null> {
         const res = await this.#databaseConnection.models.aiModel
             .findOne({ _id: id, isDeleted: false })
-            .lean();;
+            .lean();
         return res ? {
             id: res._id.toString(),
+            isDeleted: res.isDeleted,
             name: res.name,
             pricePmu: res.pricePmu,
             title: res.title,

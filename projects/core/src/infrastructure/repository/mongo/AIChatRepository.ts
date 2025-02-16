@@ -97,6 +97,7 @@ export class AIChatRepository implements IAIChatRepository {
             behavior: res.behavior,
             model: {
                 id: model._id.toString(),
+                isDeleted: model.isDeleted,
                 name: model.name,
                 pricePmu: model.pricePmu,
                 title: model.title,

@@ -148,6 +148,9 @@ export default class AIApplication {
             }
         }
 
+        if (selectedChat.model?.isDeleted !== false)
+            return result.failed("modelNotAvailable");
+
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
 
         const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
