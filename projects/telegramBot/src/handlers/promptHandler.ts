@@ -421,9 +421,18 @@ export const promptHandler: IUpdateHandler = {
                 );
             }
         }
-
         else
             switch (res.message) {
+                case "modelNotAvailable":
+                    await tgCall(
+                        TelegramMethods.SendMessage,
+                        {
+                            chat_id: update.message?.chat.id,
+                            reply_to_message_id: update.message?.message_id,
+                            text: context.getUit(res.message) + `\n\n${context.uiText.changeModel}: /change_model`
+                        }
+                    );
+                    break;
                 case "selectChatBeforeUse": {
                     const _chatList = await getChatListPanel(context);
 
