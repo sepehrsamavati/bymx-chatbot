@@ -6,6 +6,14 @@ const dateLocales = ({
     "fa": "fa-IR-u-nu-latn",
 } as const);
 
+const msToSeconds = 1000;
+const msToMinutes = msToSeconds * 60;
+const msToHours = msToMinutes * 60;
+const msToDays = msToHours * 24;
+const msToWeeks = msToDays * 7;
+const msToMonths = msToDays * 30;
+const msToYears = msToDays * 365;
+
 const stringHelper = {
     formatter(text: string, replaceWith: string | number | (string | number)[]) {
         const input = text;
@@ -37,48 +45,30 @@ const stringHelper = {
     },
     millisecondsToHumanReadable(ms: number, localeOrUiText: UITextLanguage | LangCode) {
         const uiText = typeof localeOrUiText === 'string' ? UIText[localeOrUiText] : localeOrUiText;
-        let seconds = Math.floor(ms / 1000);
-        let minutes = Math.floor(seconds / 60);
-        let hours = Math.floor(minutes / 60);
-        let days = Math.floor(hours / 24);
-        const weeks = Math.floor(days / 7);
-        const months = Math.floor(days / 30);
-        const years = Math.floor(days / 365);
+        let remainingMilliseconds = ms;
+
+        // Define time units and their corresponding values in milliseconds
+        const timeUnits = [
+            { unit: 'year', ms: msToYears },
+            { unit: 'month', ms: msToMonths },
+            { unit: 'week', ms: msToWeeks },
+            { unit: 'day', ms: msToDays },
+            { unit: 'hour', ms: msToHours },
+            { unit: 'minute', ms: msToMinutes },
+            { unit: 'second', ms: msToSeconds }
+        ] as const;
 
         let output: string[] = [];
 
-        if (years > 0) {
-            output.push(`${years} ${stringHelper.toPlural(uiText._langCode, years, uiText.year)}`);
-            days -= years * 365;
-        }
-        else if (months > 0) {
-            output.push(`${months} ${stringHelper.toPlural(uiText._langCode, months, uiText.month)}`);
-            days -= months * 30;
-        }
-        else if (weeks > 0) {
-            output.push(`${weeks} ${stringHelper.toPlural(uiText._langCode, weeks, uiText.week)}`);
-            days -= weeks * 7;
-        }
-
-        if (output.length === 0) {
-            if (days > 0) {
-                output.push(`${days} ${stringHelper.toPlural(uiText._langCode, days, uiText.day)}`);
-                hours -= days * 24;
+        for (const { unit, ms: unitMs } of timeUnits) {
+            if (remainingMilliseconds >= unitMs) {
+                const quantity = Math.floor(remainingMilliseconds / unitMs);
+                remainingMilliseconds -= quantity * unitMs;
+                output.push(`${quantity} ${stringHelper.toPlural(uiText._langCode, quantity, uiText[unit])}`);
             }
 
-            if (hours > 0) {
-                output.push(`${hours} ${stringHelper.toPlural(uiText._langCode, hours, uiText.hour)}`);
-                minutes -= hours * 60;
-            }
-
-            if (minutes > 0) {
-                output.push(`${minutes} ${stringHelper.toPlural(uiText._langCode, minutes, uiText.minute)}`);
-                seconds -= minutes * 60;
-            }
-
-            if (seconds > 0) {
-                output.push(`${seconds} ${stringHelper.toPlural(uiText._langCode, seconds, uiText.second)}`);
-            }
+            if (output.length >= 2)
+                break;
         }
 
         return output.join(` ${uiText.and} `);
