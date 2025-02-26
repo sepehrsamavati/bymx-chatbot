@@ -449,14 +449,16 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
 export const getUserManagementText = (context: RequestContext, userInfo: UserEntity.UserInfoModel | null): string => {
     if (!userInfo)
         return context.uiText.userNotFound;
+    
+    const lastUserActivityTimeString = stringHelper.digitLocalization(stringHelper.millisecondsToHumanReadable(Date.now() - userInfo.user.lastActivity, context.uiText), context.user.lang);
 
     return (
         `${emojiIcon.identifier} ${userInfo.user.tgId}${userInfo.user.username ? " @" + userInfo.user.username : ""}`
         + `\n${userInfo.user.firstName}${userInfo.user.lastName ? ` ${userInfo.user.lastName}` : ""}`
-        + `\n\n${emojiIcon.sparkle} ${userInfo.activePurchasedPlans ?? '-'}`
-        + `\n${emojiIcon.time} ${new Date(userInfo.user.lastActivity).toLocaleString()}`
-        + `\n${emojiIcon.free} ${userInfo.dailyFreePoints?.remaining ?? '-'}`
-        + `\n${emojiIcon.extraPoint} ${userInfo.paidSubscriptionsRemainingPoints ?? '-'}`
+        + `\n\n${emojiIcon.info} ${UserStatus[userInfo.user.status]}`
+        + `\n${emojiIcon.phoneInHand} ${new Date(userInfo.user.lastActivity).toLocaleString()} ${lastUserActivityTimeString}`
+        + `\n${emojiIcon.free} ${userInfo.dailyFreePoints?.remaining ?? '-'} ${emojiIcon.point}`
+        + `\n${emojiIcon.extraPoint} ${userInfo.paidSubscriptionsRemainingPoints ?? '-'} ${emojiIcon.point}`
         + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
         + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
         + `\n\nReply these to any message to send/forward:\n/send_${userInfo.user.tgId}\n/forward_${userInfo.user.tgId}`
