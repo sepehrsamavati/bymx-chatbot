@@ -15,12 +15,20 @@ export const promptHandler: IUpdateHandler = {
     updateType: [
         TelegramUpdateType.TextMessage,
         TelegramUpdateType.Voice,
+        TelegramUpdateType.Document,
+        TelegramUpdateType.Photo,
     ],
     mode: UserMode.General.Normal,
     async handler(context, update) {
-        const text = update.message?.text;
+        if (update.message?.forward_origin)
+            return { shouldContinue: true };
+
+        const text = update.message?.text ?? update.message?.caption;
         const voice = update.message?.voice;
         const unlockFileProcessing = () => context.services.fileProcessingLockCache.unlock(context.user.id);
+
+        if (!text || text.length === 0)
+            return null;
 
         let userVoiceFile: { file: UserTempFileEntity.UserTempFile; duration?: number; } | null = null;
 
@@ -124,7 +132,11 @@ export const promptHandler: IUpdateHandler = {
         let attachmentFile: UserTempFileEntity.UserTempFile | undefined;
         let pleaseWaitMessageId = 0;
 
-        if (update.message?.reply_to_message?.document) {
+        let attachmentTgDocument = update.message?.reply_to_message?.document;
+        if (update.message?.document) // read caption as prompt
+            attachmentTgDocument = update.message?.document;
+
+        if (attachmentTgDocument) {
 
             if (context.user.selectedChat && !context.user.selectedChat.model.assistants.fileSearch)
                 return {
@@ -154,7 +166,7 @@ export const promptHandler: IUpdateHandler = {
                 };
             }
 
-            const { fileExtension: tempExtension, isFileSearch, isSupported } = getDocumentInfo(update.message.reply_to_message.document);
+            const { fileExtension: tempExtension, isFileSearch, isSupported } = getDocumentInfo(attachmentTgDocument);
 
             if (!isSupported) {
                 unlockFileProcessing();
@@ -177,7 +189,7 @@ export const promptHandler: IUpdateHandler = {
             if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
                 pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
-            const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(update.message.reply_to_message.document.file_unique_id);
+            const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(attachmentTgDocument.file_unique_id);
 
             let tempFile: UserTempFileEntity.UserTempFile | null = null;
 
@@ -202,7 +214,7 @@ export const promptHandler: IUpdateHandler = {
             }
 
             if (!tempFile) {
-                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: update.message.reply_to_message.document.file_id });
+                const fileInfo = await tgCall(TelegramMethods.GetFile, { file_id: attachmentTgDocument.file_id });
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
@@ -277,7 +289,11 @@ export const promptHandler: IUpdateHandler = {
 
         let imageFile: UserTempFileEntity.UserTempFile | undefined = undefined;
 
-        if (!attachmentFile && update.message?.reply_to_message?.photo) {
+        let attachmentTgPhoto = update.message?.reply_to_message?.photo;
+        if (update.message?.photo)
+            attachmentTgPhoto = update.message?.photo;
+
+        if (!attachmentFile && attachmentTgPhoto) {
             if (context.services.fileProcessingLockCache.isLocked(context.user.id))
                 return {
                     call: {
@@ -287,7 +303,7 @@ export const promptHandler: IUpdateHandler = {
 
             context.services.fileProcessingLockCache.lock(context.user.id);
 
-            const photo = update.message?.reply_to_message?.photo.at(-1);
+            const photo = attachmentTgPhoto.at(-1);
             if (photo) {
                 const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(photo.file_unique_id);
 

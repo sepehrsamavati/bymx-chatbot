@@ -115,6 +115,7 @@ export type TelegramMessage = {
     chat: Chat;
     from: TelegramUser;
     message_id: MessageID;
+    caption?: string;
     entities?: {
         offset: number;
         length: number;
