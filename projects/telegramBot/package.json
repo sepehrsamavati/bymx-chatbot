@@ -1,6 +1,6 @@
 {
   "name": "bymx-tg-endpoint",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -10,7 +10,8 @@
   "types": "./dist/UpdateProvider.d.ts",
   "scripts": {
     "build": "tsc",
-    "start:tsx": "tsx ./src/main.ts"
+    "start:tsx": "tsx ./src/main.ts",
+    "unsetWebhook": "node ./dist/scripts/unsetWebhook.js"
   },
   "keywords": [],
   "author": "",
