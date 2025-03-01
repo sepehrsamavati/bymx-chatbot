@@ -9,6 +9,11 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { useCallback, useMemo, useState } from "react";
+import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
+import Session, { SessionContext } from "./core/Session";
+import { CacheProvider } from "@emotion/react";
+import { ThemeProvider } from "@mui/material";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,7 +47,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const [, setTheme] = useState<ThemeName>('light');
+  const [, setDummyState] = useState(0);
+  const refreshUI = useCallback(() => setDummyState(current => current + 1), []);
+  const [hasError, setHasError] = useState(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const session = useMemo<Session>(() => new Session(setTheme, refreshUI), []);
+
+  return (
+    <CacheProvider value={cacheRtl}>
+      <ThemeProvider theme={muiThemeOptions(session.themeManager)}>
+        <SessionContext.Provider value={session}>
+          <Outlet />
+        </SessionContext.Provider>
+      </ThemeProvider>
+    </CacheProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
