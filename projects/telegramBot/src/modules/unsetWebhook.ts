@@ -1,4 +1,4 @@
-import tgCall from "../projects/telegramBot/helpers/call.js";
+import tgCall from "../helpers/call.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 
 tgCall(TelegramMethods.SetWebhook, {

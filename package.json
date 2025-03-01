@@ -6,7 +6,6 @@
   "license": "MIT",
   "workspaces": [
     "projects/core",
-    "projects/staticPayment",
     "projects/telegramBot",
     "projects/api",
     "projects/start"
