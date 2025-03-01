@@ -95,7 +95,6 @@ export class PromptRepository implements IPromptRepository {
         const res: AggregationResult = await this.#databaseConnection.models.prompt.aggregate([
             {
                 $match: {
-                    isDeleted: false,
                     insertDate: {
                         $gte: fromDate,
                         $lte: toDate
