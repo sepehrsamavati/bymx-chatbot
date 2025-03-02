@@ -7,4 +7,5 @@ export type IUpgradeable = {
 export type LocalStorage_v1 = IUpgradeable & {
     themeName: PaletteMode;
     isLoggedIn: boolean;
+    language: string;
 }

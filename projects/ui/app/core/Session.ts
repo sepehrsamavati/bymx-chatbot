@@ -6,6 +6,7 @@ import ThemeManager from "./helper/ThemeManager";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { LocalStorage_v1 } from "../types/localStorage";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
+import { UIText } from "./i18n/i18n";
 // import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
 export default class Session {
@@ -41,9 +42,12 @@ export default class Session {
 
     public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v1>({
         _dataVersion: 1,
-        themeName: 'light',
+        themeName: "light",
         isLoggedIn: false,
+        language: "fa",
     });
+
+    public readonly uiText = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
 
     // public async signOut() {
     //     if (this._signOutLock) return;

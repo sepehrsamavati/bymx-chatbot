@@ -1,8 +1,23 @@
 import { Outlet } from "react-router";
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useState } from "react";
+
+function Header(props: {
+    menuIsOpen: boolean;
+    openMenuRequest: () => void;
+}) {
+    return (
+        <header>
+            Header
+        </header>
+    );
+}
 
 export default function MainLayout() {
+    const [menuIsOpen, setMenuIsOpen] = useState(false);
+    const openMenuRequestHandler = () => setMenuIsOpen(true);
+
     return (
         <>
             <CssBaseline />
@@ -23,7 +38,7 @@ export default function MainLayout() {
                 maxWidth={false}
                 disableGutters
             >
-                {/* <Header menuIsOpen={menuIsOpen} openMenuRequest={openMenuRequestHandler} /> */}
+                <Header menuIsOpen={menuIsOpen} openMenuRequest={openMenuRequestHandler} />
                 <main>
                     {/* <SideMenu isOpen={menuIsOpen} closeCallback={closeMenuRequestHandler} /> */}
                     {/* <SideMenuBackdrop visible={menuIsOpen} closeMenu={closeMenuRequestHandler} /> */}

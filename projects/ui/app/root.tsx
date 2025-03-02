@@ -48,15 +48,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const [, setTheme] = useState<ThemeName>('light');
-  const [, setDummyState] = useState(0);
+  const [dummyState, setDummyState] = useState(0);
   const refreshUI = useCallback(() => setDummyState(current => current + 1), []);
-  const [hasError, setHasError] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const session = useMemo<Session>(() => new Session(setTheme, refreshUI), []);
 
   return (
     <CacheProvider value={cacheRtl}>
-      <ThemeProvider theme={muiThemeOptions(session.themeManager)}>
+      <ThemeProvider key={dummyState} theme={muiThemeOptions(session.themeManager)}>
         <SessionContext.Provider value={session}>
           <Outlet />
         </SessionContext.Provider>
