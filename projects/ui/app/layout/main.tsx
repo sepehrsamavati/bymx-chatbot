@@ -1,7 +1,10 @@
-import { Outlet } from "react-router";
-import Container from '@mui/material/Container';
-import CssBaseline from '@mui/material/CssBaseline';
 import { useState } from "react";
+import { Outlet } from "react-router";
+import Stack from "@mui/material/Stack";
+import Menu from "@mui/icons-material/Menu";
+import Container from '@mui/material/Container';
+import IconButton from "@mui/material/IconButton";
+import CssBaseline from '@mui/material/CssBaseline';
 
 function Header(props: {
     menuIsOpen: boolean;
@@ -9,7 +12,11 @@ function Header(props: {
 }) {
     return (
         <header>
-            Header
+            <Stack direction="row">
+                <IconButton>
+                    <Menu />
+                </IconButton>
+            </Stack>
         </header>
     );
 }

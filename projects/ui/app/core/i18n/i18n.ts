@@ -8,6 +8,10 @@ const emptyLanguageData: I18nLanguage = Object.fromEntries(
     keys.map((key) => [key, ""]) // Map over keys and create key-value pairs with empty strings
 ) as I18nLanguage;
 
+const languageMap = {
+    fa: () => import("./fa.json"),
+};
+
 export class UIText {
     #instance;
     #rerender;
@@ -32,7 +36,11 @@ export class UIText {
 
     private async loadLanguageData(language: string) {
         try {
-            const data = await import(`./${language}.json`);
+            const importer = languageMap[language as keyof typeof languageMap];
+            if (!importer)
+                return;
+
+            const data = await importer();
             // Step 3: If the data is valid, update the language data
             this.#languageData = data.default;
         } catch (error) {
