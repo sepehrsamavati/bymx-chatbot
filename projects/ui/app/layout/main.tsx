@@ -1,29 +1,64 @@
 import { useState } from "react";
+import { Box, Drawer } from "@mui/material";
 import { Outlet } from "react-router";
 import Stack from "@mui/material/Stack";
 import Menu from "@mui/icons-material/Menu";
 import Container from '@mui/material/Container';
+import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
 import CssBaseline from '@mui/material/CssBaseline';
+import bymxHeader from "../assets/images/baymax_header.png";
 
-function Header(props: {
-    menuIsOpen: boolean;
-    openMenuRequest: () => void;
-}) {
+function Header() {
+    const [menuIsOpen, setMenuIsOpen] = useState(false);
+    const openMenuRequestHandler = () => setMenuIsOpen(true);
+    const closeMenuRequestHandler = () => setMenuIsOpen(false);
+
     return (
         <header>
-            <Stack direction="row">
-                <IconButton>
+            <Stack direction="row" justifyContent="space-between">
+                <IconButton onClick={openMenuRequestHandler}>
                     <Menu />
                 </IconButton>
+
+                <Box
+                    component="img"
+                    src={bymxHeader}
+                    sx={{
+                        height: 50,
+                        padding: 0.2,
+                        maxWidth: "50%",
+                    }}
+                />
+
+                <Box
+                    component="img"
+                    src={bymxLogo}
+                    sx={{
+                        height: 50,
+                        padding: 0.5,
+                        borderRadius: "50%",
+                        maxWidth: "50%",
+                    }}
+                />
             </Stack>
+
+            <Drawer
+                anchor="right"
+                open={menuIsOpen}
+                onClose={closeMenuRequestHandler}
+            >
+                <Box
+                    width="75vw"
+                    height="100%"
+                    maxWidth="360px"
+                ></Box>
+            </Drawer>
         </header>
     );
 }
 
 export default function MainLayout() {
-    const [menuIsOpen, setMenuIsOpen] = useState(false);
-    const openMenuRequestHandler = () => setMenuIsOpen(true);
 
     return (
         <>
@@ -45,10 +80,8 @@ export default function MainLayout() {
                 maxWidth={false}
                 disableGutters
             >
-                <Header menuIsOpen={menuIsOpen} openMenuRequest={openMenuRequestHandler} />
+                <Header />
                 <main>
-                    {/* <SideMenu isOpen={menuIsOpen} closeCallback={closeMenuRequestHandler} /> */}
-                    {/* <SideMenuBackdrop visible={menuIsOpen} closeMenu={closeMenuRequestHandler} /> */}
                     <Outlet />
                 </main>
                 {/* <Footer /> */}
