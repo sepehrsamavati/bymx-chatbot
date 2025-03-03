@@ -1,10 +1,7 @@
 import "reflect-metadata";
 import Fastify from 'fastify';
-import fs from "node:fs/promises";
-import mimetype from 'mime-types';
-import { config, httpServerUrls, IServices, logger, storageHelper } from "bymx-core/server";
-import { dtoValidator } from './middlewares/dtoValidator.js';
-import FalAiResult from './dto/FalAiResult.js';
+import { setRoutes } from "./routes/router.js";
+import { config, IServices, logger } from "bymx-core/server";
 
 export default class HttpServer {
     constructor(private services: IServices) {
@@ -34,65 +31,7 @@ export default class HttpServer {
             done();
         });
 
-        this.#fastify.register((instance, _, next) => {
-
-            instance.get(`/${httpServerUrls.v1.tempFile.path}/:id`, async (request, reply) => {
-                const { id } = request.params as { id: string };
-
-                if (typeof id === "string" && id.length > 0) {
-                    const tempFile = await request.locals.applications.userTempFileApplication.getByFsId(id);
-
-                    if (tempFile.ok && tempFile.data) {
-                        const filePath = storageHelper.getTempFilePath({
-                            extension: tempFile.data.extension,
-                            fsId: tempFile.data.fsId,
-                        });
-
-                        const file = await fs.readFile(filePath);
-
-                        if (file) {
-                            reply
-                                .header('Content-Type', mimetype.lookup(tempFile.data.extension) || "application/octet-stream")
-                                .send(file);
-                        } else {
-                            reply.status(404).send({ error: "File not found" });
-                        }
-
-                    }
-                    else {
-                        reply.status(404).send({ error: "Invalid id" });
-                    }
-
-                } else {
-                    reply.status(400).send({ error: "Invalid id" });
-                }
-            });
-
-            instance.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`,
-                { preValidation: dtoValidator(FalAiResult) },
-                async (request, reply) => {
-                    const { id } = request.params as { id: string };
-
-                    if (typeof id !== "string" || id.length > 40 || id.length === 0)
-                        return reply.status(400).send({ error: "Invalid id" });
-
-                    const falResult = request.locals.dto as FalAiResult;
-
-                    const { data: task } = await request.locals.applications.generationTaskApplication.getInProgress({
-                        internalId: id,
-                        externalId: falResult.request_id,
-                    });
-
-                    if (!task)
-                        return reply.status(404).send({ error: "Task not found" });
-
-                    await request.locals.applications.eventHandlerApplication.processFalAiResult(falResult, task);
-
-                    return reply.status(200).send({ ok: true });
-                });
-
-            next();
-        }, { prefix: httpServerUrls.v1.baseAddress });
+        setRoutes(this.#fastify);
 
         this.#fastify.listen({
             port: config.apiServer.port,
