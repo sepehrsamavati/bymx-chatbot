@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
+import TelegramAuth from "../dto/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import { dtoValidator } from "../middlewares/dtoValidator.js";
 
+import * as user from "./api/v1/user.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 
@@ -15,4 +17,11 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
+
+    fastifyInstance.register((instance, _, next) => {
+
+        instance.post(`/tgAuth`, { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
 };
