@@ -1,16 +1,5 @@
 import type { UITextOptionalKey } from "../../i18n/UIText.js";
-
-type IOperationResult = {
-    ok: boolean;
-    message: UITextOptionalKey;
-}
-
-type IOperationResultWithData<T> = {
-    ok: boolean;
-    message: UITextOptionalKey;
-    data: T | null;
-}
-
+import type { IOperationResult, IOperationResultWithData } from "../../types/contracts/operationResult.js";
 
 export class OperationResult implements IOperationResult {
     public ok = false;
