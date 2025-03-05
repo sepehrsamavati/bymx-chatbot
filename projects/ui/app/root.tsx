@@ -7,13 +7,14 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import type { Route } from "./+types/root";
 import "./app.css";
-import { useCallback, useMemo, useState } from "react";
-import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
-import Session, { SessionContext } from "./core/Session";
+import type { Route } from "./+types/root";
 import { CacheProvider } from "@emotion/react";
 import { ThemeProvider } from "@mui/material";
+import { AuthenticateUser } from "./components/auth";
+import { useCallback, useMemo, useState } from "react";
+import Session, { SessionContext } from "./core/Session";
+import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -57,7 +58,11 @@ export default function App() {
     <CacheProvider value={cacheRtl}>
       <ThemeProvider key={dummyState} theme={muiThemeOptions(session.themeManager)}>
         <SessionContext.Provider value={session}>
-          <Outlet />
+          {session.user ? (
+            <Outlet />
+          ) : (
+            <AuthenticateUser />
+          )}
         </SessionContext.Provider>
       </ThemeProvider>
     </CacheProvider>

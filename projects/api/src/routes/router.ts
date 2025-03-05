@@ -9,6 +9,15 @@ import getTempFile from "./api/v1/getTempFile.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
+
+    fastifyInstance.register((instance, _, next) => {
+
+        instance.post(`/tgAuth`, { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
+
+
     fastifyInstance.register((instance, _, next) => {
 
         instance.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
@@ -17,11 +26,4 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
-
-    fastifyInstance.register((instance, _, next) => {
-
-        instance.post(`/tgAuth`, { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
-
-        next();
-    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
 };

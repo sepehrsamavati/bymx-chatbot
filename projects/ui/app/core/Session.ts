@@ -7,29 +7,31 @@ import SessionStorageHelper from "./helper/SessionStorage";
 import type { LocalStorage_v1 } from "../types/localStorage";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import { UIText } from "./i18n/i18n";
+import type { UserEntity } from "bymx-core/types";
+import userService from "./services/userService";
 // import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
 export default class Session {
     private _signOutLock = false;
-    // private _user?: IUserInfo;
-    // public get user(): IUserInfo | undefined {
-    //     return this._user;
-    // }
-    // public set user(v: IUserInfo | undefined) {
-    //     this._user = v;
-    // }
+    private _user?: UserEntity.UserViewModel;
+    public get user(): UserEntity.UserViewModel | undefined {
+        return this._user;
+    }
+    public set user(v: UserEntity.UserViewModel | undefined) {
+        this._user = v;
+    }
 
     async getUserInfo() {
-        // const result = await userService.getUserInfo();
+        const result = await userService.telegramAuth();
 
-        // if (result.data) {
-        //     this.user = result.data;
-        //     this.refreshUI();
-        // } else {
-        //     this.signOut();
-        // }
+        if (result.data) {
+            this.user = result.data;
+            this.refreshUI();
+        } else {
+            this.signOut();
+        }
 
-        // return result;
+        return result;
     }
 
 
@@ -49,25 +51,27 @@ export default class Session {
 
     public readonly uiText = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
 
-    // public async signOut() {
-    //     if (this._signOutLock) return;
-    //     this._signOutLock = true;
+    /** @todo */
+    public async signOut() {
+        return true;
+        // if (this._signOutLock) return;
+        // this._signOutLock = true;
 
-    //     const res = await userService.userLogout();
+        // const res = await userService.logout();
 
-    //     if (res.data?.isSucceeded) {
-    //         this.localStorage.data.isLoggedIn = false;
-    //         this.localStorage.rewrite();
-    //         this.user = undefined;
-    //         window.location.reload();
-    //     } else {
-    //         // this.snackbarProvider(res.data?.message, { variant: "error" });
-    //     }
+        // if (res.data?.isSucceeded) {
+        //     this.localStorage.data.isLoggedIn = false;
+        //     this.localStorage.rewrite();
+        //     this.user = undefined;
+        //     window.location.reload();
+        // } else {
+        //     // this.snackbarProvider(res.data?.message, { variant: "error" });
+        // }
 
-    //     this._signOutLock = false;
+        // this._signOutLock = false;
 
-    //     return res.data?.isSucceeded;
-    // }
+        // return res.data?.isSucceeded;
+    }
 
     public readonly themeManager = new ThemeManager(this);
     // public readonly snackbarProvider = snackbarProvider;

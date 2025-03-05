@@ -40,6 +40,8 @@ export type User = {
 
 export type UserDBModel = StoredEntity<User>;
 
+export type UserViewModel = Pick<User, 'id' | 'lang' | 'type' | 'firstName' | 'lastName' | 'memoryAmount' | 'saveMessages'>;
+
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
 export type UpdateUserModel = {
     inviteUsed?: NonNullable<User['invite']>['used'];

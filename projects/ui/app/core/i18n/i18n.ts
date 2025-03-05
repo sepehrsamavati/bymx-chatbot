@@ -1,4 +1,5 @@
 const keys = [
+    "authenticating",
 ] as const;
 
 export type I18nKey = typeof keys[number];
