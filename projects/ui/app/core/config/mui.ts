@@ -1,8 +1,8 @@
+import colors from './colors';
 import { prefixer } from 'stylis';
 import createCache from '@emotion/cache';
 import rtlPlugin from 'stylis-plugin-rtl';
 import { faIR } from '@mui/material/locale';
-import colors from './colors';
 import { createTheme } from '@mui/material/styles';
 import type ThemeManager from '../helper/ThemeManager';
 

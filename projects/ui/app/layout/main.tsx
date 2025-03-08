@@ -44,8 +44,15 @@ function Header() {
             </Stack>
 
             <Drawer
-                anchor="right"
+                anchor="left"
                 open={menuIsOpen}
+                variant="temporary"
+                sx={{
+                    '.MuiPaper-root': {
+                        left: 'unset',
+                        right: 0,
+                    }
+                }}
                 onClose={closeMenuRequestHandler}
             >
                 <Box
