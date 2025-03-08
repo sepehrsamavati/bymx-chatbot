@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { Box, Drawer } from "@mui/material";
 import { Outlet } from "react-router";
 import Stack from "@mui/material/Stack";
+import { Box, Drawer, Typography } from "@mui/material";
 import Menu from "@mui/icons-material/Menu";
+import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
 import CssBaseline from '@mui/material/CssBaseline';
+import DarkMode from "@mui/icons-material/DarkMode";
+import LightMode from "@mui/icons-material/LightMode";
 import bymxHeader from "../assets/images/baymax_header.png";
 
 function Header() {
+    const themeManager = useSession().themeManager;
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
@@ -59,7 +63,14 @@ function Header() {
                     width="75vw"
                     height="100%"
                     maxWidth="360px"
-                ></Box>
+                >
+                    <Box textAlign="center">
+                        <IconButton
+                            color="inherit"
+                            onClick={() => themeManager.set(themeManager.name === 'light' ? 'dark' : 'light')}
+                        >{themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                    </Box>
+                </Box>
             </Drawer>
         </header>
     );
