@@ -1,3 +1,4 @@
+import jwt from "../middlewares/jwt.js";
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import TelegramAuth from "../dto/TelegramAuth.js";
@@ -11,6 +12,8 @@ import falAiSetResult from "./api/v1/falAiSetResult.js";
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
     fastifyInstance.register((instance, _, next) => {
+
+        instance.addHook('onRequest', jwt);
 
         instance.post(`/tgAuth`, { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
 

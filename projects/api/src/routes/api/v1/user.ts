@@ -3,6 +3,8 @@ import type { RouteHandlerMethod } from "fastify";
 import type TelegramAuth from "../../../dto/TelegramAuth.js";
 import { OperationResultWithData } from "bymx-core/shared";
 import { UserEntity } from "bymx-core/types";
+import { signToken } from "../../../helpers/jwtHelper.js";
+import { createSetCookieString } from "../../../helpers/cookieHelper.js";
 
 export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
 
@@ -29,8 +31,8 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
     /** @todo */
     const user = await request.locals.applications.userApplication.getUserByTgId(tgAuthData.tgId);
 
-    if (user)
-        result.succeeded().setData({
+    if (user) {
+        const userInfo: UserEntity.UserViewModel = {
             id: user.id,
             type: user.type,
             lang: user.lang,
@@ -38,7 +40,13 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
             lastName: user.lastName,
             memoryAmount: user.memoryAmount,
             saveMessages: user.saveMessages,
-        });
+        };
+
+        result.succeeded().setData(userInfo);
+
+        const cookie = createSetCookieString("Auth", await signToken(userInfo, "test", 5 * 60e3), 5 * 60);
+        reply.header('Set-Cookie', cookie);
+    }
     else
         result.failed("userNotFound");
 
