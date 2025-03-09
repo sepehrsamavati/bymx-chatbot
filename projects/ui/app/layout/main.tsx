@@ -41,15 +41,17 @@ function Header() {
                     <Menu />
                 </IconButton>
 
-                <Box
-                    component="img"
-                    src={bymxHeader}
-                    sx={{
-                        height: 50,
-                        padding: 0.2,
-                        maxWidth: "50%",
-                    }}
-                />
+                <Link to="/">
+                    <Box
+                        component="img"
+                        src={bymxHeader}
+                        sx={{
+                            height: 50,
+                            padding: 0.2,
+                            // maxWidth: "100%",
+                        }}
+                    />
+                </Link>
 
                 <Box
                     component="img"

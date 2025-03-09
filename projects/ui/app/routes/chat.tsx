@@ -35,9 +35,19 @@ export default function Chat() {
                 direction="column"
             >
                 {messages.map(message => (
-                    <Box>
-                        <Typography>{message.input}</Typography>
-                        <Typography>{message.output}</Typography>
+                    <Box
+                        fontSize="0.8em"
+                    >
+                        <Box margin={1}>
+                            <Card variant="elevation">
+                                <Typography fontSize="inherit" padding={1}>{message.input}</Typography>
+                            </Card>
+                        </Box>
+                        <Box margin={1}>
+                            <Card variant="outlined">
+                                <Typography fontSize="inherit" padding={1}>{message.output}</Typography>
+                            </Card>
+                        </Box>
                     </Box>
                 ))}
             </Stack>
