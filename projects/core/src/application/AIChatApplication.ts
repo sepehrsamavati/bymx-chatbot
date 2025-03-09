@@ -1,9 +1,10 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
-import { User } from "../types/entities/user.js";
+import type { User } from "../types/entities/user.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
-import { OperationResult } from "../common/dto/OperationResult.js";
-import { CreateAIChat, AIChat } from "../types/entities/aiChat.js";
+import type { PromptViewModel } from "../types/entities/prompt.js";
+import type { CreateAIChat, AIChat } from "../types/entities/aiChat.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
 export default class AIChatApplication {
     #userApplication;
@@ -107,13 +108,13 @@ export default class AIChatApplication {
     }
 
     async getUserChatById(userId: string, chatId: string) {
-        const createdChatId = await this.#aiChatRepository.getChat({
+        const chat = await this.#aiChatRepository.getChat({
             isDeleted: false,
             isHidden: false,
             id: chatId,
             user: userId
         });
-        return createdChatId;
+        return chat;
     }
 
     async getVisibleChats(userId: string) {
@@ -159,5 +160,30 @@ export default class AIChatApplication {
             return result.failed("selectChatBeforeUse");
 
         return this.clearPromptHistory(user.selectedChat.id);
+    }
+
+    async getLastMessages(chatId: string, beforeMessageId: string | undefined, count: number) {
+        const result = new OperationResultWithData<PromptViewModel[]>();
+
+        const prompts = await this.#promptRepository.getRecentHistory(chatId, count, beforeMessageId);
+
+        if (prompts)
+            result
+                .succeeded()
+                .setData(
+                    prompts
+                        .map(
+                            p => (
+                                {
+                                    id: p.id,
+                                    input: p.input,
+                                    output: p.output,
+                                    points: p.points,
+                                }
+                            )
+                        )
+                );
+
+        return result;
     }
 }

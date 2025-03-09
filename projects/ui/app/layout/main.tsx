@@ -1,22 +1,38 @@
-import { useState } from "react";
-import { Outlet } from "react-router";
 import Stack from "@mui/material/Stack";
-import { Box, Drawer, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { Link, Outlet } from "react-router";
+import { Box, Drawer } from "@mui/material";
 import Menu from "@mui/icons-material/Menu";
 import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
+import type { CaptionOnly } from "bymx-core/types";
 import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
+import chatService from "~/core/services/chatService";
 import bymxHeader from "../assets/images/baymax_header.png";
 
 function Header() {
-    const themeManager = useSession().themeManager;
+    const session = useSession();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
+    const initialized = useRef(false);
+    const [chats, setChats] = useState<CaptionOnly[]>([]);
+
+    useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
+        chatService
+            .getAll()
+            .then(res => {
+                if (res.result.data)
+                    setChats(res.result.data);
+            });
+    }, []);
 
     return (
         <header>
@@ -64,11 +80,14 @@ function Header() {
                     height="100%"
                     maxWidth="360px"
                 >
-                    <Box textAlign="center">
+
+                    {chats.map(chat => <Link onClick={() => setMenuIsOpen(false)} to={`/ui/chat/${chat.id}`}>{chat.caption || session.uiText.noTitle}</Link>)}
+
+                    <Box marginBlock={3} textAlign="center">
                         <IconButton
                             color="inherit"
-                            onClick={() => themeManager.set(themeManager.name === 'light' ? 'dark' : 'light')}
-                        >{themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                            onClick={() => session.themeManager.set(session.themeManager.name === 'light' ? 'dark' : 'light')}
+                        >{session.themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
                     </Box>
                 </Box>
             </Drawer>

@@ -108,7 +108,7 @@ export type IAIChatRepository = {
 export type IPromptRepository = {
     create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<boolean | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
-    getRecentHistory(chatId: string, count: number): Promise<PromptBasicInfo[] | null>;
+    getRecentHistory(chatId: string, count: number, cursorPromptId?: string): Promise<PromptBasicInfo[] | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
     deleteByChatId(chatId: string): Promise<boolean | null>;
 }

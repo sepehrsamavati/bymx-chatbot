@@ -1,3 +1,4 @@
+import { FilterQuery } from "mongoose";
 import type { ServicesType } from "../../../Container.js";
 import type { FlattenToIDs } from "../../../types/contracts/entities.js";
 import type { IPromptRepository } from "../../../types/contracts/repositories.js";
@@ -27,14 +28,20 @@ export class PromptRepository implements IPromptRepository {
         });
         return Boolean(res?._id);
     }
-    async getRecentHistory(chatId: string, count: number): Promise<PromptBasicInfo[] | null> {
+    async getRecentHistory(chatId: string, count: number, cursorPromptId?: string): Promise<PromptBasicInfo[] | null> {
+        const query: FilterQuery<PromptDBModel> = {
+            isDeleted: false,
+            isHidden: false,
+            saved: true,
+            chat: chatId
+        };
+
+        if (cursorPromptId) {
+            query._id = { $lt: cursorPromptId }; // Get documents before the cursor ID
+        }
+
         const res = await this.#databaseConnection.models.prompt
-            .find({
-                isDeleted: false,
-                isHidden: false,
-                saved: true,
-                chat: chatId
-            })
+            .find(query)
             .sort({ insertDate: -1 })
             .limit(count)
             // .populate<{
@@ -51,6 +58,7 @@ export class PromptRepository implements IPromptRepository {
             return null;
 
         return res.map(item => ({
+            id: item._id.toString(),
             cost: item.cost,
             input: item.input,
             output: item.output,

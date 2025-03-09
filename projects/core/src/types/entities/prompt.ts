@@ -24,4 +24,5 @@ export type Prompt = {
 }
 
 export type PromptDBModel = StoredEntity<Prompt>;
-export type PromptBasicInfo = Omit<Prompt, 'chat' | 'promptUser' | 'usages'>;
+export type PromptBasicInfo = { id: string; } & Omit<Prompt, 'chat' | 'promptUser' | 'usages'>;
+export type PromptViewModel = Pick<PromptBasicInfo, 'id' | 'input' | 'output' | 'points'>;

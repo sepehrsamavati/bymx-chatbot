@@ -11,6 +11,7 @@ import * as chat from "./api/v1/chat.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
+import ChatMessagesQuery from "../dto/ChatMessagesQuery.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
@@ -28,7 +29,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.addHook('onRequest', jwt);
         instance.addHook('onRequest', authGuard);
 
-        instance.post("/all", chat.getAllChats);
+        instance.get("/all", chat.getAllChats);
+        instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });
