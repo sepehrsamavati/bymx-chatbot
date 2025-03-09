@@ -234,6 +234,7 @@ const keys = [
     "textIsFreeTtsIsCostly",
     "unlimited",
     "modelNotAvailable",
+    "authenticating",
 ] as const;
 
 export type UITextKey = typeof keys[number];

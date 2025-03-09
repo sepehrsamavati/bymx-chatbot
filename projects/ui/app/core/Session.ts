@@ -22,16 +22,16 @@ export default class Session {
     }
 
     async getUserInfo() {
-        const result = await userService.telegramAuth();
+        const response = await userService.telegramAuth();
 
-        if (result.data) {
-            this.user = result.data;
+        if (response.result) {
+            this.user = response.result;
             this.refreshUI();
         } else {
             this.signOut();
         }
 
-        return result;
+        return response;
     }
 
 

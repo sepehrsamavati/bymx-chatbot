@@ -1,17 +1,14 @@
-const keys = [
-    "authenticating",
-] as const;
+import uitService from "../services/uitService";
+import type { UIText as CoreUIText } from "bymx-core/shared";
 
-export type I18nKey = typeof keys[number];
+export type I18nKey = CoreUIText.UITextKey;
 export type I18nLanguage = Record<I18nKey, string>;
 
-const emptyLanguageData: I18nLanguage = Object.fromEntries(
-    keys.map((key) => [key, ""]) // Map over keys and create key-value pairs with empty strings
-) as I18nLanguage;
+const emptyLanguageData = {} as I18nLanguage;
 
-const languageMap = {
-    fa: () => import("./fa.json"),
-};
+// const languageMap = {
+//     fa: () => import("./fa.json"),
+// };
 
 export class UIText {
     #instance;
@@ -37,13 +34,13 @@ export class UIText {
 
     private async loadLanguageData(language: string) {
         try {
-            const importer = languageMap[language as keyof typeof languageMap];
+            const importer = uitService.getLanguageData;
             if (!importer)
                 return;
 
-            const data = await importer();
-            // Step 3: If the data is valid, update the language data
-            this.#languageData = data.default;
+            const { result: { data } } = await importer(language);
+            if (data)
+                this.#languageData = data;
         } catch (error) {
             console.error(`Failed to load language data for "${language}":`, error);
             // Optional: You could reset to default data if loading fails

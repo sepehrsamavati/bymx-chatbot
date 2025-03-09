@@ -1,6 +1,7 @@
 export type * as UserEntity from "../types/entities/user.js";
 export type * as PlanEntity from "../types/entities/plan.js";
 export type * as AiChatEntity from "../types/entities/aiChat.js";
+export type { CaptionOnly } from "../types/contracts/entities.js";
 export type * as AiModelEntity from "../types/entities/aiModel.js";
 export type { IDisposable } from "../types/contracts/disposable.js";
 export type * as UserTempFileEntity from "../types/entities/userTempFile.js";

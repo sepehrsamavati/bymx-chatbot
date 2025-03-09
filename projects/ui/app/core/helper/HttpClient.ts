@@ -12,7 +12,7 @@ interface IOptions {
 }
 
 type RequestResult<T> = {
-    data: T;
+    result: T;
     status: number;
 };
 
@@ -147,13 +147,13 @@ export default abstract class HttpClient {
         if (config.options.jsonConvert === true && rawResponse.status === 200) {
             const dto = await rawResponse.json();
             return {
-                data: dto as ResponseType,
+                result: dto as ResponseType,
                 status: 200
             };
         }
 
         return {
-            data: await rawResponse.text() as ResponseType,
+            result: await rawResponse.text() as ResponseType,
             status: rawResponse.status
         };
     }
