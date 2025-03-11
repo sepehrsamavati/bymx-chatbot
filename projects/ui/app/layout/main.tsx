@@ -83,7 +83,7 @@ function Header() {
                     maxWidth="360px"
                 >
 
-                    {chats.map(chat => <Link onClick={() => setMenuIsOpen(false)} to={`/ui/chat/${chat.id}`}>{chat.caption || session.uiText.noTitle}</Link>)}
+                    {chats.map(chat => <Link key={chat.id} onClick={() => setMenuIsOpen(false)} to={`/ui/chat/${chat.id}`}>{chat.caption || session.uiText.noTitle}</Link>)}
 
                     <Box marginBlock={3} textAlign="center">
                         <IconButton

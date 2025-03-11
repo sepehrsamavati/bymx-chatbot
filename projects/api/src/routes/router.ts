@@ -3,15 +3,16 @@ import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import TelegramAuth from "../dto/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
+import ChatPrompt from "../dto/chat/ChatPrompt.js";
 import authGuard from "../middlewares/authGuard.js";
 import { dtoValidator } from "../middlewares/dtoValidator.js";
+import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
-import ChatMessagesQuery from "../dto/ChatMessagesQuery.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
@@ -31,6 +32,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         instance.get("/all", chat.getAllChats);
         instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
+        instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });
