@@ -171,7 +171,7 @@ export default class OpenAIService implements IOpenAIService {
             });
 
             return {
-                duration: Math.ceil(Number.parseInt(result.duration) || 20),
+                duration: Math.ceil(Number.parseInt(result.duration as unknown as string) || 20),
                 output: result.text,
             };
         } catch (err) {
@@ -300,7 +300,7 @@ export default class OpenAIService implements IOpenAIService {
         const result = new OperationResult().failed();
 
         try {
-            const res = await this.#client.beta.vectorStores.del(id);
+            const res = await this.#client.vectorStores.del(id);
 
             if (res.deleted)
                 result.succeeded();

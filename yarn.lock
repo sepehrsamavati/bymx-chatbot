@@ -2806,7 +2806,7 @@ __metadata:
     franc-min: "npm:^6.2.0"
     https-proxy-agent: "npm:^7.0.5"
     mongoose: "npm:^8.7.1"
-    openai: "npm:^4.71.1"
+    openai: "npm:^4.87.3"
     typescript: "npm:^5.6.3"
     undici: "npm:^6.21.0"
     winston: "npm:^3.15.0"
@@ -5574,9 +5574,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^4.71.1":
-  version: 4.71.1
-  resolution: "openai@npm:4.71.1"
+"openai@npm:^4.87.3":
+  version: 4.87.3
+  resolution: "openai@npm:4.87.3"
   dependencies:
     "@types/node": "npm:^18.11.18"
     "@types/node-fetch": "npm:^2.6.4"
@@ -5586,13 +5586,16 @@ __metadata:
     formdata-node: "npm:^4.3.2"
     node-fetch: "npm:^2.6.7"
   peerDependencies:
+    ws: ^8.18.0
     zod: ^3.23.8
   peerDependenciesMeta:
+    ws:
+      optional: true
     zod:
       optional: true
   bin:
     openai: bin/cli
-  checksum: 10c0/468721223a68ae775dd6d7d2e3f32f7aa1ffb6d3e7fcb91c3851e7aaff75d0bf40b322a418dbc24aef34b86267821891a71f839f4cfce1a3e5bbed2084326314
+  checksum: 10c0/e647456030f44b0c90cf35367676a7a2d8ed8a3cfa4bdd8785553519e1092699915e9a6a0c714b1f3ee59f6c116203422dc1d8f60ec2d7ba416dac0e343d0f62
   languageName: node
   linkType: hard
 
