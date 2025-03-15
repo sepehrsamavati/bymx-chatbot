@@ -44,7 +44,7 @@ export default class OpenAIService implements IOpenAIService {
                 };
             }
 
-            logger.warn(`Invalid response for input: ${lastMessage}`);
+            logger.warn(`Invalid response for input: ${lastMessage} | ${JSON.stringify(result)}`);
 
             return null;
         } catch (err) {
