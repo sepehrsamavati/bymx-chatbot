@@ -22,7 +22,7 @@ export default class OpenAIService implements IOpenAIService {
 
             const lastMessage = opts.messages[opts.messages.length - 1]?.content;
 
-            if (chatCompletion.choices.length !== 1) {
+            if (chatCompletion.choices.length < 1) {
                 logger.warn(`Multiple choices retorted for input: ${lastMessage}`);
                 return null;
             }
