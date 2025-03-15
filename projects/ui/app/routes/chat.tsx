@@ -85,10 +85,25 @@ export default function Chat() {
     const [messages, setMessages] = useState<PromptViewModel[]>([]);
     const initialized = useRef(false);
     const [inputText, setInputText] = useState("");
+    const reachedToFirstMessage = useRef(false);
+    const isLoadingMessages = useRef(false);
+    const chatSectionRef = useRef<HTMLDivElement>(null);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
 
+    useEffect(() => {
+        if (!chatSectionRef.current) return;
+
+        console.log(chatSectionRef.current.scrollHeight, chatSectionRef.current.scrollTop)
+
+        if (chatSectionRef.current.scrollHeight - chatSectionRef.current.scrollTop < 50)
+            chatSectionRef.current.scrollTo({
+                top: chatSectionRef.current.scrollHeight
+            });
+    }, [messages]);
+
     const getMessages = useCallback(() => {
-        if (!chatId) return;
+        if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
+        isLoadingMessages.current = true;
         const lastMessageId = messages?.at(-1)?.id;
         chatService
             .getMessages({
@@ -97,9 +112,25 @@ export default function Chat() {
             })
             .then(res => {
                 if (res.result.data)
-                    setMessages(_current => [...(res.result.data || []), ..._current]);
+                    setMessages(_current => {
+                        const oldMessages = [..._current];
+                        const newMessages = [...(res.result.data || [])].reverse();
+
+                        for (const message of newMessages) {
+                            if (oldMessages.some(m => m.id === message.id))
+                                continue;
+                            oldMessages.unshift(message);
+                        }
+
+                        reachedToFirstMessage.current = _current.length === oldMessages.length;
+
+                        return oldMessages;
+                    });
+            })
+            .finally(() => {
+                isLoadingMessages.current = false;
             });
-    }, [chatId]);
+    }, [chatId, messages]);
 
     const submitPrompt = useCallback(() => {
         if (!chatId) return;
@@ -118,8 +149,9 @@ export default function Chat() {
     }, [chatId, inputText]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
-        console.log(event.target)
-    }, []);
+        if ((event.target as HTMLDivElement).scrollTop === 0)
+            getMessages();
+    }, [getMessages]);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -136,6 +168,7 @@ export default function Chat() {
                 paddingBottom={1}
                 overflow="auto"
                 direction="column"
+                ref={chatSectionRef}
                 onScroll={scrollHandler}
             >
                 {messages.map(message => (
