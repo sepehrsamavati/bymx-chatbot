@@ -1,5 +1,5 @@
-import MainLayout from "~/layout/main";
 import type { Route } from "./+types/home";
+import { useNavigate } from "react-router";
 import Chat from "@mui/icons-material/Chat";
 import { Box, Card, Container, Grid, Stack, Typography } from "@mui/material";
 
@@ -40,11 +40,13 @@ function SquareButton(props?: {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <Box padding={3} marginTop="20vh">
       <Grid container>
         <Grid padding={3} size={{ xs: 6, md: 4 }} component="div">
-          <SquareButton icon={<Chat />} caption="Chats" />
+          <SquareButton onClick={() => navigate("./ui/chats")} icon={<Chat />} caption="Chats" />
         </Grid>
       </Grid>
     </Box>

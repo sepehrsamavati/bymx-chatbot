@@ -54,6 +54,10 @@ export default function Chat() {
             .finally(() => setWaitingForCompletion(false));
     }, [chatId, inputText]);
 
+    const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
+        console.log(event.target)
+    }, []);
+
     useEffect(() => {
         if (initialized.current) return;
         initialized.current = true;
@@ -66,20 +70,22 @@ export default function Chat() {
 
             <Stack
                 flexGrow={1}
+                paddingBottom={1}
                 overflow="auto"
                 direction="column"
+                onScroll={scrollHandler}
             >
                 {messages.map(message => (
                     <Box
                         fontSize="0.8em"
                     >
                         <Box margin={1}>
-                            <Card variant="elevation">
+                            <Card variant="elevation" sx={{ display: "inline-block", maxWidth: "100%" }}>
                                 <MessageBubble text={message.input} />
                             </Card>
                         </Box>
                         <Box margin={1}>
-                            <Card variant="outlined">
+                            <Card variant="outlined" sx={{ display: "inline-block", maxWidth: "100%", float: "inline-end" }}>
                                 <MessageBubble text={message.output} />
                             </Card>
                         </Box>
@@ -87,7 +93,7 @@ export default function Chat() {
                 ))}
             </Stack>
 
-            <Card sx={{ margin: 2, borderRadius: 50, overflow: "initial" }}>
+            <Card sx={{ padding: 1, borderRadius: 0, overflow: "initial" }}>
                 <form
                     onSubmit={e => {
                         e.preventDefault();

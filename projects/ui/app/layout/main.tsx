@@ -7,11 +7,9 @@ import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
-import type { CaptionOnly } from "bymx-core/types";
 import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
-import chatService from "~/core/services/chatService";
 import bymxHeader from "../assets/images/baymax_header.png";
 
 function Header() {
@@ -19,20 +17,6 @@ function Header() {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
-    const initialized = useRef(false);
-    const [chats, setChats] = useState<CaptionOnly[]>([]);
-
-    useEffect(() => {
-        if (initialized.current) return;
-        initialized.current = true;
-
-        chatService
-            .getAll()
-            .then(res => {
-                if (res.result.data)
-                    setChats(res.result.data);
-            });
-    }, []);
 
     return (
         <header>
@@ -82,9 +66,6 @@ function Header() {
                     height="100%"
                     maxWidth="360px"
                 >
-
-                    {chats.map(chat => <Link key={chat.id} onClick={() => setMenuIsOpen(false)} to={`/ui/chat/${chat.id}`}>{chat.caption || session.uiText.noTitle}</Link>)}
-
                     <Box marginBlock={3} textAlign="center">
                         <IconButton
                             color="inherit"
