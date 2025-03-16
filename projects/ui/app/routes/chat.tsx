@@ -11,8 +11,9 @@ import { Box, Card, CircularProgress, IconButton, Stack, TextField } from "@mui/
 import 'prismjs/themes/prism.css';
 
 const loadLanguage = (language: string, callback: Function) => {
-    // Only load the language if it's not already loaded
-    if (!PrismJS.languages[language]) {
+    if (PrismJS.languages[language]) { // Already loaded
+        callback();
+    } else { // Load the language if it's not already loaded
 
         // Load the language script from a CDN
         const script = document.createElement('script');
@@ -25,14 +26,6 @@ const loadLanguage = (language: string, callback: Function) => {
             console.error(`Failed to load ${language} language from CDN.`);
         };
         document.head.appendChild(script);
-
-        // import(`prismjs/components/prism-${language}.min.js`)
-        //     .then(() => {
-        //         console.log(`${language} language loaded successfully.`);
-        //     })
-        //     .catch((err) => {
-        //         console.error(`Error loading ${language}:`, err);
-        //     });
     }
 };
 
@@ -54,7 +47,7 @@ function MessageBubble(props?: {
                 }); // Load the language dynamically
 
             });
-    }, []);
+    }, [props]);
 
     return (
         <Box
@@ -88,22 +81,33 @@ export default function Chat() {
     const reachedToFirstMessage = useRef(false);
     const isLoadingMessages = useRef(false);
     const chatSectionRef = useRef<HTMLDivElement>(null);
+    const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
 
-    useEffect(() => {
+    const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void) => {
         if (!chatSectionRef.current) return;
 
-        console.log(chatSectionRef.current.scrollHeight, chatSectionRef.current.scrollTop)
+        const element = chatSectionRef.current;
+        const scrollTopMax = element.scrollHeight - element.clientHeight;
+        const shouldScroll = scrollTopMax - element.scrollTop < 100;
 
-        if (chatSectionRef.current.scrollHeight - chatSectionRef.current.scrollTop < 50)
-            chatSectionRef.current.scrollTo({
-                top: chatSectionRef.current.scrollHeight
-            });
-    }, [messages]);
+        if (shouldScroll) {
+            const scrollFunction = () => {
+                element.scrollTo({
+                    top: element.scrollHeight - element.clientHeight
+                });
+            };
+            if (asyncCallback)
+                asyncCallback(scrollFunction);
+            else
+                scrollFunction();
+        }
+    }, []);
 
     const getMessages = useCallback(() => {
         if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
         isLoadingMessages.current = true;
+        setWaitingForPreviousMessagesToLoad(true);
         const lastMessageId = messages?.at(-1)?.id;
         chatService
             .getMessages({
@@ -129,6 +133,7 @@ export default function Chat() {
             })
             .finally(() => {
                 isLoadingMessages.current = false;
+                setWaitingForPreviousMessagesToLoad(false);
             });
     }, [chatId, messages]);
 
@@ -142,8 +147,10 @@ export default function Chat() {
                 promptText: inputText,
             })
             .then(res => {
-                if (res.result.data)
+                if (res.result.data) {
+                    scrollToBottom(cb => setTimeout(() => cb(), 10));
                     setMessages(_current => [..._current, { id: "new", input: inputText, output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number }]);
+                }
             })
             .finally(() => setWaitingForCompletion(false));
     }, [chatId, inputText]);
@@ -171,6 +178,11 @@ export default function Chat() {
                 ref={chatSectionRef}
                 onScroll={scrollHandler}
             >
+                {waitingForPreviousMessagesToLoad ? (
+                    <Box margin={4} textAlign="center">
+                        <CircularProgress color="secondary" />
+                    </Box>
+                ) : null}
                 {messages.map(message => (
                     <Box
                         key={message.id}
@@ -200,6 +212,7 @@ export default function Chat() {
                     <TextField
                         fullWidth
                         size="small"
+                        autoComplete="off"
                         variant="standard"
                         value={inputText}
                         onChange={e => setInputText(e.target.value)}
@@ -207,7 +220,7 @@ export default function Chat() {
                             input: {
                                 disableUnderline: true,
                                 startAdornment: (
-                                    <IconButton type="submit" size="small" disabled={waitingForCompletion}>
+                                    <IconButton type="submit" size="small" disabled={inputText.trim().length === 0 || waitingForCompletion}>
                                         {waitingForCompletion ? <CircularProgress size="1em" color="inherit" /> : <Send />}
                                     </IconButton>
                                 )
