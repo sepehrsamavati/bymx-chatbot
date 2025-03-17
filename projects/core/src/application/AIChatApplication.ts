@@ -1,5 +1,6 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
+import stringHelper from "../helpers/stringHelper.js";
 import type { User } from "../types/entities/user.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
 import type { PromptViewModel } from "../types/entities/prompt.js";
@@ -7,12 +8,14 @@ import type { CreateAIChat, AIChat } from "../types/entities/aiChat.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
 export default class AIChatApplication {
+    #aiModelCache;
     #userApplication;
     #promptRepository;
     #aiChatRepository;
     #aiModelApplication;
 
     constructor(container: ServicesType) {
+        this.#aiModelCache = container.aiModelCache;
         this.#userApplication = container.userApplication;
         this.#promptRepository = container.promptRepository;
         this.#aiChatRepository = container.aiChatRepository;
@@ -176,6 +179,9 @@ export default class AIChatApplication {
                             p => (
                                 {
                                     id: p.id,
+                                    inputDate: Number.parseInt((p.date - p.responseTime).toString()) || 0,
+                                    outputDate: p.date,
+                                    modelTitle: this.#aiModelCache.getModelByName(p.model)?.title || stringHelper.modelNameToTitle(p.model),
                                     input: p.input,
                                     output: p.output,
                                     points: p.points,

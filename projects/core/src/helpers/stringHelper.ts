@@ -77,6 +77,18 @@ const stringHelper = {
         if (lang === 'en')
             return count === 1 ? word : word + postfix;
         return word;
+    },
+    modelNameToTitle(modelFullName: string) {
+        let modelTitle = "ERR";
+
+        if (modelFullName.includes('/'))
+            modelTitle = modelFullName.split('/').at(1)?.split('-').at(0) || modelTitle;
+        else {
+            const [name, version] = modelFullName.split('-');
+            modelTitle = (name || modelTitle) + (version ? ` ${version}` : '');
+        }
+
+        return modelTitle.toUpperCase();
     }
 }
 

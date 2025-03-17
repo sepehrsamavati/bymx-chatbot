@@ -59,6 +59,7 @@ export class PromptRepository implements IPromptRepository {
 
         return res.map(item => ({
             id: item._id.toString(),
+            date: item.insertDate.getTime(),
             cost: item.cost,
             input: item.input,
             output: item.output,

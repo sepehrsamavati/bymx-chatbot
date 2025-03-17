@@ -1,5 +1,6 @@
 import type { User } from "./user";
 import type { AIChat } from "./aiChat";
+import type { AIModel } from "./aiModel";
 import type { StoredEntity } from "../contracts/entities";
 import type { UserSubscriptionUsage } from "./userSubscriptionUsage";
 
@@ -24,5 +25,9 @@ export type Prompt = {
 }
 
 export type PromptDBModel = StoredEntity<Prompt>;
-export type PromptBasicInfo = { id: string; } & Omit<Prompt, 'chat' | 'promptUser' | 'usages'>;
-export type PromptViewModel = Pick<PromptBasicInfo, 'id' | 'input' | 'output' | 'points'>;
+export type PromptBasicInfo = { id: string; date: number; } & Omit<Prompt, 'chat' | 'promptUser' | 'usages'>;
+export type PromptViewModel = Pick<PromptBasicInfo, 'id' | 'input' | 'output' | 'points'> & {
+    inputDate: number;
+    outputDate: number;
+    modelTitle: AIModel['title'];
+};

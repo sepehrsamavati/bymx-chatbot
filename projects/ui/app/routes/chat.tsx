@@ -5,7 +5,7 @@ import Send from "@mui/icons-material/Send";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Card, CircularProgress, IconButton, Stack, TextField } from "@mui/material";
+import { Box, Card, CircularProgress, IconButton, Stack, TextField, Typography } from "@mui/material";
 
 // import 'prismjs/components/prism-python.min.js'; // Ensure Python is loaded
 import 'prismjs/themes/prism.css';
@@ -31,6 +31,8 @@ const loadLanguage = (language: string, callback: Function) => {
 
 function MessageBubble(props?: {
     text?: string;
+    date?: Date;
+    modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
     // const lines = (props?.text ?? "").split('\n');
@@ -56,6 +58,8 @@ function MessageBubble(props?: {
             fontSize="inherit"
             whiteSpace="pre-line"
             sx={{
+                position: "relative",
+                minWidth: "20vw",
                 ' p': {
                     margin: 0
                 },
@@ -69,6 +73,19 @@ function MessageBubble(props?: {
             <div ref={divRef}>
                 <Markdown>{props?.text}</Markdown>
             </div>
+            <Typography
+                component="span"
+                sx={{
+                    bottom: 0,
+                    insetInlineStart: 0,
+                    position: "absolute",
+                    marginBottom: -1.6,
+                    fontSize: "0.6em",
+                    fontFamily: "monospace",
+                    color: "GrayText",
+                    direction: "ltr",
+                }}
+            >{props?.modelTitle} <i>{props?.date?.toLocaleTimeString()}</i></Typography>
         </Box>
     );
 }
@@ -141,6 +158,7 @@ export default function Chat() {
         if (!chatId) return;
         setWaitingForCompletion(true);
         setInputText("");
+        const inputDate = Date.now();
         chatService
             .submitPrompt({
                 chatId,
@@ -149,7 +167,7 @@ export default function Chat() {
             .then(res => {
                 if (res.result.data) {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
-                    setMessages(_current => [..._current, { id: "new", input: inputText, output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number }]);
+                    setMessages(_current => [..._current, { id: "new", inputDate, outputDate: Date.now(), modelTitle: "", input: inputText, output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number }]);
                 }
             })
             .finally(() => setWaitingForCompletion(false));
@@ -189,13 +207,13 @@ export default function Chat() {
                         fontSize="0.8em"
                     >
                         <Box margin={1}>
-                            <Card variant="elevation" sx={{ display: "inline-block", maxWidth: "100%" }}>
-                                <MessageBubble text={message.input} />
+                            <Card variant="elevation" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
+                                <MessageBubble text={message.input} date={new Date(message.inputDate)} />
                             </Card>
                         </Box>
                         <Box margin={1}>
-                            <Card variant="outlined" sx={{ display: "inline-block", maxWidth: "100%", float: "inline-end" }}>
-                                <MessageBubble text={message.output} />
+                            <Card variant="outlined" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
+                                <MessageBubble text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
                             </Card>
                         </Box>
                     </Box>
