@@ -7,8 +7,9 @@ import SessionStorageHelper from "./helper/SessionStorage";
 import type { LocalStorage_v1 } from "../types/localStorage";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import { UIText } from "./i18n/i18n";
-import type { UserEntity } from "bymx-core/types";
+import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import userService from "./services/userService";
+import modelService from "./services/modelService";
 // import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
 export default class Session {
@@ -27,6 +28,7 @@ export default class Session {
         if (response.result) {
             this.user = response.result;
             this.refreshUI();
+            this.syncChatModels();
         } else {
             this.signOut();
         }
@@ -34,6 +36,21 @@ export default class Session {
         return response;
     }
 
+    async syncChatModels() {
+        const models = (await modelService.getAll()).result.data;
+        if (Array.isArray(models)) {
+            this._chatModels = models;
+            this.refreshUI();
+        }
+    }
+
+    private _chatModels: CaptionOnly[] = [];
+    public get chatModels(): CaptionOnly[] {
+        return this._chatModels;
+    }
+    public set chatModels(v: CaptionOnly[]) {
+        this._chatModels = v;
+    }
 
     constructor(
         readonly setTheme: React.Dispatch<React.SetStateAction<PaletteMode>>,

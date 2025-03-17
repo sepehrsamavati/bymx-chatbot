@@ -5,10 +5,11 @@ import Send from "@mui/icons-material/Send";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Card, CircularProgress, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CircularProgress, FormControl, IconButton, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 
 // import 'prismjs/components/prism-python.min.js'; // Ensure Python is loaded
 import 'prismjs/themes/prism.css';
+import { useSession } from "~/core/Session";
 
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
@@ -35,7 +36,6 @@ function MessageBubble(props?: {
     modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
-    // const lines = (props?.text ?? "").split('\n');
 
     useEffect(() => {
         if (!divRef.current) return;
@@ -47,7 +47,6 @@ function MessageBubble(props?: {
                 loadLanguage(language, () => {
                     PrismJS.highlightElement(codeElement);
                 }); // Load the language dynamically
-
             });
     }, [props]);
 
@@ -69,7 +68,6 @@ function MessageBubble(props?: {
                 },
             }}
         >
-            {/* {lines.map(line => <Typography fontSize="inherit">{line}</Typography>)} */}
             <div ref={divRef}>
                 <Markdown>{props?.text}</Markdown>
             </div>
@@ -91,6 +89,7 @@ function MessageBubble(props?: {
 }
 
 export default function Chat() {
+    const session = useSession();
     const { chatId } = useParams();
     const [messages, setMessages] = useState<PromptViewModel[]>([]);
     const initialized = useRef(false);
@@ -186,10 +185,30 @@ export default function Chat() {
 
     return (
         <Stack direction="column" height="100%">
-            <Box />
+            <Box textAlign="center">
+                <Select
+                    size="small"
+                    sx={{
+                        borderRadius: 50,
+                        fontFamily: "monospace",
+                        fontSize: "0.5em",
+                        "> .MuiSelect-select": {
+                            padding: 1,
+                        }
+                    }}
+                    // value={value}
+                    // onChange={handleChange}
+                    displayEmpty
+                >
+                    {session.chatModels.map(model => (
+                        <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>{model.caption}</MenuItem>
+                    ))}
+                </Select>
+            </Box>
 
             <Stack
                 flexGrow={1}
+                marginTop={1}
                 paddingBottom={1}
                 overflow="auto"
                 direction="column"

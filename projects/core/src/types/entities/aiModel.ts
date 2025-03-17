@@ -31,3 +31,5 @@ export type AIModel = {
 }
 
 export type AIModelDBModel = StoredEntity<AIModel>;
+
+export type AIModelViewModel = Pick<AIModel, 'id' | 'title'>;

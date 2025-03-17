@@ -1,5 +1,6 @@
 import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../export/shared.js";
+import { AIModelViewModel } from "../types/entities/aiModel.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
 
 export default class AIModelApplication {
@@ -20,6 +21,14 @@ export default class AIModelApplication {
             .getCurrentCache()
             .filter(model => model.type === AIModelType.Text)
             .sort((a, b) => a.pricePmu.outputText - b.pricePmu.outputText);
+    }
+
+    getChatModelViewModels(): AIModelViewModel[] {
+        return this.getChatModels()
+            .map(model => ({
+                id: model.id,
+                title: model.title,
+            }));
     }
 
     async renewCache() {

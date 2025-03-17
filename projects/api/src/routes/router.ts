@@ -10,6 +10,7 @@ import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
+import * as model from "./api/v1/model.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
@@ -36,6 +37,16 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });
+
+    fastifyInstance.register((instance, _, next) => {
+
+        instance.addHook('onRequest', jwt);
+        instance.addHook('onRequest', authGuard);
+
+        instance.get("/all", model.getAllModels);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/model" });
 
 
     fastifyInstance.register((instance, _, next) => {
