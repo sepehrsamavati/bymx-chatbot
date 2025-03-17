@@ -4,12 +4,13 @@ import { useParams } from "react-router";
 import Send from "@mui/icons-material/Send";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Card, CircularProgress, IconButton, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 // import 'prismjs/components/prism-python.min.js'; // Ensure Python is loaded
 import 'prismjs/themes/prism.css';
 import { useSession } from "~/core/Session";
+import { AIChatHistoryMemory } from "bymx-core/shared";
 
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
@@ -36,6 +37,16 @@ function MessageBubble(props?: {
     modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
+    const date = useMemo(() => {
+        if (!props?.date) return null;
+
+        const now = new Date();
+
+        if (now.toLocaleDateString() !== props.date.toLocaleDateString())
+            return <i>{props.date.toLocaleString()}</i>;
+
+        return <i>{props.date.toLocaleTimeString()}</i>;
+    }, [props]);
 
     useEffect(() => {
         if (!divRef.current) return;
@@ -83,7 +94,7 @@ function MessageBubble(props?: {
                     color: "GrayText",
                     direction: "ltr",
                 }}
-            >{props?.modelTitle} <i>{props?.date?.toLocaleTimeString()}</i></Typography>
+            >{props?.modelTitle} {date}</Typography>
         </Box>
     );
 }
@@ -213,25 +224,51 @@ export default function Chat() {
     return (
         <Stack direction="column" height="100%">
             <Box textAlign="center">
-                <Select
-                    disabled={modelChangeLock}
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                    <Select
+                        disabled={modelChangeLock}
+                        size="small"
+                        sx={{
+                            borderRadius: 50,
+                            fontFamily: "monospace",
+                            "> .MuiSelect-select": {
+                                padding: 1,
+                            }
+                        }}
+                        value={selectedModel}
+                        onChange={handleModelChange}
+                        displayEmpty
+                    >
+                        {session.chatModels.map(model => (
+                            <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>{model.caption}</MenuItem>
+                        ))}
+                    </Select>
+
+                    <FormControl
                     size="small"
                     sx={{
-                        borderRadius: 50,
-                        fontFamily: "monospace",
-                        fontSize: "0.5em",
-                        "> .MuiSelect-select": {
-                            padding: 1,
+                        "> .MuiFormLabel-root": {
+                            left: "unset",
+                            right: "19px",
                         }
                     }}
-                    value={selectedModel}
-                    onChange={handleModelChange}
-                    displayEmpty
-                >
-                    {session.chatModels.map(model => (
-                        <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>{model.caption}</MenuItem>
-                    ))}
-                </Select>
+                    >
+                        <InputLabel size="small">{session.uiText.memory}</InputLabel>
+                        <Select
+                            size="small"
+                            sx={{
+                                borderRadius: 50,
+                            }}
+                            value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
+                            label={session.uiText.memory}
+                        >
+                            <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Stack>
             </Box>
 
             <Stack

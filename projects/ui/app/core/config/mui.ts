@@ -38,7 +38,7 @@ export const muiThemeOptions = (themeManager: ThemeManager) => {
             }
         },
         typography: {
-            fontSize: 16,
+            fontSize: 14,
             fontFamily: `"IRANSansFaNum", "yekan", "Roboto", "Helvetica", "Arial", sans-serif`
         },
         components: {

@@ -94,7 +94,9 @@ export default function MainLayout() {
                     flexDirection: 'column',
                     '& > main': {
                         flexGrow: 1,
-                        overflowY: "auto"
+                        overflowY: "auto",
+                        paddingTop: 1,
+                        marginTop: -1,
                     }
                 }}
                 maxWidth={false}
