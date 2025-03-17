@@ -5,7 +5,7 @@ import Send from "@mui/icons-material/Send";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Card, CircularProgress, FormControl, IconButton, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CircularProgress, IconButton, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 // import 'prismjs/components/prism-python.min.js'; // Ensure Python is loaded
 import 'prismjs/themes/prism.css';
@@ -97,6 +97,8 @@ export default function Chat() {
     const reachedToFirstMessage = useRef(false);
     const isLoadingMessages = useRef(false);
     const chatSectionRef = useRef<HTMLDivElement>(null);
+    const [modelChangeLock, setModelChangeLock] = useState(true);
+    const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
 
@@ -177,16 +179,42 @@ export default function Chat() {
             getMessages();
     }, [getMessages]);
 
+    const handleModelChange = useCallback((event: SelectChangeEvent<string>) => {
+        if (modelChangeLock || !chatId) return;
+        const modelId = event.target.value;
+        setModelChangeLock(true);
+        chatService
+            .setChatModel({ chatId, modelId })
+            .then(res => {
+                if (res.result.ok)
+                    setSelectedModel(modelId);
+            })
+            .finally(() => {
+                setModelChangeLock(false);
+            });
+    }, [modelChangeLock, chatId]);
+
     useEffect(() => {
-        if (initialized.current) return;
+        if (initialized.current || !chatId) return;
         initialized.current = true;
+
         getMessages();
-    }, [getMessages]);
+
+        chatService
+            .getChatModelId(chatId)
+            .then(res => {
+                if (res.result.ok && res.result.data) {
+                    setSelectedModel(res.result.data);
+                    setModelChangeLock(false);
+                }
+            });
+    }, [getMessages, chatId]);
 
     return (
         <Stack direction="column" height="100%">
             <Box textAlign="center">
                 <Select
+                    disabled={modelChangeLock}
                     size="small"
                     sx={{
                         borderRadius: 50,
@@ -196,8 +224,8 @@ export default function Chat() {
                             padding: 1,
                         }
                     }}
-                    // value={value}
-                    // onChange={handleChange}
+                    value={selectedModel}
+                    onChange={handleModelChange}
                     displayEmpty
                 >
                     {session.chatModels.map(model => (

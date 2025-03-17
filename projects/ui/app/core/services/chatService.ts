@@ -1,6 +1,6 @@
 import HttpClient from "../helper/HttpClient";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
-import type { OperationResultWithData } from "bymx-core/shared";
+import type { OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const chatService = Object.freeze({
     getAll() {
@@ -22,10 +22,27 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.GET,
         });
     },
+    getChatModelId(chatId: string) {
+        const queryParams = new URLSearchParams();
+
+        queryParams.append("chatId", chatId);
+
+        return HttpClient.send<OperationResultWithData<string>>({
+            path: `/api/v1/chat/model?${queryParams}`,
+            method: HttpClient.Methods.GET,
+        });
+    },
     submitPrompt(dto: { chatId: string; promptText: string; }) {
         return HttpClient.send<OperationResultWithData<{ plainText?: string; isComplete: boolean; pointUsage: number; }>>({
             path: "/api/v1/chat/prompt",
             method: HttpClient.Methods.POST,
+            body: dto,
+        });
+    },
+    setChatModel(dto: { chatId: string; modelId: string; }) {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/chat/model",
+            method: HttpClient.Methods.PATCH,
             body: dto,
         });
     },

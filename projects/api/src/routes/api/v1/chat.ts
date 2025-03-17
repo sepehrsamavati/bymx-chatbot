@@ -1,8 +1,10 @@
 import type { RouteHandlerMethod } from "fastify";
-import { OperationResultWithData } from "bymx-core/shared";
+import type ChatID from "../../../dto/chat/ChatID.js";
+import { OperationResult, OperationResultWithData } from "bymx-core/shared";
+import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
+import type SetChatModel from "../../../dto/chat/SetChatModel.js";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
-import ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -83,6 +85,48 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
         else
             result.failed(chatCompletionResult.message);
     }
+
+    return reply.status(200).send(result);
+
+};
+
+export const getChatSelectedModel: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<string>();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as ChatID;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else {
+        result.succeeded().setData(chat.model.id);
+    }
+
+    return reply.status(200).send(result);
+
+};
+
+export const setChatModel: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as SetChatModel;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    const user = await request.locals.applications.userApplication.getUserById(userId);
+
+    if (!user)
+        return reply.status(200).send(result.failed("userNotFound"));
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiChatApplication.setModel({ user, ...chat }, query.modelId);
 
     return reply.status(200).send(result);
 

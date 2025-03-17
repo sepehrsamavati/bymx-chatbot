@@ -9,7 +9,7 @@ export class OperationResult implements IOperationResult {
         this.ok = true;
         if (message)
             this.message = message;
-        else if (this.message === "")
+        else
             this.message = "operationSuccessful";
         return this;
     }
@@ -18,7 +18,7 @@ export class OperationResult implements IOperationResult {
         this.ok = false;
         if (message)
             this.message = message;
-        else if (this.message === "")
+        else
             this.message = "operationFailed";
         return this;
     }
