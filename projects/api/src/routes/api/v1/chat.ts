@@ -46,7 +46,7 @@ export const getChatMessages: RouteHandlerMethod = async (request, reply) => {
         );
 
         if (messages.data)
-            result.succeeded().setData(messages.data);
+            result.succeeded().setData(messages.data.reverse());
     }
 
     return reply.status(200).send(result);

@@ -7,7 +7,6 @@ import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
-// import 'prismjs/components/prism-python.min.js'; // Ensure Python is loaded
 import 'prismjs/themes/prism.css';
 import { useSession } from "~/core/Session";
 import { AIChatHistoryMemory } from "bymx-core/shared";
@@ -147,17 +146,14 @@ export default function Chat() {
                 if (res.result.data)
                     setMessages(_current => {
                         const oldMessages = [..._current];
-                        const newMessages = [...(res.result.data || [])].reverse();
+                        const messagesToAdd = [...(res.result.data || [])]
+                            .filter(message => !oldMessages.some(m => m.id === message.id)); // prevent duplicate
 
-                        for (const message of newMessages) {
-                            if (oldMessages.some(m => m.id === message.id))
-                                continue;
-                            oldMessages.unshift(message);
-                        }
+                        const newMessages = [...messagesToAdd, ...oldMessages];
 
-                        reachedToFirstMessage.current = _current.length === oldMessages.length;
+                        reachedToFirstMessage.current = _current.length === newMessages.length;
 
-                        return oldMessages;
+                        return newMessages;
                     });
             })
             .finally(() => {
@@ -245,13 +241,13 @@ export default function Chat() {
                     </Select>
 
                     <FormControl
-                    size="small"
-                    sx={{
-                        "> .MuiFormLabel-root": {
-                            left: "unset",
-                            right: "19px",
-                        }
-                    }}
+                        size="small"
+                        sx={{
+                            "> .MuiFormLabel-root": {
+                                left: "unset",
+                                right: "19px",
+                            }
+                        }}
                     >
                         <InputLabel size="small">{session.uiText.memory}</InputLabel>
                         <Select

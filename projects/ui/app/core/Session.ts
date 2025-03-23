@@ -25,8 +25,8 @@ export default class Session {
     async getUserInfo() {
         const response = await userService.telegramAuth();
 
-        if (response.result) {
-            this.user = response.result;
+        if (response.result.data) {
+            this.user = response.result.data;
             this.refreshUI();
             this.syncChatModels();
         } else {
