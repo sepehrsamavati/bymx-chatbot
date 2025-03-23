@@ -28,8 +28,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node --test",
-    "unsetWebhook": "node ./dist/scripts/unsetWebhook.js"
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",

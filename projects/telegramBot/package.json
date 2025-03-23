@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "start:tsx": "tsx ./src/main.ts",
-    "unsetWebhook": "node ./dist/scripts/unsetWebhook.js"
+    "unsetWebhook": "node ./dist/modules/unsetWebhook.js"
   },
   "keywords": [],
   "author": "",
