@@ -20,6 +20,7 @@ export default class AIModelApplication {
         return this.#aiModelCache
             .getCurrentCache()
             .filter(model => model.type === AIModelType.Text)
+            .sort((a, b) => a.title.localeCompare(b.title))
             .sort((a, b) => a.pricePmu.outputText - b.pricePmu.outputText);
     }
 
