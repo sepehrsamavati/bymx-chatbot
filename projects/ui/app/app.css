@@ -1,3 +1,9 @@
+@font-face {
+	font-family: Samim;
+	font-weight: normal;
+	src: url('./assets/fonts/Samim.ttf') format('truetype');
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";

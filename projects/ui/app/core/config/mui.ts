@@ -39,7 +39,7 @@ export const muiThemeOptions = (themeManager: ThemeManager) => {
         },
         typography: {
             fontSize: 14,
-            fontFamily: `"IRANSansFaNum", "yekan", "Roboto", "Helvetica", "Arial", sans-serif`
+            fontFamily: `"Samim", "Roboto", "Helvetica", sans-serif, "Arial"`
         },
         components: {
             MuiLink: {
