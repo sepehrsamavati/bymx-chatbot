@@ -9,6 +9,7 @@ import authGuard from "../middlewares/authGuard.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
 import { dtoValidator } from "../middlewares/dtoValidator.js";
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
+import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
 
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
@@ -36,6 +37,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.get("/all", chat.getAllChats);
         instance.get("/model", { preValidation: dtoValidator(ChatID) }, chat.getChatSelectedModel);
         instance.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
+        instance.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
         instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
         instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
 

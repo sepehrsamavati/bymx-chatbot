@@ -1,6 +1,6 @@
 import HttpClient from "../helper/HttpClient";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
-import type { OperationResult, OperationResultWithData } from "bymx-core/shared";
+import type { AIChatHistoryMemory, OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const chatService = Object.freeze({
     getAll() {
@@ -42,6 +42,13 @@ const chatService = Object.freeze({
     setChatModel(dto: { chatId: string; modelId: string; }) {
         return HttpClient.send<OperationResult>({
             path: "/api/v1/chat/model",
+            method: HttpClient.Methods.PATCH,
+            body: dto,
+        });
+    },
+    setMemoryAmount(dto: { chatId: string; amount: AIChatHistoryMemory; }) {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/chat/memory",
             method: HttpClient.Methods.PATCH,
             body: dto,
         });

@@ -339,13 +339,31 @@ export default class UserApplication {
         return result;
     }
 
-    async setMemoryAmount(userId: string, memoryAmount: AIChatHistoryMemory) {
+    /**
+     * @description Memory amount none sets save messages to false
+     */
+    async setMemoryAmount(userId: string, memoryAmount: AIChatHistoryMemory, setSaveMessagesAutomatically = false) {
         const result = new OperationResult();
 
-        if (![AIChatHistoryMemory.Short, AIChatHistoryMemory.Normal, AIChatHistoryMemory.Long].includes(memoryAmount))
+        if (setSaveMessagesAutomatically !== true && ![AIChatHistoryMemory.Short, AIChatHistoryMemory.Normal, AIChatHistoryMemory.Long].includes(memoryAmount))
             return result.failed("invalidInput");
 
-        const updateResult = await this.#userRepository.update(userId, { memoryAmount });
+        const updateResult = (
+            setSaveMessagesAutomatically ? (
+                await this.#userRepository.update(
+                    userId,
+                    (
+                        memoryAmount === AIChatHistoryMemory.None ? (
+                            { saveMessages: false }
+                        ) : (
+                            { saveMessages: true, memoryAmount }
+                        )
+                    )
+                )
+            ) : (
+                await this.#userRepository.update(userId, { memoryAmount })
+            )
+        );
 
         if (updateResult?.ok)
             result.succeeded();

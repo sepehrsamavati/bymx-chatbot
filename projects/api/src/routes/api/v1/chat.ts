@@ -5,6 +5,7 @@ import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
+import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -127,6 +128,24 @@ export const setChatModel: RouteHandlerMethod = async (request, reply) => {
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.aiChatApplication.setModel({ user, ...chat }, query.modelId);
+
+    return reply.status(200).send(result);
+
+};
+
+export const setChatMemoryAmount: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as SetChatMemoryAmount;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.userApplication.setMemoryAmount(userId, query.amount, true);
 
     return reply.status(200).send(result);
 

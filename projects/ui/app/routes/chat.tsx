@@ -118,6 +118,7 @@ export default function Chat() {
     const isLoadingMessages = useRef(false);
     const chatSectionRef = useRef<HTMLDivElement>(null);
     const [modelChangeLock, setModelChangeLock] = useState(true);
+    const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
@@ -211,6 +212,23 @@ export default function Chat() {
             });
     }, [modelChangeLock, chatId]);
 
+    const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
+        if (memoryAmountChangeLock || !chatId) return;
+        const memoryAmount = event.target.value as AIChatHistoryMemory;
+        setMemoryAmountChangeLock(true);
+        chatService
+            .setMemoryAmount({ chatId, amount: memoryAmount })
+            .then(res => {
+                if (res.result.ok && session.user) {
+                    session.user.memoryAmount = memoryAmount;
+                    session.user.saveMessages = memoryAmount === AIChatHistoryMemory.None ? false : session.user.saveMessages;
+                }
+            })
+            .finally(() => {
+                setMemoryAmountChangeLock(false);
+            });
+    }, [memoryAmountChangeLock, chatId]);
+
     useEffect(() => {
         if (initialized.current || !chatId) return;
         initialized.current = true;
@@ -236,7 +254,7 @@ export default function Chat() {
     return (
         <Stack direction="column" height="100%">
             <Box textAlign="center">
-                <Stack direction="row" flexWrap="wrap" gap={1}>
+                <Stack direction="row" flexWrap="wrap" gap={1} paddingInline={1}>
                     <Select
                         disabled={modelChangeLock}
                         size="small"
@@ -257,6 +275,7 @@ export default function Chat() {
                     </Select>
 
                     <FormControl
+                        component="div"
                         size="small"
                     // sx={{
                     //     "> .MuiFormLabel-root": {
@@ -267,10 +286,12 @@ export default function Chat() {
                     >
                         <InputLabel size="small">{session.uiText.memory}</InputLabel>
                         <Select
+                            disabled={memoryAmountChangeLock}
                             size="small"
                             sx={{
                                 borderRadius: 50,
                             }}
+                            onChange={handleMemoryAmountChange}
                             value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
                             label={session.uiText.memory}
                         >
