@@ -1,6 +1,7 @@
 import UIText, { LangCode, type UITextLanguage } from "../i18n/UIText.js";
 
 const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'] as const;
+const rtlRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 const dateLocales = ({
     "en": "en-SE",
     "fa": "fa-IR-u-nu-latn",
@@ -89,6 +90,9 @@ const stringHelper = {
         }
 
         return modelTitle.toUpperCase();
+    },
+    isRtl(text: string) {
+        return rtlRegex.test(text.charAt(0));
     }
 }
 

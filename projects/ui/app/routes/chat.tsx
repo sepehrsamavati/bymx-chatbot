@@ -9,7 +9,7 @@ import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, MenuI
 
 import 'prismjs/themes/prism.css';
 import { useSession } from "~/core/Session";
-import { AIChatHistoryMemory } from "bymx-core/shared";
+import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
@@ -51,6 +51,15 @@ function MessageBubble(props?: {
         if (!divRef.current) return;
 
         divRef.current
+            .querySelectorAll('p')
+            .forEach(paragraphElement => {
+                if (stringHelper.isRtl(paragraphElement.innerText.trimStart()))
+                    paragraphElement.dir = "rtl";
+                else
+                    paragraphElement.dir = "ltr";
+            });
+
+        divRef.current
             .querySelectorAll("code[class^=language-]")
             .forEach(codeElement => {
                 const language = codeElement.className.split('-')[1]; // Extract language name
@@ -74,7 +83,7 @@ function MessageBubble(props?: {
                 },
                 ' pre': {
                     overflow: "auto",
-                    direction: "ltr",
+                    direction: "rtl",
                 },
             }}
         >
@@ -91,7 +100,7 @@ function MessageBubble(props?: {
                     fontSize: "0.6em",
                     fontFamily: "monospace",
                     color: "GrayText",
-                    direction: "ltr",
+                    direction: "rtl",
                 }}
             >{props?.modelTitle} {date}</Typography>
         </Box>
@@ -103,6 +112,7 @@ export default function Chat() {
     const { chatId } = useParams();
     const [messages, setMessages] = useState<PromptViewModel[]>([]);
     const initialized = useRef(false);
+    const didFirstScrollToBottom = useRef(false);
     const [inputText, setInputText] = useState("");
     const reachedToFirstMessage = useRef(false);
     const isLoadingMessages = useRef(false);
@@ -112,12 +122,12 @@ export default function Chat() {
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
 
-    const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void) => {
+    const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
         if (!chatSectionRef.current) return;
 
         const element = chatSectionRef.current;
         const scrollTopMax = element.scrollHeight - element.clientHeight;
-        const shouldScroll = scrollTopMax - element.scrollTop < 100;
+        const shouldScroll = force || (scrollTopMax - element.scrollTop < 100);
 
         if (shouldScroll) {
             const scrollFunction = () => {
@@ -217,6 +227,12 @@ export default function Chat() {
             });
     }, [getMessages, chatId]);
 
+    useEffect(() => {
+        if (didFirstScrollToBottom.current || messages.length === 0) return;
+        didFirstScrollToBottom.current = true;
+        scrollToBottom(undefined, true);
+    }, [messages, scrollToBottom]);
+
     return (
         <Stack direction="column" height="100%">
             <Box textAlign="center">
@@ -242,12 +258,12 @@ export default function Chat() {
 
                     <FormControl
                         size="small"
-                        sx={{
-                            "> .MuiFormLabel-root": {
-                                left: "unset",
-                                right: "19px",
-                            }
-                        }}
+                    // sx={{
+                    //     "> .MuiFormLabel-root": {
+                    //         left: "unset",
+                    //         right: "19px",
+                    //     }
+                    // }}
                     >
                         <InputLabel size="small">{session.uiText.memory}</InputLabel>
                         <Select
@@ -312,6 +328,7 @@ export default function Chat() {
                         size="small"
                         autoComplete="off"
                         variant="standard"
+                        placeholder={session.uiText.writeYourText}
                         value={inputText}
                         onChange={e => setInputText(e.target.value)}
                         slotProps={{
