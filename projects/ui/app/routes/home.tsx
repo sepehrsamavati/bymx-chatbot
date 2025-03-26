@@ -1,15 +1,15 @@
-import type { Route } from "./+types/home";
+// import type { Route } from "./+types/home";
 import { useNavigate } from "react-router";
 import Chat from "@mui/icons-material/Chat";
 import { useSession } from "~/core/Session";
 import { Box, Card, Grid, Stack, Typography } from "@mui/material";
 
-export function meta({ }: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+// export function meta({ }: Route.MetaArgs) {
+//   return [
+//     { title: "New React Router App" },
+//     { name: "description", content: "Welcome to React Router!" },
+//   ];
+// }
 
 function SquareButton(props?: {
   icon?: React.ReactNode;

@@ -1,5 +1,5 @@
+import { useState } from "react";
 import Stack from "@mui/material/Stack";
-import { useEffect, useRef, useState } from "react";
 import { Link, Outlet } from "react-router";
 import { Box, Drawer } from "@mui/material";
 import Menu from "@mui/icons-material/Menu";
@@ -37,16 +37,17 @@ function Header() {
                     />
                 </Link>
 
-                <Box
-                    component="img"
-                    src={bymxLogo}
-                    sx={{
-                        height: 50,
-                        padding: 0.5,
-                        borderRadius: "50%",
-                        maxWidth: "50%",
-                    }}
-                />
+                <Link to="/">
+                    <Box
+                        component="img"
+                        src={bymxLogo}
+                        sx={{
+                            height: 50,
+                            padding: 0.5,
+                            borderRadius: "50%",
+                        }}
+                    />
+                </Link>
             </Stack>
 
             <Drawer
