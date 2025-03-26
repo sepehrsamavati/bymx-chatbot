@@ -135,8 +135,8 @@ export default abstract class HttpClient {
                 path: config.requestPath
             });
 
-        if (rawResponse.status === 401)
-            window.location.pathname = '/login';
+        // if (rawResponse.status === 401)
+        //     window.location.pathname = '/login';
 
         if (rawResponse.status === 500)
             console.warn({
