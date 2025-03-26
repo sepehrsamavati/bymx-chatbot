@@ -9,25 +9,25 @@ import {
 
 import "./app.css";
 import type { Route } from "./+types/root";
-import { CacheProvider } from "@emotion/react";
 import { ThemeProvider } from "@mui/material";
+import { CacheProvider } from "@emotion/react";
 import { AuthenticateUser } from "./components/auth";
 import { useCallback, useMemo, useState } from "react";
 import Session, { SessionContext } from "./core/Session";
 import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
+// export const links: Route.LinksFunction = () => [
+//   { rel: "preconnect", href: "https://fonts.googleapis.com" },
+//   {
+//     rel: "preconnect",
+//     href: "https://fonts.gstatic.com",
+//     crossOrigin: "anonymous",
+//   },
+//   {
+//     rel: "stylesheet",
+//     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+//   },
+// ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -49,15 +49,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [, setTheme] = useState<ThemeName>('light');
-  const [dummyState, setDummyState] = useState(0);
-  const refreshUI = useCallback(() => setDummyState(current => current + 1), []);
+  const [themeName, setTheme] = useState<ThemeName>('light');
+  const [, setDummyState] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const session = useMemo<Session>(() => new Session(setTheme, refreshUI), []);
+  const session = useMemo<Session>(() => new Session(setTheme, () => setDummyState(current => current + 1)), []);
 
   return (
     <CacheProvider value={cacheRtl}>
-      <ThemeProvider key={dummyState} theme={muiThemeOptions(session.themeManager)}>
+      <ThemeProvider key={themeName} theme={muiThemeOptions(session.themeManager)}>
         <SessionContext.Provider value={session}>
           {session.user ? (
             <Outlet />
