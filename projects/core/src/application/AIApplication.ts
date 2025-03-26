@@ -15,15 +15,14 @@ import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
 import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
 import { IOpenAITextResult } from "../types/contracts/services.js";
+import { AIModelProvider } from "../types/enums/aiModelProvider.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
-import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
 import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { model } from "mongoose";
-import { AIModelProvider } from "../types/enums/aiModelProvider.js";
 
 type MultiModalInput = {
     text: { text: string; };
@@ -822,6 +821,45 @@ export default class AIApplication {
         const result = await this._multiModalChatCompletion(user, inputMessage, messageAttachment, opts);
 
         this.#messageLock.unlock(user.id);
+
+        return result;
+    }
+
+    async #generateAndSetChatTitle(chatId: string, message: string) {
+        const result = new OperationResult();
+
+        const freeModel = await this.#aiModelCache.getFreeModel();
+        if (!freeModel)
+            return result.failed("itemNotFound");
+
+        const chat = await this.#aiChatRepository.getChat({
+            id: chatId,
+            isDeleted: false,
+            title: "",
+        });
+        if (!chat)
+            return result.failed("itemNotFound");
+
+        const generatedTitleResult = await this.#openRouter.multiTextMessage({
+            messages: [],
+            model: freeModel,
+            tokenLimit: 30,
+            systemMessages: [
+                "This is a message from chat, suggest a title for the chat."
+            ],
+            inputMessage: message,
+        });
+
+        if (!generatedTitleResult?.isComplete)
+            return result.failed("errorOccurred");
+
+        const setTitleResult = await this.#aiChatRepository.updateById({
+            id: chatId,
+            title: generatedTitleResult.output,
+        });
+
+        if (setTitleResult === true)
+            result.succeeded();
 
         return result;
     }

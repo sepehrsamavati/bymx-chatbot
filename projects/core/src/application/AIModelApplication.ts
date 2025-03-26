@@ -16,6 +16,10 @@ export default class AIModelApplication {
         return await this.#aiModelRepository.getById(modelId);
     }
 
+    async getFreeModel() {
+        return await this.#aiModelCache.getFreeModel();
+    }
+    
     async getDefaultModel() {
         return await this.#aiModelCache.getDefault();
     }

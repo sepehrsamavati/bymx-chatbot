@@ -61,6 +61,7 @@ const config = {
     },
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
+        freeModelId: process.env.BYMX_OPEN_AI_FREE_MODEL_ID ?? "",
         defaultModelId: process.env.BYMX_OPEN_AI_DEFAULT_MODEL_ID ?? "",
         /** @deprecated */
         feePercentage: Number(process.env.BYMX_FEE_PERCENTAGE || "0")

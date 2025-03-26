@@ -81,6 +81,7 @@ export type IAIModelCache = {
     getCurrentCache(): AIModel[];
     getModelByName(name: string): AIModel | undefined;
     getDefault(): Promise<AIModel>;
+    getFreeModel(): Promise<AIModel | null>;
 }
 
 export type IActionLockCache<T> = {
