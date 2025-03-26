@@ -414,12 +414,12 @@ export default function Chat() {
                         key={message.id}
                         fontSize="0.8em"
                     >
-                        <Box margin={1}>
+                        <Box marginInline={1} marginBlock={2}>
                             <Card variant="elevation" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
                                 <MessageBubble text={message.input} date={new Date(message.inputDate)} />
                             </Card>
                         </Box>
-                        <Box margin={1}>
+                        <Box marginInline={1} marginBottom={8}>
                             <Card variant="outlined" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
                                 <MessageBubble text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
                             </Card>
