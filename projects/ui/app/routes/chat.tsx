@@ -438,12 +438,17 @@ export default function Chat() {
                     <TextField
                         fullWidth
                         size="small"
+                        multiline
+                        maxRows={5}
                         autoComplete="off"
                         variant="standard"
                         placeholder={session.uiText.writeYourText}
                         value={inputText}
-                        onChange={e => setInputText(e.target.value)}
+                        onChange={e => e.target.value.length < 2048 && setInputText(e.target.value)}
                         slotProps={{
+                            htmlInput: {
+                                dir: inputText ? (stringHelper.isRtl(inputText) ? "rtl" : "ltr") : undefined
+                            },
                             input: {
                                 disableUnderline: true,
                                 startAdornment: (
