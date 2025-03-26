@@ -186,7 +186,16 @@ export default function Chat() {
             .then(res => {
                 if (res.result.data) {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
-                    setMessages(_current => [..._current, { id: "new", inputDate, outputDate: Date.now(), modelTitle: "", input: inputText, output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number }]);
+                    setMessages(_current => [..._current, (
+                        {
+                            id: "new",
+                            inputDate,
+                            outputDate: Date.now(),
+                            modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                            input: inputText,
+                            output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number
+                        }
+                    )]);
                 }
             })
             .finally(() => setWaitingForCompletion(false));

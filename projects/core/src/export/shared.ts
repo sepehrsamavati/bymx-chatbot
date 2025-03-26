@@ -2,6 +2,7 @@ export * from "../types/enums/aiVoice.js";
 export * from "../helpers/accessHelper.js";
 export * from "../types/enums/userMode.js";
 export * from "../types/enums/userTypes.js";
+export * from "../types/enums/aiChatBehavior.js";
 export * from "../types/enums/generationTaskType.js";
 export * from "../types/enums/aiChatHistoryMemory.js";
 export * as UIText from "../i18n/UIText.js";

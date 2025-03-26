@@ -53,6 +53,18 @@ const chatService = Object.freeze({
             body: dto,
         });
     },
+    canCreateNewChat() {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/chat/canICreateANewChat",
+            method: HttpClient.Methods.GET,
+        });
+    },
+    createNewChat() {
+        return HttpClient.send<OperationResultWithData<string>>({
+            path: "/api/v1/chat/new",
+            method: HttpClient.Methods.POST,
+        });
+    },
 });
 
 export default chatService;

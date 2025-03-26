@@ -1,7 +1,8 @@
 import type { Route } from "./+types/home";
 import { useNavigate } from "react-router";
 import Chat from "@mui/icons-material/Chat";
-import { Box, Card, Container, Grid, Stack, Typography } from "@mui/material";
+import { useSession } from "~/core/Session";
+import { Box, Card, Grid, Stack, Typography } from "@mui/material";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -41,12 +42,13 @@ function SquareButton(props?: {
 
 export default function Home() {
   const navigate = useNavigate();
+  const session = useSession();
 
   return (
     <Box padding={3} marginTop="20vh">
-      <Grid container>
+      <Grid container justifyContent="center">
         <Grid padding={3} size={{ xs: 6, md: 4 }} component="div">
-          <SquareButton onClick={() => navigate("./ui/chats")} icon={<Chat />} caption="Chats" />
+          <SquareButton onClick={() => navigate("./ui/chats")} icon={<Chat />} caption={session.uiText.chats} />
         </Grid>
       </Grid>
     </Box>

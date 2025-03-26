@@ -40,6 +40,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
         instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
         instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
+        instance.get("/canICreateANewChat", chat.canCreateNewChat);
+        instance.post("/new", chat.createNewChat);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });

@@ -16,6 +16,10 @@ export default class AIModelApplication {
         return await this.#aiModelRepository.getById(modelId);
     }
 
+    async getDefaultModel() {
+        return await this.#aiModelCache.getDefault();
+    }
+
     getChatModels() {
         return this.#aiModelCache
             .getCurrentCache()

@@ -1,6 +1,6 @@
 import type { RouteHandlerMethod } from "fastify";
 import type ChatID from "../../../dto/chat/ChatID.js";
-import { OperationResult, OperationResultWithData } from "bymx-core/shared";
+import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
@@ -146,6 +146,53 @@ export const setChatMemoryAmount: RouteHandlerMethod = async (request, reply) =>
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.userApplication.setMemoryAmount(userId, query.amount, true);
+
+    return reply.status(200).send(result);
+
+};
+
+export const canCreateNewChat: RouteHandlerMethod = async (request, reply) => {
+    const userId = request.locals.user?.id as string;
+    const result = await request.locals.applications.aiChatApplication.canCreateNewChat(userId);
+
+    if (result.ok)
+        result.message = "";
+
+    return reply.status(200).send(result);
+
+};
+
+/** @description Returns created chat ID */
+export const createNewChat: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<string>();
+
+    const userId = request.locals.user?.id as string;
+
+    const user = await request.locals.applications.userApplication.getUserById(userId);
+
+    if (!user)
+        result.failed("itemNotFound");
+    else {
+        const canCreateNewChat = (await request.locals.applications.aiChatApplication.canCreateNewChat(userId)).ok;
+
+        if (canCreateNewChat) {
+            const createChatId = await request.locals.applications.aiChatApplication.create({
+                isHidden: false,
+                behavior: AIChatBehavior.None,
+                model: await request.locals.applications.aiModelApplication.getDefaultModel(),
+                title: "",
+                user: user,
+            });
+
+            if (createChatId)
+                result.succeeded().setData(createChatId);
+            else
+                result.failed("errorOccurred");
+        }
+        else
+            result.failed("reachedChatCountLimit");
+    }
 
     return reply.status(200).send(result);
 
