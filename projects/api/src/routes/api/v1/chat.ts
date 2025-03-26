@@ -197,3 +197,21 @@ export const createNewChat: RouteHandlerMethod = async (request, reply) => {
     return reply.status(200).send(result);
 
 };
+
+export const clearChatHistory: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as ChatID;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiChatApplication.clearPromptHistory(chat.id);
+
+    return reply.status(200).send(result);
+
+};

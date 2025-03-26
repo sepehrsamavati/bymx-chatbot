@@ -22,6 +22,16 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.GET,
         });
     },
+    clearMessages(chatId: string) {
+        const queryParams = new URLSearchParams();
+
+        queryParams.append("chatId", chatId);
+
+        return HttpClient.send<OperationResult>({
+            path: `/api/v1/chat/messages?${queryParams}`,
+            method: HttpClient.Methods.DELETE,
+        });
+    },
     getChatModelId(chatId: string) {
         const queryParams = new URLSearchParams();
 

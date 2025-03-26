@@ -2,10 +2,12 @@ import * as PrismJS from "prismjs";
 import Markdown from "react-markdown";
 import { useParams } from "react-router";
 import Send from "@mui/icons-material/Send";
+import Delete from "@mui/icons-material/Delete";
+import MoreVert from "@mui/icons-material/MoreVert";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 import 'prismjs/themes/prism.css';
 import { useSession } from "~/core/Session";
@@ -29,6 +31,77 @@ const loadLanguage = (language: string, callback: Function) => {
         document.head.appendChild(script);
     }
 };
+
+function ChatMoreActions(props: {
+    chatId: string;
+    onClearMessage: () => void;
+}) {
+    const session = useSession();
+    const [clearingHistory, setClearingHistory] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const clearHistory = useCallback(() => {
+        handleClose();
+        setClearingHistory(true);
+        chatService
+            .clearMessages(props?.chatId as string)
+            .then(res => {
+                if (res.result.ok)
+                    props?.onClearMessage?.();
+            })
+            .finally(() => setClearingHistory(false));
+    }, [props]);
+
+    if (!props?.chatId)
+        return null;
+
+    return (
+        <div>
+            <IconButton
+                aria-label="more"
+                id="chat-actions-button"
+                aria-controls={open ? 'chat-actions-menu' : undefined}
+                aria-expanded={open ? 'true' : undefined}
+                aria-haspopup="true"
+                onClick={handleClick}
+            >
+                <MoreVert />
+            </IconButton>
+            <Menu
+                id="chat-actions-menu"
+                //   MenuListProps={{
+                //     'aria-labelledby': 'chat-actions-button',
+                //   }}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+            //   slotProps={{
+            //     paper: {
+            //       style: {
+            //         maxHeight: ITEM_HEIGHT * 4.5,
+            //         width: '20ch',
+            //       },
+            //     },
+            //   }}
+            >
+                <MenuItem disabled={clearingHistory} onClick={clearHistory}>
+                    <ListItemIcon>
+                        <Delete fontSize="small" />
+                    </ListItemIcon>
+                    {session.uiText.clearCurrentChatHistory}
+                </MenuItem>
+            </Menu>
+        </div>
+    );
+}
 
 function MessageBubble(props?: {
     text?: string;
@@ -230,7 +303,7 @@ export default function Chat() {
             .then(res => {
                 if (res.result.ok && session.user) {
                     session.user.memoryAmount = memoryAmount;
-                    session.user.saveMessages = memoryAmount === AIChatHistoryMemory.None ? false : session.user.saveMessages;
+                    session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
                 }
             })
             .finally(() => {
@@ -264,6 +337,15 @@ export default function Chat() {
         <Stack direction="column" height="100%">
             <Box textAlign="center">
                 <Stack direction="row" flexWrap="wrap" gap={1} paddingInline={1}>
+                    <Box>
+                        {chatId ? (
+                            <ChatMoreActions
+                                chatId={chatId}
+                                onClearMessage={() => setMessages([])}
+                            />
+                        ) : null}
+                    </Box>
+
                     <Select
                         disabled={modelChangeLock}
                         size="small"

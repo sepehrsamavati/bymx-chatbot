@@ -39,6 +39,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
         instance.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
         instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
+        instance.delete("/messages", { preValidation: dtoValidator(ChatID) }, chat.clearChatHistory);
         instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
         instance.get("/canICreateANewChat", chat.canCreateNewChat);
         instance.post("/new", chat.createNewChat);
