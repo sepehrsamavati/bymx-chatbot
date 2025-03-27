@@ -285,6 +285,7 @@ export const userCommandHandler: IUpdateHandler = {
                         chat_id: update.message?.chat.id,
                         text: (
                             `${emojiIcon.phoneInHand} ${context.uiText.webApplication}`
+                            + `\n\n${context.uiText.webApplicationDescription}`
                             + `\n\n${emojiIcon.warning} ${context.uiText.featureIsInBeta}`
                         ),
                         reply_markup: {
