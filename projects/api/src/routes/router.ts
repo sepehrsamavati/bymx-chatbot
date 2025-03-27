@@ -28,15 +28,9 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
     fastifyInstance.register(FastifyStatic, {
         root: path.join(__dirname, '../../../ui/build/client'),
         prefix: '/ui', // optional: default '/'
+        decorateReply: true,
+        // index: "index.html",
         // constraints: { host: 'example.com' } // optional: default {}
-    });
-
-    fastifyInstance.get("/", (_, res) => {
-        res.redirect("/ui/");
-    });
-
-    fastifyInstance.get("/ui", (_, res) => {
-        res.redirect("/ui/");
     });
 
     fastifyInstance.register((instance, _, next) => {
@@ -87,4 +81,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
+
+    fastifyInstance.setNotFoundHandler(function (req, res) {
+        void res.sendFile('index.html')
+    });
 };
