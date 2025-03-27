@@ -1,5 +1,6 @@
+import { config } from "bymx-core/server";
 
-const domain = 'localhost';
+const domain = config.isDevelopment ? 'localhost' : new URL(config.apiServer.baseAddress).host;
 const sessionTokenFixedOptions = `Path=/; Secure; HttpOnly; SameSite=Lax; Domain=${domain};`;
 
 export const createSetCookieString = (key: string, value: string, age: number) => `${key}=${value}; ${sessionTokenFixedOptions} Max-Age=${age}`;
