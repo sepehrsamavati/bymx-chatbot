@@ -1,5 +1,8 @@
+import url from 'node:url';
+import path from 'node:path';
 import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
+import FastifyStatic from "@fastify/static";
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import TelegramAuth from "../dto/TelegramAuth.js";
@@ -11,6 +14,8 @@ import { dtoValidator } from "../middlewares/dtoValidator.js";
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
 import * as model from "./api/v1/model.js";
@@ -19,6 +24,12 @@ import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
+
+    fastifyInstance.register(FastifyStatic, {
+        root: path.join(__dirname, '../../../ui/build/client'),
+        prefix: '/ui/', // optional: default '/'
+        // constraints: { host: 'example.com' } // optional: default {}
+    });
 
     fastifyInstance.register((instance, _, next) => {
 
