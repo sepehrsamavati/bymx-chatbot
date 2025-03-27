@@ -38,7 +38,7 @@ export const muiThemeOptions = (themeManager: ThemeManager) => {
             }
         },
         typography: {
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: `"Samim", "Roboto", "Helvetica", sans-serif, "Arial"`
         },
         components: {

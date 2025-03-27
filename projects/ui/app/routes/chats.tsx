@@ -1,4 +1,5 @@
 import Button from "~/components/button";
+import Add from "@mui/icons-material/Add";
 import { useSession } from "~/core/Session";
 import { Card, Stack } from "@mui/material";
 import { Link, useNavigate } from "react-router";
@@ -56,8 +57,10 @@ export default function Chats() {
             {canCreateNewChat ? (
                 <Button
                     color="success"
+                    variant="outlined"
                     onClick={createNewChat}
                     isLoading={creatingNewChat}
+                    startIcon={<Add />}
                     sx={{
                         margin: 2,
                         borderRadius: 10,
@@ -65,11 +68,14 @@ export default function Chats() {
                 >{session.uiText.newChat}</Button>
             ) : null}
             {chats.map(chat => (
-                <Link key={chat.id} to={`/ui/chat/${chat.id}`}>
-                    <Card sx={{ marginInline: 2, padding: 1, borderRadius: 10 }}>
-                        {chat.caption || session.uiText.noTitle}
-                    </Card>
-                </Link>
+                <Button
+                    key={chat.id}
+                    type="button"
+                    onClick={() => navigate(`/ui/chat/${chat.id}`)}
+                    sx={{ marginInline: 2, borderRadius: 10 }}
+                >
+                    {chat.caption || session.uiText.noTitle}
+                </Button>
             ))}
         </Stack>
     );

@@ -4,12 +4,13 @@ import type { PaletteMode } from "@mui/material";
 import { createContext, useContext } from "react";
 import ThemeManager from "./helper/ThemeManager";
 import SessionStorageHelper from "./helper/SessionStorage";
-import type { LocalStorage_v1 } from "../types/localStorage";
+import type { LocalStorage_v2 } from "../types/localStorage";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import { UIText } from "./i18n/i18n";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import userService from "./services/userService";
 import modelService from "./services/modelService";
+import colors from "./config/colors";
 // import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
 export default class Session {
@@ -23,6 +24,8 @@ export default class Session {
     }
 
     async getUserInfo() {
+        this.syncUiWithTelegramApp();
+
         const response = await userService.telegramAuth(window.Telegram.WebApp.initData);
 
         if (response.result.data) {
@@ -34,6 +37,33 @@ export default class Session {
         }
 
         return response;
+    }
+
+    syncUiWithTelegramApp() {
+        try {
+            if (!this.localStorage.data.syncedWithTg && ["light", "dark"].includes(window.Telegram?.WebApp?.colorScheme)) {
+
+                this.localStorage.data.themeName = window.Telegram.WebApp.colorScheme;
+                this.localStorage.data.syncedWithTg = true;
+
+                this.localStorage.rewrite();
+                this.refreshUI();
+            }
+
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.setBottomBarColor(
+                    colors.brand
+                );
+                window.Telegram.WebApp.setHeaderColor(
+                    colors.brand
+                );
+                window.Telegram.WebApp.setBackgroundColor(
+                    window.Telegram?.WebApp?.colorScheme === "light"
+                        ? colors.backgroundLightMode
+                        : colors.backgroundDarkMode
+                );
+            }
+        } catch { }
     }
 
     async syncChatModels() {
@@ -59,8 +89,9 @@ export default class Session {
 
     public readonly storage = new SessionStorageHelper();
 
-    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v1>({
-        _dataVersion: 1,
+    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v2>({
+        _dataVersion: 2,
+        syncedWithTg: false,
         themeName: "light",
         isLoggedIn: false,
         language: "fa",

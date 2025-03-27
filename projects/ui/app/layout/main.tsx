@@ -25,7 +25,7 @@ function Header() {
                     <Menu />
                 </IconButton>
 
-                <Link to="/">
+                <Link to="/ui">
                     <Box
                         component="img"
                         src={bymxHeader}
@@ -37,7 +37,7 @@ function Header() {
                     />
                 </Link>
 
-                <Link to="/">
+                <Link to="/ui">
                     <Box
                         component="img"
                         src={bymxLogo}

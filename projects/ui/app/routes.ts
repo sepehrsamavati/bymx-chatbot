@@ -7,7 +7,7 @@ import {
 
 export default [
     layout("./layout/main.tsx", [
-        index("./routes/home.tsx"),
+        route("/ui", "./routes/home.tsx"),
         route("/ui/chats", "./routes/chats.tsx"),
         route("/ui/chat/:chatId", "./routes/chat.tsx"),
         route("*", "./routes/notFound.tsx"),

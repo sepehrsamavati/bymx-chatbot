@@ -9,3 +9,7 @@ export type LocalStorage_v1 = IUpgradeable & {
     isLoggedIn: boolean;
     language: string;
 }
+
+export type LocalStorage_v2 = LocalStorage_v1 & {
+    syncedWithTg: boolean;
+}

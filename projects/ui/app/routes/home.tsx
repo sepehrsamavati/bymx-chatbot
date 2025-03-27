@@ -48,7 +48,7 @@ export default function Home() {
     <Box padding={3} marginTop="20vh">
       <Grid container justifyContent="center">
         <Grid padding={3} size={{ xs: 6, md: 4 }} component="div">
-          <SquareButton onClick={() => navigate("./ui/chats")} icon={<Chat />} caption={session.uiText.chats} />
+          <SquareButton onClick={() => navigate("/ui/chats")} icon={<Chat />} caption={session.uiText.chats} />
         </Grid>
       </Grid>
     </Box>

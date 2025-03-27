@@ -9,7 +9,6 @@ import type { PromptViewModel } from "bymx-core/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
-import 'prismjs/themes/prism.css';
 import { useSession } from "~/core/Session";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 
@@ -106,6 +105,7 @@ function ChatMoreActions(props: {
 function MessageBubble(props?: {
     text?: string;
     date?: Date;
+    pointUsage?: number;
     modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
@@ -150,13 +150,14 @@ function MessageBubble(props?: {
             whiteSpace="pre-line"
             sx={{
                 position: "relative",
-                minWidth: "20vw",
+                minWidth: "25vw",
                 ' p': {
                     margin: 0
                 },
                 ' pre': {
                     overflow: "auto",
                     direction: "rtl",
+                    borderRadius: 2,
                 },
             }}
         >
@@ -175,7 +176,7 @@ function MessageBubble(props?: {
                     color: "GrayText",
                     direction: "rtl",
                 }}
-            >{props?.modelTitle} {date}</Typography>
+            >{props?.modelTitle} {date}{typeof props?.pointUsage === "number" ? ` ⚡${props.pointUsage}` : ''}</Typography>
         </Box>
     );
 }
@@ -333,6 +334,15 @@ export default function Chat() {
         scrollToBottom(undefined, true);
     }, [messages, scrollToBottom]);
 
+    useEffect(() => {
+        if (session.themeManager.name === "light")
+            import('prismjs/themes/prism.min.css');
+        else
+            import('prismjs/themes/prism-okaidia.min.css');
+    }, [
+        session.themeManager.name
+    ]);
+
     return (
         <Stack direction="column" height="100%">
             <Box textAlign="center">
@@ -415,14 +425,14 @@ export default function Chat() {
                         fontSize="0.8em"
                     >
                         <Box marginInline={1} marginBlock={2}>
-                            <Card variant="elevation" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
-                                <MessageBubble text={message.input} date={new Date(message.inputDate)} />
+                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
+                                <MessageBubble text={message.input} date={message.input.length < 15 ? undefined : new Date(message.inputDate)} />
                             </Card>
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
-                            <Card variant="outlined" sx={{ display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
-                                <MessageBubble text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
-                            </Card>
+                            <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
+                                <MessageBubble pointUsage={message.points} text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
+                            </Box>
                         </Box>
                     </Box>
                 ))}
