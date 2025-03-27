@@ -23,7 +23,7 @@ export default class Session {
     }
 
     async getUserInfo() {
-        const response = await userService.telegramAuth();
+        const response = await userService.telegramAuth(window.Telegram.WebApp.initData);
 
         if (response.result.data) {
             this.user = response.result.data;

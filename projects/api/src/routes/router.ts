@@ -27,8 +27,16 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
     fastifyInstance.register(FastifyStatic, {
         root: path.join(__dirname, '../../../ui/build/client'),
-        prefix: '/ui/', // optional: default '/'
+        prefix: '/ui', // optional: default '/'
         // constraints: { host: 'example.com' } // optional: default {}
+    });
+
+    fastifyInstance.get("/", (_, res) => {
+        res.redirect("/ui/");
+    });
+
+    fastifyInstance.get("/ui", (_, res) => {
+        res.redirect("/ui/");
     });
 
     fastifyInstance.register((instance, _, next) => {

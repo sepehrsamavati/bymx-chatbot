@@ -2,11 +2,11 @@ import HttpClient from "../helper/HttpClient";
 import type { IOperationResultWithData, UserEntity } from "bymx-core/types";
 
 const userService = Object.freeze({
-    telegramAuth(tgId: number) {
+    telegramAuth(initData: string) {
         return HttpClient.send<IOperationResultWithData<UserEntity.UserViewModel>>({
             path: "/api/v1/user/tgAuth",
             method: HttpClient.Methods.POST,
-            body: { tgId, date: 1, hash: "none" },
+            body: { initData },
         });
     },
     /** @todo */

@@ -49,6 +49,7 @@ const emojiIcon = Object.freeze({
     chat: '💬',
     music: '🎶',
     tools: '🛠',
+    phone: '📱',
     phoneInHand: '🤳',
 });
 

@@ -26,6 +26,6 @@ const password = {
     }
 } as const;
 
-export const calculateSha256Hash = (key: string, plainValue: string) => crypto.createHmac('sha256', key).update(plainValue).digest('hex');
+export const calculateSha256Hash = (key: string | Buffer, plainValue: string) => crypto.createHmac('sha256', key).update(plainValue).digest();
 
 export const randomString = (byteSize = 4) => crypto.randomBytes(byteSize).toString('base64url');

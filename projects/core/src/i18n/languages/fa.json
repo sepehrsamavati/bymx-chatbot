@@ -225,5 +225,13 @@
     "unlimited": "بدون محدودیت",
     "modelNotAvailable": "مدل انتخابی در دسترس نمی‌باشد!",
     "authenticating": "در حال احراز هویت",
-    "writeYourText": "پیام خود را بنویسید"
+    "writeYourText": "پیام خود را بنویسید",
+    "failedToLoadChat": "خطا در بارگیری چت",
+    "invalid": "نامعتبر",
+    "dataExpired": "اطلاعات منقضی شده است!",
+    "connectingToTelegram": "در حال اتصال به تلگرام",
+    "webApplication": "وب اپلیکیشن",
+    "runWebApplication": "اجرا",
+    "webApplicationDescription": "دسترسی به مدل‌های زبانی و ابزارهای هوش مصنوعی از طریق وب اپلیکیشن جهت مدیریت بهتر پیام‌ها و سهولت استفاده",
+    "featureIsInBeta": "این قابلیت در حالت تستی می‌باشد و ممکن است کامل و به درستی کار نکند!"
 }

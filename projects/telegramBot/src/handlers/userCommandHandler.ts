@@ -278,6 +278,28 @@ export const userCommandHandler: IUpdateHandler = {
                     }
                 );
                 return { shouldContinue: false };
+            case "/web_app":
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        text: (
+                            `${emojiIcon.phoneInHand} ${context.uiText.webApplication}`
+                            + `\n\n${emojiIcon.warning} ${context.uiText.featureIsInBeta}`
+                        ),
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{
+                                    text: `${emojiIcon.phone} ${context.uiText.runWebApplication}`,
+                                    web_app: {
+                                        url: config.apiServer.baseAddress + "ui/"
+                                    }
+                                }]
+                            ]
+                        }
+                    }
+                );
+                return { shouldContinue: false };
         }
 
         return { shouldContinue: !isCommand };

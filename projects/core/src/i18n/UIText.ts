@@ -236,6 +236,14 @@ const keys = [
     "modelNotAvailable",
     "authenticating",
     "writeYourText",
+    "failedToLoadChat",
+    "invalid",
+    "dataExpired",
+    "connectingToTelegram",
+    "webApplication",
+    "runWebApplication",
+    "webApplicationDescription",
+    "featureIsInBeta",
 ] as const;
 
 export type UITextKey = typeof keys[number];
