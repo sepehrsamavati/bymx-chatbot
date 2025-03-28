@@ -10,6 +10,8 @@ export default class OpenRouterService implements IOpenRouterService {
     #client = new OpenAI({
         baseURL: "https://openrouter.ai/api/v1",
         apiKey: config.openRouter.apiToken,
+        maxRetries: config.openAiClient.retries,
+        timeout: config.openAiClient.timeout,
         httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
     });
 

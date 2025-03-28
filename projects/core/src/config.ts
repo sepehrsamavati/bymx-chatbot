@@ -59,6 +59,10 @@ const config = {
     falAI: {
         apiToken: process.env.BYMX_FAL_API_KEY ?? "",
     },
+    openAiClient: {
+        retries: 2,
+        timeout: 60,
+    },
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",
         freeModelId: process.env.BYMX_OPEN_AI_FREE_MODEL_ID ?? "",

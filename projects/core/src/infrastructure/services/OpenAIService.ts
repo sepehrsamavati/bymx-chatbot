@@ -13,6 +13,8 @@ type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsN
 export default class OpenAIService implements IOpenAIService {
     #client = new OpenAI({
         apiKey: config.openAI.apiToken,
+        maxRetries: config.openAiClient.retries,
+        timeout: config.openAiClient.timeout,
         httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
     });
 
