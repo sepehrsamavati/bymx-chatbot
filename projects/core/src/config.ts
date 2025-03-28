@@ -61,7 +61,7 @@ const config = {
     },
     openAiClient: {
         retries: 2,
-        timeout: 60,
+        timeout: 60e3,
     },
     openAI: {
         apiToken: process.env.BYMX_OPEN_AI_API_TOKEN ?? "",

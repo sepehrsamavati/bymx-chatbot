@@ -1,16 +1,17 @@
 import * as PrismJS from "prismjs";
 import Markdown from "react-markdown";
-import { useParams } from "react-router";
+import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
-import Delete from "@mui/icons-material/Delete";
+import ClearAll from "@mui/icons-material/ClearAll";
 import MoreVert from "@mui/icons-material/MoreVert";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
+import DeleteForever from "@mui/icons-material/DeleteForever";
+import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
-
-import { useSession } from "~/core/Session";
-import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
@@ -36,6 +37,8 @@ function ChatMoreActions(props: {
     onClearMessage: () => void;
 }) {
     const session = useSession();
+    const navigate = useNavigate();
+    const [deletingChat, setDeletingChat] = useState(false);
     const [clearingHistory, setClearingHistory] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -58,6 +61,17 @@ function ChatMoreActions(props: {
             })
             .finally(() => setClearingHistory(false));
     }, [props]);
+
+    const deleteChat = useCallback(() => {
+        setDeletingChat(true);
+        chatService
+            .delete(props?.chatId as string)
+            .then(res => {
+                if (res.result.ok)
+                    navigate("/ui/chats")
+            })
+            .finally(() => setDeletingChat(false));
+    }, [props, navigate]);
 
     if (!props?.chatId)
         return null;
@@ -93,9 +107,15 @@ function ChatMoreActions(props: {
             >
                 <MenuItem disabled={clearingHistory} onClick={clearHistory}>
                     <ListItemIcon>
-                        <Delete fontSize="small" />
+                        <ClearAll fontSize="small" />
                     </ListItemIcon>
                     {session.uiText.clearCurrentChatHistory}
+                </MenuItem>
+                <MenuItem disabled={deletingChat} onClick={deleteChat}>
+                    <ListItemIcon color="red">
+                        <DeleteForever fontSize="small" />
+                    </ListItemIcon>
+                    {session.uiText.delete}
                 </MenuItem>
             </Menu>
         </div>
@@ -150,7 +170,6 @@ function MessageBubble(props?: {
             whiteSpace="pre-line"
             sx={{
                 position: "relative",
-                minWidth: "25vw",
                 ' p': {
                     margin: 0
                 },
@@ -183,6 +202,7 @@ function MessageBubble(props?: {
 
 export default function Chat() {
     const session = useSession();
+    const navigate = useNavigate();
     const { chatId } = useParams();
     const [messages, setMessages] = useState<PromptViewModel[]>([]);
     const initialized = useRef(false);
@@ -402,6 +422,15 @@ export default function Chat() {
                             <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
                         </Select>
                     </FormControl>
+
+                    <IconButton
+                        sx={{
+                            marginInlineStart: "auto"
+                        }}
+                        onClick={() => navigate("/ui/chats")}
+                    >
+                        <ArrowBack />
+                    </IconButton>
                 </Stack>
             </Box>
 

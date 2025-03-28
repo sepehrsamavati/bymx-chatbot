@@ -9,6 +9,7 @@ import TelegramAuth from "../dto/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
 import authGuard from "../middlewares/authGuard.js";
+import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
 import { dtoValidator } from "../middlewares/dtoValidator.js";
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
@@ -48,9 +49,11 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.addHook('onRequest', authGuard);
 
         instance.get("/all", chat.getAllChats);
+        instance.delete("/", { preValidation: dtoValidator(ChatID) }, chat.deleteChat);
         instance.get("/model", { preValidation: dtoValidator(ChatID) }, chat.getChatSelectedModel);
         instance.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
         instance.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
+        instance.patch("/title", { preValidation: dtoValidator(SetChatTitle) }, chat.setChatTitle);
         instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
         instance.delete("/messages", { preValidation: dtoValidator(ChatID) }, chat.clearChatHistory);
         instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);

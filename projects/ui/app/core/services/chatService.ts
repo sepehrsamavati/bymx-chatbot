@@ -32,6 +32,16 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.DELETE,
         });
     },
+    delete(chatId: string) {
+        const queryParams = new URLSearchParams();
+
+        queryParams.append("chatId", chatId);
+
+        return HttpClient.send<OperationResult>({
+            path: `/api/v1/chat?${queryParams}`,
+            method: HttpClient.Methods.DELETE,
+        });
+    },
     getChatModelId(chatId: string) {
         const queryParams = new URLSearchParams();
 
@@ -52,6 +62,13 @@ const chatService = Object.freeze({
     setChatModel(dto: { chatId: string; modelId: string; }) {
         return HttpClient.send<OperationResult>({
             path: "/api/v1/chat/model",
+            method: HttpClient.Methods.PATCH,
+            body: dto,
+        });
+    },
+    setChatTitle(dto: { chatId: string; title: string; }) {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/chat/title",
             method: HttpClient.Methods.PATCH,
             body: dto,
         });

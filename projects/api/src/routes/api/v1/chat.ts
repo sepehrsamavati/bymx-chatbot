@@ -1,11 +1,12 @@
 import type { RouteHandlerMethod } from "fastify";
 import type ChatID from "../../../dto/chat/ChatID.js";
-import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
+import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
 import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
-import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
 import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
+import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
+import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -211,6 +212,47 @@ export const clearChatHistory: RouteHandlerMethod = async (request, reply) => {
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.aiChatApplication.clearPromptHistory(chat.id);
+
+    return reply.status(200).send(result);
+
+};
+
+export const setChatTitle: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as SetChatTitle;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiChatApplication.setTitle(chat.id, query.title);
+
+    return reply.status(200).send(result);
+
+};
+
+export const deleteChat: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id as string;
+    const query = request.locals.dto as ChatID;
+
+    const user = await request.locals.applications.userApplication.getUserById(userId);
+
+    if (!user)
+        return reply.status(200).send(result.failed("userNotFound"));
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiChatApplication.deleteByUser(user, chat.id);
 
     return reply.status(200).send(result);
 
