@@ -64,7 +64,7 @@ export type IOpenAIService = {
     readonly textToSpeechPmu: number;
     readonly speechToTextPmu: number;
     multiTextMessage(opts: IOpenAIRequest): Promise<IOpenAITextResult | null>;
-    fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
+    // fileSearch(opts: IOpenAIRequestWithFile): Promise<IOpenAITextResultWithFile>;
     deleteFileById(id: string): Promise<OperationResult>;
     deleteVectorById(id: string): Promise<OperationResult>;
     textToSpeech(opts: IOpenAITextToSpeechRequest): Promise<IOpenAIAudioResult | null>;

@@ -2920,6 +2920,7 @@ __metadata:
     https-proxy-agent: "npm:^7.0.5"
     mongoose: "npm:^8.7.1"
     openai: "npm:^4.87.3"
+    pdf-parse: "npm:^1.1.1"
     typescript: "npm:^5.6.3"
     undici: "npm:^6.21.0"
     winston: "npm:^3.15.0"
@@ -3523,6 +3524,15 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/1471db19c3b06d485a622d62f65947a19a23fbd0dd73f7fd3eafb697eec5360cde447fb075919987899b1a2096e85d35d4eb5a4de09a57600ac9cf7e6c8e768b
+  languageName: node
+  linkType: hard
+
+"debug@npm:^3.1.0":
+  version: 3.2.7
+  resolution: "debug@npm:3.2.7"
+  dependencies:
+    ms: "npm:^2.1.1"
+  checksum: 10c0/37d96ae42cbc71c14844d2ae3ba55adf462ec89fd3a999459dec3833944cd999af6007ff29c780f1c61153bcaaf2c842d1e4ce1ec621e4fc4923244942e4a02a
   languageName: node
   linkType: hard
 
@@ -6090,6 +6100,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-ensure@npm:^0.0.0":
+  version: 0.0.0
+  resolution: "node-ensure@npm:0.0.0"
+  checksum: 10c0/7af391aee024a8b7df77c239ed8b90417e3f2539824fa06b60f243ce14c75ee455766464c7c3ba9407d5b1e4d1d74ed5cf5f8af10c67b0fc05aa6e29f5d2462b
+  languageName: node
+  linkType: hard
+
 "node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
@@ -6420,6 +6437,16 @@ __metadata:
   version: 1.1.2
   resolution: "pathe@npm:1.1.2"
   checksum: 10c0/64ee0a4e587fb0f208d9777a6c56e4f9050039268faaaaecd50e959ef01bf847b7872785c36483fa5cdcdbdfdb31fef2ff222684d4fc21c330ab60395c681897
+  languageName: node
+  linkType: hard
+
+"pdf-parse@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "pdf-parse@npm:1.1.1"
+  dependencies:
+    debug: "npm:^3.1.0"
+    node-ensure: "npm:^0.0.0"
+  checksum: 10c0/cba2b6ddfbfa73d94ff0cd342cbe8ef2ef0501863ada687eddf99487a4d06766e00fc44525c40cef3b01f04376cb99d5873ab789bd3e2379a28c3ae5377f3298
   languageName: node
   linkType: hard
 

@@ -182,7 +182,7 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
-    async fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile> {
+    private async _fileSearch(opts: IOpenAIRequest & { tempFile: UserTempFile; }): Promise<IOpenAITextResultWithFile> {
         let fileId: string | undefined = undefined;
         let vectorIds: string[] | undefined = undefined;
         try {

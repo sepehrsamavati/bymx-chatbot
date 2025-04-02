@@ -1,3 +1,28 @@
+export const mimeTypeFileExtensionMap = Object.freeze({
+    "text/plain": "txt",
+    "text/x-python": "py",
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "application/pdf": "pdf",
+    "text/css": "css",
+    "text/html": "html",
+    "application/json": "json",
+    "application/javascript": "js",
+} as { [Key: string]: string | undefined });
+
+export const extractableFileContentExtensions = Object.freeze([
+    "pdf",
+    "txt",
+    "js", "mjs", "ts", "jsx", "tsx",
+    "css",
+    "go",
+    "json",
+    "csproj", "cs",
+    "cc",
+    "java",
+]);
+
+/** @deprecated */
 export const openAiSupportedFileExtensions = Object.freeze({
     fileSearch: Object.freeze([
         "pdf"
@@ -12,16 +37,8 @@ export const openAiSupportedFileExtensions = Object.freeze({
         "cc",
         "java",
     ]),
-    mimeTypeFileExtensionMap: Object.freeze({
-        "text/plain": "txt",
-        "text/x-python": "py",
-        // "image/png": "png",
-        // "image/jpeg": "jpg",
-        "text/css": "css",
-        "text/html": "html",
-        "application/json": "json",
-        "application/javascript": "js",
-    } as { [Key: string]: string | undefined })
+    /** @deprecated Import 'mimeTypeFileExtensionMap' directly */
+    mimeTypeFileExtensionMap,
 });
 
 export const falAiSupportedFileExtensions = Object.freeze({
@@ -50,10 +67,15 @@ export const falAiSupportedFileExtensions = Object.freeze({
 
 type DocumentInfo = {
     fileExtension: string;
-    isSupported: boolean;
-    isPlainText: boolean;
-    isFileSearch: boolean;
+    isExtractable: boolean;
     fileName: string;
+
+    /** @deprecated */
+    isSupported: boolean;
+    /** @deprecated */
+    isPlainText: boolean;
+    /** @deprecated */
+    isFileSearch: boolean;
 }
 
 /**
@@ -99,19 +121,20 @@ export const getFileSupportInfo = (opts: {
     fileName ??= "";
     mimeType ??= "";
 
-    let tempExtension = openAiSupportedFileExtensions.mimeTypeFileExtensionMap[mimeType] ?? "";
+    let tempExtension = mimeTypeFileExtensionMap[mimeType] ?? "";
 
     if (!tempExtension) // read extension from file name
         tempExtension = fileName?.split('.').pop() as string;
 
-    const isFileSearch = openAiSupportedFileExtensions.fileSearch.includes(tempExtension);
-    const isPlainText = openAiSupportedFileExtensions.plainTexts.includes(tempExtension);
-
-    const isSupported = isFileSearch || isPlainText;
+    const isExtractable = extractableFileContentExtensions.includes(tempExtension);
 
     return {
         fileName,
-        isFileSearch, isPlainText, isSupported,
+        isExtractable,
         fileExtension: tempExtension,
+
+        isFileSearch: false,
+        isPlainText: false,
+        isSupported: isExtractable,
     };
 }

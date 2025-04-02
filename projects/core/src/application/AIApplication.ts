@@ -19,9 +19,10 @@ import { AIModelProvider } from "../types/enums/aiModelProvider.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
-import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import { getFileContent } from "../helpers/fileContent/fileContent.runner.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
-import { falAiSupportedFileExtensions, openAiSupportedFileExtensions } from "../helpers/fileHelper.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 
 type MultiModalInput = {
@@ -637,126 +638,71 @@ export default class AIApplication {
         if (predictedCost.inputLimit)
             return result.failed();
 
-        if ('file' in messageAttachment && messageAttachment.file && openAiSupportedFileExtensions.plainTexts.includes(messageAttachment.file.extension)) {
-            const byteArrayData = await fs.readFile(getTempFilePath(messageAttachment.file));
-            inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${byteArrayData.toString()}`;
+        if ('file' in messageAttachment && messageAttachment.file && extractableFileContentExtensions.includes(messageAttachment.file.extension)) {
+            const fileContent = await getFileContent(getTempFilePath(messageAttachment.file));
+            if (fileContent)
+                inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${fileContent}`;
         }
 
         let resultData: IOpenAITextResult;
         const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
 
-        // File search (PDF, ...)
-        if ('file' in messageAttachment && messageAttachment.file && openAiSupportedFileExtensions.fileSearch.includes(messageAttachment.file.extension)) {
-            if (selectedChat.model.provider !== AIModelProvider.OpenAI)
-                return result.failed("modelOnlySupportsText");
 
-            const startTime = performance.now();
-            const { result: res, file: fileUpdateInfo } = await this.#openAI.fileSearch({
-                inputMessage: inputText,
-                messages: historyMessages,
-                tempFile: messageAttachment.file,
-                model: selectedChat.model,
-                languageCode: sendLangToGpt ? user.lang : undefined,
-                systemMessages: [
-                    systemMessageMapper(selectedChat.behavior),
-                    userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
-                ],
-            });
-            const responseTime = performance.now() - startTime;
-
-            if (!res)
-                return result.failed();
-
-            resultData = res;
-
-            if ((!messageAttachment.file.openAiFileId || messageAttachment.file.vectorIds.length === 0) // file oai info not stored
-                && (fileUpdateInfo.fileId || fileUpdateInfo.vectorIds)) // file oai info is available
-                await this.#userTempFileApplication.setOpenAiInfo(messageAttachment.file.fsId, { // store file info
-                    openAiFileId: fileUpdateInfo.fileId,
-                    vectorIds: fileUpdateInfo.vectorIds
-                });
-
-            const { cost, userPointCost: fileSearchUserPointCost } = modelCostCalculator({
-                model: selectedChat.model,
-                inputUnits: res.inputTokens,
-                outputUnits: res.outputTokens,
-            });
-
-            totalUserPointUsage += fileSearchUserPointCost;
-            totalRemainingPoints -= fileSearchUserPointCost;
-
-            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(fileSearchUserPointCost, subscriptions);
-
-            await this.#promptRepository.create({
-                chat: selectedChat,
-                cost: cost,
-                insertDate: new Date(),
-                isDeleted: false,
-                input: inputText,
-                output: res.output,
-                points: fileSearchUserPointCost,
-                model: selectedChat.model.name,
-                saved: user.saveMessages,
-                fileId: messageAttachment.file.fsId,
-                usages: savedUsageIds ?? [],
-                promptUser: user,
-                responseTime: responseTime,
-            });
-        } else { // Plain text chat completion
-
-            let imageUrl: string | undefined = undefined;
-            if (image) {
-                imageUrl = urls.v1.tempFile.createUrl(image.fsId).toString();
-            }
-
-            const startTime = performance.now();
-            const res = await (selectedChat.model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
-                inputMessage: inputText,
-                messages: historyMessages,
-                model: selectedChat.model,
-                systemMessages: [
-                    systemMessageMapper(selectedChat.behavior),
-                    userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
-                ],
-                userId: user.id,
-                tokenLimit: predictedCost.outputTokens,
-                imageUrl: imageUrl,
-                languageCode: sendLangToGpt ? user.lang : undefined
-            });
-            const responseTime = performance.now() - startTime;
-
-            // Couldn't generate output text
-            if (!res)
-                return result.failed();
-
-            resultData = res;
-
-            const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
-                model: selectedChat.model,
-                inputUnits: res.inputTokens,
-                outputUnits: res.outputTokens,
-            });
-
-            totalUserPointUsage += textGenerateUserPointCost;
-            totalRemainingPoints -= textGenerateUserPointCost;
-
-            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
-
-            await this.#promptRepository.create({
-                chat: selectedChat,
-                cost: cost,
-                insertDate: new Date(),
-                isDeleted: false,
-                input: inputText,
-                output: res.output,
-                points: textGenerateUserPointCost,
-                model: selectedChat.model.name,
-                saved: user.saveMessages,
-                usages: savedUsageIds ?? [],
-                promptUser: user,
-                responseTime: responseTime,
-            });
+        /* --START-- */
+        let imageUrl: string | undefined = undefined;
+        if (image) {
+            imageUrl = urls.v1.tempFile.createUrl(image.fsId).toString();
         }
+
+        const startTime = performance.now();
+        const res = await (selectedChat.model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
+            inputMessage: inputText,
+            messages: historyMessages,
+            model: selectedChat.model,
+            systemMessages: [
+                systemMessageMapper(selectedChat.behavior),
+                userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
+            ],
+            userId: user.id,
+            tokenLimit: predictedCost.outputTokens,
+            imageUrl: imageUrl,
+            languageCode: sendLangToGpt ? user.lang : undefined
+        });
+        const responseTime = performance.now() - startTime;
+
+        // Couldn't generate output text
+        if (!res)
+            return result.failed();
+
+        resultData = res;
+
+        const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
+            model: selectedChat.model,
+            inputUnits: res.inputTokens,
+            outputUnits: res.outputTokens,
+        });
+
+        totalUserPointUsage += textGenerateUserPointCost;
+        totalRemainingPoints -= textGenerateUserPointCost;
+
+        const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
+
+        await this.#promptRepository.create({
+            chat: selectedChat,
+            cost: cost,
+            insertDate: new Date(),
+            isDeleted: false,
+            input: inputText,
+            output: res.output,
+            points: textGenerateUserPointCost,
+            model: selectedChat.model.name,
+            saved: user.saveMessages,
+            usages: savedUsageIds ?? [],
+            promptUser: user,
+            responseTime: responseTime,
+        });
+        /* --END-- */
+
 
         const outputText = resultData.output;
         const shouldGenerateAudio = userWantsVoiceResponse && outputText.length < 500;
