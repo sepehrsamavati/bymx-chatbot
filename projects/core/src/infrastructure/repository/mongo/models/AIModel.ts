@@ -63,4 +63,16 @@ const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
             min: 0,
         },
     },
+    llmInfo: {
+        contextWindow: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        maxOutputTokens: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+    },
 }, { versionKey: false, collection: aiModelModelDefinition.collection });

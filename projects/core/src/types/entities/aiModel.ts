@@ -22,6 +22,12 @@ export type AIModel = {
         input: number;
         output: number;
     };
+    llmInfo: {
+        /** `Input + Output` token limit */
+        contextWindow: number;
+        /** Output tokens limit */
+        maxOutputTokens: number;
+    };
 }
 
 export type AIModelDBModel = StoredEntity<AIModel>;
