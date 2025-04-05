@@ -399,13 +399,13 @@ export const getGivePhoneNumberPanel = (context: RequestContext) => {
 };
 
 const textModelTitleGenerator = (context: RequestContext, model: AiModelEntity.AIModel) => {
-    if (model.pricePmu.outputText === 0)
+    if (model.pricePmu.output === 0)
         return `⚪ ${model.title} (${context.uiText.free})`;
 
-    if (model.pricePmu.outputText <= 2)
+    if (model.pricePmu.output <= 2)
         return `🟢 ${model.title} (${context.uiText.lowCost})`;
 
-    if (model.pricePmu.outputText < 8)
+    if (model.pricePmu.output < 8)
         return `🟡 ${model.title} (${context.uiText.affordable})`;
 
     return `🔴 ${model.title} (${context.uiText.costly})`;
@@ -419,7 +419,7 @@ export const getTextModelUsageListPanel = async (context: RequestContext) => {
             + `\n\n${emojiIcon.warning} ${context.uiText.modelUsageMemoryWarningHelper}\n\n`, context.user.lang)
             + models.map(model =>
                 `${textModelTitleGenerator(context, model)}`
-                + `\n${model.pricePmu.outputText === 0 ? "** " : ""}${context.uiText.approximateMessageCount}: ${model.pricePmu.outputText === 0 ? context.uiText.unlimited : stringHelper.digitLocalization(stringHelper.thousandSeparator(costCalculator.modelUsageCalculator(model).normalLengthTextMessage), context.user.lang)}`
+                + `\n${model.pricePmu.output === 0 ? "** " : ""}${context.uiText.approximateMessageCount}: ${model.pricePmu.output === 0 ? context.uiText.unlimited : stringHelper.digitLocalization(stringHelper.thousandSeparator(costCalculator.modelUsageCalculator(model).normalLengthTextMessage), context.user.lang)}`
             ).join('\n\n')
             + `\n\n** ${emojiIcon.warning} ${context.uiText.textIsFreeTtsIsCostly}`,
         reply_markup: {

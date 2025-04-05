@@ -1,7 +1,7 @@
 import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../export/shared.js";
-import { AIModelViewModel } from "../types/entities/aiModel.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
+import type { AIModelViewModel } from "../types/entities/aiModel.js";
 
 export default class AIModelApplication {
     #aiModelCache;
@@ -29,7 +29,7 @@ export default class AIModelApplication {
             .getCurrentCache()
             .filter(model => model.type === AIModelType.Text)
             .sort((a, b) => a.title.localeCompare(b.title))
-            .sort((a, b) => a.pricePmu.outputText - b.pricePmu.outputText);
+            .sort((a, b) => a.pricePmu.output - b.pricePmu.output);
     }
 
     getChatModelViewModels(): AIModelViewModel[] {
@@ -54,6 +54,6 @@ export default class AIModelApplication {
     }
 
     async getAll() {
-        return (await this.#aiModelRepository.getAll())?.sort((a, b) => a.pricePmu.outputText - b.pricePmu.outputText);
+        return (await this.#aiModelRepository.getAll())?.sort((a, b) => a.pricePmu.output - b.pricePmu.output);
     }
 }

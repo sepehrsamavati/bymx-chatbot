@@ -67,7 +67,6 @@ export default class AIApplication {
     #openRouter;
     #aiChatRepository;
     #userRepository;
-    #userTempFileApplication;
     #generationTaskApplication;
 
     #fluxModelName = "fal-ai/flux/schnell";
@@ -84,7 +83,6 @@ export default class AIApplication {
         this.#openRouter = container.openRouter;
         this.#aiChatRepository = container.aiChatRepository;
         this.#userRepository = container.userRepository;
-        this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
     }
 
@@ -189,7 +187,7 @@ export default class AIApplication {
         if (!model)
             return result.failed();
 
-        const costUsdCent = model.pricePmu.outputImage / (1_000_000 * 100); // 0.3;
+        const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
@@ -482,7 +480,7 @@ export default class AIApplication {
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(opts.audioFile.fsId);
 
-        const costUsdCent = model.pricePmu.outputAudio / (1_000_000 * 100);
+        const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
         // const costUsdCent = 3.5;
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
 

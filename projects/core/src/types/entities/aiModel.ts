@@ -21,12 +21,6 @@ export type AIModel = {
     pricePmu: {
         input: number;
         output: number;
-        inputText: number;
-        outputText: number;
-        inputAudio: number;
-        outputAudio: number;
-        inputImage: number;
-        outputImage: number;
     };
 }
 

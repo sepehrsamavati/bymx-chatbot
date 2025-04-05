@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { AIModelType } from "../../../../types/enums/aiModelType.js";
-import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 import type { AIModelDBModel } from "../../../../types/entities/aiModel.js";
 import { AIModelProvider } from "../../../../types/enums/aiModelProvider.js";
+import type { MongooseModelDefinition, MongoStored } from "../lib/model.type.js";
 
 export const aiModelModelDefinition: MongooseModelDefinition<"aiModels", "AIModel", MongoStored<AIModelDBModel>> = Object.freeze({
     model: "AIModel",
@@ -52,32 +52,12 @@ const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
         required: true
     },
     pricePmu: {
-        inputText: {
+        input: {
             type: Number,
             required: true,
             min: 0,
         },
-        outputText: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        inputAudio: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        outputAudio: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        inputImage: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        outputImage: {
+        output: {
             type: Number,
             required: true,
             min: 0,
