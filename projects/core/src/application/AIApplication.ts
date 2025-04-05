@@ -188,7 +188,7 @@ export default class AIApplication {
             return result.failed();
 
         const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
-        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
+        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
 
@@ -482,7 +482,7 @@ export default class AIApplication {
 
         const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
         // const costUsdCent = 3.5;
-        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.openAI.feePercentage * costUsdCent) / 100)) });
+        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
 
