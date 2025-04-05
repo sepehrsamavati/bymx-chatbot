@@ -245,6 +245,7 @@ const keys = [
     "webApplicationDescription",
     "featureIsInBeta",
     "save",
+    "modelMemoryExceeded",
 ] as const;
 
 export type UITextKey = typeof keys[number];

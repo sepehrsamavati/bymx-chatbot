@@ -24,6 +24,7 @@ import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js"
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { countTokens } from "../helpers/lmTokenHelper.js";
 
 type MultiModalInput = {
     text: { text: string; };
@@ -620,30 +621,35 @@ export default class AIApplication {
             inputText = userTextMessage.output;
         }
 
-        const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
-        const inputUnits = inputText.split(' ').length + (image ? 500 : 0);
-
-        if (image && selectedChat.model.provider !== AIModelProvider.OpenAI)
-            return result.failed("modelOnlySupportsText");
-
-        const predictedCost = modelCostPredication({
-            inputUnits: inputUnits,
-            model: selectedChat.model,
-            pointUsageLimit: totalRemainingPoints,
-            offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
-        });
-
-        if (predictedCost.inputLimit)
-            return result.failed();
-
         if ('file' in messageAttachment && messageAttachment.file && extractableFileContentExtensions.includes(messageAttachment.file.extension)) {
             const fileContent = await getFileContent(getTempFilePath(messageAttachment.file));
             if (fileContent)
                 inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${fileContent}`;
         }
 
+        const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
+        const inputTokens = countTokens(inputText, selectedChat.model.name) + (image ? 500 : 0);
+
+        if (image && selectedChat.model.provider !== AIModelProvider.OpenAI)
+            return result.failed("modelOnlySupportsText");
+
+        const predictedCost = modelCostPredication({
+            inputUnits: inputTokens,
+            model: selectedChat.model,
+            pointUsageLimit: totalRemainingPoints,
+            offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
+        });
+
+        if (predictedCost.inputLimit)
+            return result.failed("pointNotEnough");
+
+        const historyTokensCount = countTokens(historyMessages.map(m => m.input + "\n" + m.output).join('\n'), selectedChat.model.name);
+
+        if (historyTokensCount + inputTokens >= selectedChat.model.llmInfo.contextWindow)
+            return result.failed("modelMemoryExceeded");
+
         let resultData: IOpenAITextResult;
-        const sendLangToGpt = inputUnits < 3 && historyMessages.length === 0;
+        const sendLangToGpt = inputTokens < 3 && historyMessages.length === 0;
 
 
         /* --START-- */

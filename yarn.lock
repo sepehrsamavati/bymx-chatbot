@@ -384,6 +384,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dqbd/tiktoken@npm:^1.0.20":
+  version: 1.0.20
+  resolution: "@dqbd/tiktoken@npm:1.0.20"
+  checksum: 10c0/eebae9507ef76bb6d551b07037f13037b411b03dd573322fac99414907d3190f3e16f968ffa1fe803adef8ab2d1384a1d6ed122d54a11e46e10dadee2f9dbaba
+  languageName: node
+  linkType: hard
+
 "@emotion/babel-plugin@npm:^11.13.5":
   version: 11.13.5
   resolution: "@emotion/babel-plugin@npm:11.13.5"
@@ -2909,6 +2916,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "bymx-core@workspace:projects/core"
   dependencies:
+    "@dqbd/tiktoken": "npm:^1.0.20"
     "@fal-ai/client": "npm:^1.2.1"
     "@iamtraction/google-translate": "npm:^2.0.1"
     "@types/fluent-ffmpeg": "npm:^2.1.27"
