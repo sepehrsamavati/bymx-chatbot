@@ -102,7 +102,7 @@ export class AIChatRepository implements IAIChatRepository {
                 pricePmu: model.pricePmu,
                 title: model.title,
                 type: model.type,
-                assistants: model.assistants,
+                llmInfo: model.llmInfo,
                 provider: model.provider,
             }
         };

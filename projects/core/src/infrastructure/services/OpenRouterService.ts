@@ -102,7 +102,7 @@ export default class OpenRouterService implements IOpenRouterService {
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
-            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < 4_000 ? tokenLimit : undefined,
+            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < model.llmInfo.maxOutputTokens ? tokenLimit : undefined,
             model: model.name,
             user: userId,
             messages: _messages

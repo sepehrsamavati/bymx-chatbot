@@ -3,10 +3,8 @@ import OpenAI from "openai";
 import config from "../../config.js";
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { errorLogger, logger } from "../../helpers/logger.js";
-import { getTempFilePath } from "../../helpers/storageHelper.js";
 import { OperationResult } from "../../common/dto/OperationResult.js";
-import type { UserTempFile } from "../../types/entities/userTempFile.js";
-import type { IOpenAIAudioResult, IOpenAIRequest, IOpenAIService, IOpenAISpeechToTextRequest, IOpenAISpeechToTextResult, IOpenAITextResult, IOpenAITextResultWithFile, IOpenAITextToSpeechRequest } from "../../types/contracts/services.js";
+import type { IOpenAIAudioResult, IOpenAIRequest, IOpenAIService, IOpenAISpeechToTextRequest, IOpenAISpeechToTextResult, IOpenAITextResult, IOpenAITextToSpeechRequest } from "../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
 
@@ -55,36 +53,6 @@ export default class OpenAIService implements IOpenAIService {
         }
     }
 
-    // async #audioChatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAIAudioResult | null> {
-    //     try {
-    //         const chatCompletion = await this.#client.chat.completions.create(opts);
-
-    //         const choice = chatCompletion.choices.at(0);
-    //         const result = choice?.message;
-
-    //         if (result?.audio && result?.role === "assistant") {
-    //             const output = result.audio.data;
-
-    //             debugger
-
-    //             if (!chatCompletion.usage)
-    //                 logger.warn("OpenAI chat completion usage not available!");
-
-    //             return {
-    //                 output,
-    //                 isComplete: choice?.finish_reason === "stop",
-    //                 inputTokens: chatCompletion.usage?.prompt_tokens ?? opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0),
-    //                 outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
-    //             };
-    //         }
-
-    //         return null;
-    //     } catch (err) {
-    //         logger.error("OpenAI audio chat request failed, " + (err instanceof Error ? err.message : err));
-    //         return null;
-    //     }
-    // }
-
     async multiTextMessage(opts: IOpenAIRequest) {
         const { messages, inputMessage, model, userId, tokenLimit, imageUrl, languageCode } = opts;
         const isGpt = model.name.startsWith('gpt');
@@ -131,7 +99,7 @@ export default class OpenAIService implements IOpenAIService {
 
         return await this.#chatCompletion({
             ...baseChatCompletionConfig,
-            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < 4_000 ? tokenLimit : undefined,
+            max_completion_tokens: typeof tokenLimit === "number" && tokenLimit < model.llmInfo.maxOutputTokens ? tokenLimit : undefined,
             model: model.name,
             user: userId,
             messages: _messages

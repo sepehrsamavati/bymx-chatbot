@@ -21,8 +21,8 @@ export class AIModelRepository implements IAIModelRepository {
                 pricePmu: item.pricePmu,
                 title: item.title,
                 type: item.type,
-                assistants: item.assistants,
                 provider: item.provider,
+                llmInfo: item.llmInfo,
             } satisfies AIModel));
         return res;
     }
@@ -38,8 +38,8 @@ export class AIModelRepository implements IAIModelRepository {
             pricePmu: res.pricePmu,
             title: res.title,
             type: res.type,
-            assistants: res.assistants,
             provider: res.provider,
+            llmInfo: res.llmInfo,
         } : null;
     }
 

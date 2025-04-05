@@ -155,7 +155,7 @@ export default class UserRepository extends Transactional implements IUserReposi
                     pricePmu: chatModel.pricePmu,
                     title: chatModel.title,
                     type: chatModel.type,
-                    assistants: chatModel.assistants,
+                    llmInfo: chatModel.llmInfo,
                     provider: chatModel.provider,
                 },
                 title: selectedChat.title,
