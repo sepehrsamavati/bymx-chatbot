@@ -168,7 +168,9 @@ export default class AIApplication {
             historyMessages = _historyMessages.reverse();
         }
 
-        if (totalRemainingPoints <= 0) {
+        const modelIsFree = selectedChat.model.provider === AIModelProvider.OpenRouter && (selectedChat.model.pricePmu.input + selectedChat.model.pricePmu.output === 0);
+
+        if (!modelIsFree && totalRemainingPoints <= 0) {
             return result.failed("noPointAvailable");
         }
 
