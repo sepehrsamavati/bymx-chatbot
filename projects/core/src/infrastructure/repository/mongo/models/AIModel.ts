@@ -42,15 +42,6 @@ const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
         enum: AIModelProvider,
         required: true,
     },
-    assistants: {
-        type: {
-            fileSearch: {
-                type: String,
-                required: false
-            }
-        },
-        required: true
-    },
     pricePmu: {
         input: {
             type: Number,

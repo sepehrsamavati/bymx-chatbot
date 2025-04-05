@@ -12,11 +12,6 @@ export type AIModel = {
     /** Model type (text, audio, ...) */
     type: AIModelType;
     provider: AIModelProvider;
-    /** Assistant ID */
-    assistants: {
-        /** File search assistant ID (OpenAI) */
-        fileSearch?: string;
-    };
     /** Price per million units (tokens, characters, minutes, ...) */
     pricePmu: {
         input: number;
