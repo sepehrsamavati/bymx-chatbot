@@ -159,9 +159,9 @@ export const promptHandler: IUpdateHandler = {
                 };
             }
 
-            const { fileExtension: tempExtension, isFileSearch, isSupported } = getDocumentInfo(attachmentTgDocument);
+            const { fileExtension: tempExtension, isExtractable } = getDocumentInfo(attachmentTgDocument);
 
-            if (!isSupported) {
+            if (!isExtractable) {
                 unlockFileProcessing();
                 return {
                     call: {
@@ -211,7 +211,7 @@ export const promptHandler: IUpdateHandler = {
 
                 if (fileInfo?.ok && fileInfo.result.file_path && fileInfo.result.file_path && fileInfo.result.file_size) {
 
-                    const maxValidFileSizeMB = isFileSearch ? 10 : 1; // 10MB for file search | 1MB for plain text
+                    const maxValidFileSizeMB = tempExtension === "pdf" ? 10 : 1; // 10MB for pdf | 1MB for plain text
                     const maxValidFileSizeBytes = maxValidFileSizeMB * Math.pow(1024, 2);
                     if (fileInfo.result.file_size > maxValidFileSizeBytes) {
                         unlockFileProcessing();
