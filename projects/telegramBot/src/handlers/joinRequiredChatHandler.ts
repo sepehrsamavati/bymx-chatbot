@@ -10,6 +10,9 @@ export const joinRequiredChatHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.All,
 
     async handler(context, update) {
+        if (!update.callback_query?.message)
+            return null;
+
         if (update.inline_query || (update.message || update.callback_query?.message)?.chat.type !== "private")
             return null;
 

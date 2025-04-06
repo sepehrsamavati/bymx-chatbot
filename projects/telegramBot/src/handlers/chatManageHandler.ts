@@ -13,6 +13,9 @@ export const chatManageHandler: IUpdateHandler = {
     ],
 
     async handler(context, update) {
+        if (!update.callback_query?.message)
+            return null;
+
         const text = update.message?.text;
         const queryData = update.callback_query?.data;
 

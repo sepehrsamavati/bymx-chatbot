@@ -11,6 +11,7 @@ import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
+import { inlineQueryHandler } from "./handlers/inlineQueryHandler.js";
 import { imageUpscaleHandler } from "./handlers/imageUpscaleHandler.js";
 import { adminCommandHandler } from "./handlers/adminCommandHandler.js";
 import { create3dModelHandler } from "./handlers/create3dModelHandler.js";
@@ -48,6 +49,7 @@ const handlers: IUpdateHandler[] = [
     imageUpscaleHandler,
     create3dModelHandler,
     promptHandler,
+    inlineQueryHandler,
 ];
 
 const handlerTypeFilter: {
@@ -149,6 +151,10 @@ export class UpdateHandler {
             }
         } else if (update.callback_query) {
             _handlers = handlerTypeFilter[TelegramUpdateType.CallbackQuery];
+        } else if (update.inline_query) {
+            _handlers = handlerTypeFilter[TelegramUpdateType.InlineQuery];
+        } else if (update.chosen_inline_result) {
+            _handlers = handlerTypeFilter[TelegramUpdateType.ChosenInlineResult];
         } else {
             _handlers = handlerTypeFilter[TelegramUpdateType.All];
         }
@@ -157,7 +163,7 @@ export class UpdateHandler {
         _handlers = _handlers.filter(h => isCompatibleUserMode(h, user.mode));
 
         // consider chat types
-        _handlers = _handlers.filter(h => h.chatTypes && chat?.type ? (h.chatTypes.includes("all") || h.chatTypes.includes(chat.type)) : chat?.type === "private");
+        _handlers = _handlers.filter(h => h.chatTypes ? (h.chatTypes.includes("all") || (chat?.type && h.chatTypes.includes(chat.type))) : chat?.type === "private");
 
         let callStack: IUpdateHandler[] = [];
 

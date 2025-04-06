@@ -16,6 +16,9 @@ export const planHandler: IUpdateHandler = {
         UserMode.General.StaticPayment,
     ],
     async handler(context, update) {
+        if (!update.callback_query?.message)
+            return null;
+
         if (update.message?.chat.type !== "private" && update.callback_query?.message.chat.type !== "private")
             return null;
 

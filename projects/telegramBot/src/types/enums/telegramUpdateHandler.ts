@@ -14,4 +14,5 @@ export enum TelegramUpdateType {
 
     InlineQuery = 50,
     CallbackQuery = 51,
+    ChosenInlineResult = 52,
 }

@@ -10,9 +10,57 @@ import { get3dModelGenerationPanel, getAiToolsPanel, getChatListPanel, getImageG
 export const panelHandler: IUpdateHandler = {
     name: import.meta.filename,
     updateType: TelegramUpdateType.CallbackQuery,
-
+    chatTypes: ["all"],
     async handler(context, update) {
         const queryData = update.callback_query?.data;
+
+        switch (queryData) {
+            case "comingSoon": {
+
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.comingSoon,
+                        show_alert: true,
+                        cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "usedPointsForMessage": {
+
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.usedPointsForThisMessage,
+                        show_alert: true,
+                        cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+            case "modelProcessedThisMessage": {
+
+                await tgCall(
+                    TelegramMethods.AnswerCallbackQuery,
+                    {
+                        callback_query_id: update.callback_query?.id,
+                        text: context.uiText.modelProcessedThisMessage,
+                        show_alert: true,
+                        cache_time: 600,
+                    }
+                );
+
+                return { shouldContinue: false };
+            };
+        }
+
+        if (!update.callback_query?.message || context.chat?.type !== "private")
+            return null;
 
         switch (queryData) {
             case "panel": {
@@ -205,20 +253,6 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             };
-            case "comingSoon": {
-
-                await tgCall(
-                    TelegramMethods.AnswerCallbackQuery,
-                    {
-                        callback_query_id: update.callback_query?.id,
-                        text: context.uiText.comingSoon,
-                        show_alert: true,
-                        cache_time: 600,
-                    }
-                );
-
-                return { shouldContinue: false };
-            };
             case "deleteMessage": {
 
                 await tgCall(
@@ -226,34 +260,6 @@ export const panelHandler: IUpdateHandler = {
                     {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id
-                    }
-                );
-
-                return { shouldContinue: false };
-            };
-            case "usedPointsForMessage": {
-
-                await tgCall(
-                    TelegramMethods.AnswerCallbackQuery,
-                    {
-                        callback_query_id: update.callback_query?.id,
-                        text: context.uiText.usedPointsForThisMessage,
-                        show_alert: true,
-                        cache_time: 600,
-                    }
-                );
-
-                return { shouldContinue: false };
-            };
-            case "modelProcessedThisMessage": {
-
-                await tgCall(
-                    TelegramMethods.AnswerCallbackQuery,
-                    {
-                        callback_query_id: update.callback_query?.id,
-                        text: context.uiText.modelProcessedThisMessage,
-                        show_alert: true,
-                        cache_time: 600,
                     }
                 );
 

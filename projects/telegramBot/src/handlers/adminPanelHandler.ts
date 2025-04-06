@@ -10,7 +10,7 @@ export const adminPanelHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.CallbackQuery,
 
     async handler(context, update) {
-        if (!accessHelper(UserType.Admin, context.user.type))
+        if (!accessHelper(UserType.Admin, context.user.type) || !update.callback_query?.message)
             return { shouldContinue: true };
 
         const queryData = update.callback_query?.data as string;

@@ -10,6 +10,9 @@ export const voiceResponseManageHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.CallbackQuery,
 
     async handler(context, update) {
+        if (!update.callback_query?.message)
+            return null;
+        
         const queryData = update.callback_query?.data as string;
 
         if (queryData?.startsWith("selectVoiceResponseType_")) {

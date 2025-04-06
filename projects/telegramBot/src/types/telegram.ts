@@ -191,7 +191,8 @@ export type TelegramUpdateObject = {
         id: string;
         data: string;
         from: TelegramUser;
-        message: TelegramMessage;
+        message?: TelegramMessage;
+        inline_message_id?: string;
     }
     inline_query?: {
         id: string;
@@ -201,6 +202,12 @@ export type TelegramUpdateObject = {
     message?: TelegramMessage;
     my_chat_member?: ChatMemberUpdated;
     channel_post?: TelegramMessage;
+    chosen_inline_result?: {
+        result_id: string;
+        from: TelegramUser;
+        inline_message_id?: string;
+        query: string;
+    };
 }
 
 type TelegramResponseBase<T, OK = boolean> = OK extends true ? {
@@ -228,6 +235,7 @@ type TelegramResponseMap = {
     [TelegramMethods.CopyMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.ForwardMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.GetChatMember]: TelegramResponseBase<ChatMember>;
+    [TelegramMethods.AnswerInlineQuery]: TelegramResponseBase<boolean>;
 }
 
 export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;

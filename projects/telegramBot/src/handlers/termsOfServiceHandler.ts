@@ -17,6 +17,9 @@ export const termsOfServiceHandler: IUpdateHandler = {
 
     async handler(context, update) {
 
+        if (!update.callback_query?.message)
+            return null;
+
         if (update.callback_query?.data === "acceptTos") {
 
             await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);

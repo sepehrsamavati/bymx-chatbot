@@ -11,6 +11,7 @@ import translate from "@iamtraction/google-translate";
 import { PlanType } from "../types/enums/planTypes.js";
 import { UserStatus } from "../types/enums/userStatus.js";
 import { countTokens } from "../helpers/lmTokenHelper.js";
+import { AIChatHistoryMemory } from "../export/shared.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
@@ -781,12 +782,25 @@ export default class AIApplication {
         opts?: {
             /** Optional; Prevent double getting data and validations */
             middlewareResult?: Awaited<ReturnType<typeof AIApplication.prototype.middleware>>;
+            /** Disables saving and restoring history; `Modifies passed user object!` Default: false; */
+            temporary?: boolean;
+            /** `Modifies passed user object!` Default: false; */
+            disableVoiceOutput?: boolean;
         }
     ): Promise<OperationResultWithData<MultiModalOutput>> {
         if (this.#messageLock.isLocked(user.id))
             return new OperationResultWithData<MultiModalOutput>().failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
+
+        if (opts?.temporary) {
+            user.saveMessages = false;
+            user.memoryAmount = AIChatHistoryMemory.None;
+        }
+
+        if (opts?.disableVoiceOutput) {
+            user.voiceResponse.on = false;
+        }
 
         const result = await this._multiModalChatCompletion(user, inputMessage, messageAttachment, opts);
 
