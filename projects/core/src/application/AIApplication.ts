@@ -10,6 +10,7 @@ import { AIChat } from "../types/entities/aiChat.js";
 import translate from "@iamtraction/google-translate";
 import { PlanType } from "../types/enums/planTypes.js";
 import { UserStatus } from "../types/enums/userStatus.js";
+import { countTokens } from "../helpers/lmTokenHelper.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
@@ -24,7 +25,6 @@ import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js"
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { countTokens } from "../helpers/lmTokenHelper.js";
 
 type MultiModalInput = {
     text: { text: string; };
@@ -68,6 +68,7 @@ export default class AIApplication {
     #openRouter;
     #aiChatRepository;
     #userRepository;
+    #userTempFileApplication;
     #generationTaskApplication;
 
     #fluxModelName = "fal-ai/flux/schnell";
@@ -84,6 +85,7 @@ export default class AIApplication {
         this.#openRouter = container.openRouter;
         this.#aiChatRepository = container.aiChatRepository;
         this.#userRepository = container.userRepository;
+        this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
     }
 
@@ -587,7 +589,9 @@ export default class AIApplication {
 
         /** Use only in view / Do not use in app logic -> Call saveSubscriptionsUsage after each step */
         let totalUserPointUsage = 0;
-        let inputText = 'text' in inputMessage ? inputMessage.text : "";
+        let extractableFileFsId: string | undefined = undefined;
+        let userInputText = 'text' in inputMessage ? inputMessage.text : "";
+        let inputTextForModel = userInputText;
 
         // Convert user speech to text (to send to model)
         if ('voice' in inputMessage && inputMessage.voice) {
@@ -620,17 +624,30 @@ export default class AIApplication {
                 });
             }
 
-            inputText = userTextMessage.output;
+            userInputText = userTextMessage.output;
+            inputTextForModel = userInputText;
         }
 
-        if ('file' in messageAttachment && messageAttachment.file && extractableFileContentExtensions.includes(messageAttachment.file.extension)) {
+        if ('file' in messageAttachment && messageAttachment.file && extractableFileContentExtensions.includes(messageAttachment.file.extension)) { // extract file content of requested file
+            extractableFileFsId = messageAttachment.file.fsId;
             const fileContent = await getFileContent(getTempFilePath(messageAttachment.file));
             if (fileContent)
-                inputText += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${fileContent}`;
+                inputTextForModel += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${fileContent}`;
+        } else { // extract content from latest file in messages history
+            const lastMessageWithFileIndex = historyMessages.findLastIndex(msg => typeof msg.fileId === "string"); // get latest message in history with attachment
+            const lastExtractableFileFsId = lastMessageWithFileIndex !== -1 ? historyMessages.at(lastMessageWithFileIndex)?.fileId : undefined;
+            if (lastExtractableFileFsId) {
+                const tempFile = await this.#userTempFileApplication.getByFsId(lastExtractableFileFsId);
+                if (tempFile.ok && tempFile.data) {
+                    const fileContent = await getFileContent(getTempFilePath(tempFile.data));
+                    if (fileContent)
+                        historyMessages[lastMessageWithFileIndex].input += `\n\nFile extension=${tempFile.data.extension}\nFile content=\n${fileContent}`; // modify user input from history temporary so that model can see file content
+                }
+            }
         }
 
         const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
-        const inputTokens = countTokens(inputText, selectedChat.model.name) + (image ? 500 : 0);
+        const inputTokens = countTokens(inputTextForModel, selectedChat.model.name) + (image ? 500 : 0);
 
         if (image && selectedChat.model.provider !== AIModelProvider.OpenAI)
             return result.failed("modelOnlySupportsText");
@@ -647,7 +664,7 @@ export default class AIApplication {
 
         const historyTokensCount = countTokens(historyMessages.map(m => m.input + "\n" + m.output).join('\n'), selectedChat.model.name);
 
-        if (historyTokensCount + inputTokens >= selectedChat.model.llmInfo.contextWindow)
+        if ((historyTokensCount + inputTokens) >= selectedChat.model.llmInfo.contextWindow)
             return result.failed("modelMemoryExceeded");
 
         let resultData: IOpenAITextResult;
@@ -662,7 +679,7 @@ export default class AIApplication {
 
         const startTime = performance.now();
         const res = await (selectedChat.model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
-            inputMessage: inputText,
+            inputMessage: inputTextForModel,
             messages: historyMessages,
             model: selectedChat.model,
             systemMessages: [
@@ -698,7 +715,7 @@ export default class AIApplication {
             cost: cost,
             insertDate: new Date(),
             isDeleted: false,
-            input: inputText,
+            input: userInputText,
             output: res.output,
             points: textGenerateUserPointCost,
             model: selectedChat.model.name,
@@ -706,6 +723,7 @@ export default class AIApplication {
             usages: savedUsageIds ?? [],
             promptUser: user,
             responseTime: responseTime,
+            fileId: extractableFileFsId,
         });
         /* --END-- */
 
