@@ -13,11 +13,13 @@ export const chatManageHandler: IUpdateHandler = {
     ],
 
     async handler(context, update) {
-        if (!update.callback_query?.message)
-            return null;
-
         const text = update.message?.text;
-        const queryData = update.callback_query?.data;
+        const queryData = update.callback_query?.message && update.callback_query?.data;
+
+        const editMessageId = {
+            chat_id: update.callback_query?.message?.chat.id,
+            message_id: update.callback_query?.message?.message_id,
+        };
 
         if (queryData?.startsWith("manageChat_")) {
             const chatId = queryData.replace("manageChat_", "");
@@ -33,8 +35,7 @@ export const chatManageHandler: IUpdateHandler = {
             await tgCall(
                 TelegramMethods.EditMessageText,
                 {
-                    chat_id: update.callback_query?.message.chat.id,
-                    message_id: update.callback_query?.message.message_id,
+                    ...editMessageId,
                     ...chatPanel
                 }
             );
@@ -48,13 +49,7 @@ export const chatManageHandler: IUpdateHandler = {
 
             await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
 
-            await tgCall(
-                TelegramMethods.DeleteMessage,
-                {
-                    chat_id: update.callback_query?.message.chat.id,
-                    message_id: update.callback_query?.message.message_id
-                }
-            );
+            await tgCall(TelegramMethods.DeleteMessage, editMessageId);
 
             return {
                 call: {
@@ -70,8 +65,7 @@ export const chatManageHandler: IUpdateHandler = {
             await tgCall(
                 TelegramMethods.EditMessageText,
                 {
-                    chat_id: update.callback_query?.message.chat.id,
-                    message_id: update.callback_query?.message.message_id,
+                    ...editMessageId,
                     ..._modelListPanel
                 }
             );
@@ -102,8 +96,7 @@ export const chatManageHandler: IUpdateHandler = {
                     await tgCall(
                         TelegramMethods.EditMessageText,
                         {
-                            chat_id: update.callback_query?.message.chat.id,
-                            message_id: update.callback_query?.message.message_id,
+                            ...editMessageId,
                             ..._chatList
                         }
                     );
@@ -130,8 +123,7 @@ export const chatManageHandler: IUpdateHandler = {
                 const res = await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        ...editMessageId,
                         ...chatPanel
                     }
                 );
@@ -201,8 +193,7 @@ export const chatManageHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        ...editMessageId,
                         ..._chatDeleteConfirm
                     }
                 );
@@ -232,8 +223,7 @@ export const chatManageHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        ...editMessageId,
                         ..._chatList
                     }
                 );

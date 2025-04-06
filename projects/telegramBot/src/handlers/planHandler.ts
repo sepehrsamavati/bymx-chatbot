@@ -16,10 +16,7 @@ export const planHandler: IUpdateHandler = {
         UserMode.General.StaticPayment,
     ],
     async handler(context, update) {
-        if (!update.callback_query?.message)
-            return null;
-
-        if (update.message?.chat.type !== "private" && update.callback_query?.message.chat.type !== "private")
+        if (update.message?.chat.type !== "private" && update.callback_query?.message?.chat.type !== "private")
             return null;
 
         const queryData = update.callback_query?.data;
@@ -100,7 +97,7 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         }
 
-        if (queryData === "planList") {
+        if (queryData === "planList" && update.callback_query?.message) {
             const planList = await getPlanList(context);
 
             if (!planList)
@@ -128,7 +125,7 @@ export const planHandler: IUpdateHandler = {
             }
 
             return { shouldContinue: false };
-        } else if (queryData?.startsWith("viewPlan_")) {
+        } else if (queryData?.startsWith("viewPlan_") && update.callback_query?.message) {
             if (context.user.mode !== UserMode.General.Normal) {
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 context.user.mode = UserMode.General.Normal;
@@ -150,7 +147,7 @@ export const planHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } else if (queryData?.startsWith("buyPlan_")) {
+        } else if (queryData?.startsWith("buyPlan_") && update.callback_query?.message) {
             const planId = queryData.replace("buyPlan_", "");
             const currentSubscriptionsInfo = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user.id);
 

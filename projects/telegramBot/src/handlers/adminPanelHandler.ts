@@ -10,10 +10,10 @@ export const adminPanelHandler: IUpdateHandler = {
     updateType: TelegramUpdateType.CallbackQuery,
 
     async handler(context, update) {
-        if (!accessHelper(UserType.Admin, context.user.type) || !update.callback_query?.message)
+        if (!accessHelper(UserType.Admin, context.user.type))
             return { shouldContinue: true };
 
-        const queryData = update.callback_query?.data as string;
+        const queryData = update.callback_query?.message && update.callback_query?.data;
 
         switch (queryData) {
             case "adminPanel": {
@@ -25,8 +25,8 @@ export const adminPanelHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        chat_id: update.callback_query?.message?.chat.id,
+                        message_id: update.callback_query?.message?.message_id,
                         ..._panel
                     }
                 );

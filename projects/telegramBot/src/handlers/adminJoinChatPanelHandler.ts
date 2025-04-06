@@ -18,10 +18,10 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
     ],
 
     async handler(context, update) {
-        if (!accessHelper(UserType.Admin, context.user.type) || !update.callback_query?.message)
+        if (!accessHelper(UserType.Admin, context.user.type))
             return { shouldContinue: true };
 
-        const queryData = update.callback_query?.data;
+        const queryData = update.callback_query?.message && update.callback_query?.data;
 
         switch (queryData) {
             case "joinRequiredChatsPanel": {
@@ -36,8 +36,8 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        chat_id: update.callback_query?.message?.chat.id,
+                        message_id: update.callback_query?.message?.message_id,
                         ..._joinRequiredChatsPanel
                     }
                 );
@@ -50,8 +50,8 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id,
+                        chat_id: update.callback_query?.message?.chat.id,
+                        message_id: update.callback_query?.message?.message_id,
                         text: context.uiText.forwardMessageFromChannel,
                         reply_markup: {
                             inline_keyboard: [
@@ -75,8 +75,8 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
             await tgCall(
                 TelegramMethods.EditMessageText,
                 {
-                    chat_id: update.callback_query?.message.chat.id,
-                    message_id: update.callback_query?.message.message_id,
+                    chat_id: update.callback_query?.message?.chat.id,
+                    message_id: update.callback_query?.message?.message_id,
                     ..._joinRequiredChatPanel
                 }
             );

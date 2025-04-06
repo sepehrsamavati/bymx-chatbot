@@ -16,11 +16,9 @@ export const termsOfServiceHandler: IUpdateHandler = {
     ],
 
     async handler(context, update) {
+        const queryData = update.callback_query?.message && update.callback_query?.data;
 
-        if (!update.callback_query?.message)
-            return null;
-
-        if (update.callback_query?.data === "acceptTos") {
+        if (queryData === "acceptTos") {
 
             await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
 
@@ -42,8 +40,8 @@ export const termsOfServiceHandler: IUpdateHandler = {
                 await tgCall(
                     TelegramMethods.DeleteMessage,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
-                        message_id: update.callback_query?.message.message_id
+                        chat_id: update.callback_query?.message?.chat.id,
+                        message_id: update.callback_query?.message?.message_id
                     }
                 );
 
@@ -54,7 +52,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
                 tgCall(
                     TelegramMethods.SendMessage,
                     {
-                        chat_id: update.callback_query?.message.chat.id,
+                        chat_id: update.callback_query?.message?.chat.id,
                         ..._panel,
                     }
                 )
@@ -65,14 +63,14 @@ export const termsOfServiceHandler: IUpdateHandler = {
                     tgCall(
                         TelegramMethods.DeleteMessage,
                         {
-                            chat_id: update.callback_query?.message.chat.id,
-                            message_id: update.callback_query?.message.message_id
+                            chat_id: update.callback_query?.message?.chat.id,
+                            message_id: update.callback_query?.message?.message_id
                         }
                     ),
                     tgCall(
                         TelegramMethods.SendMessage,
                         {
-                            chat_id: update.callback_query?.message.chat.id,
+                            chat_id: update.callback_query?.message?.chat.id,
                             ...getGivePhoneNumberPanel(context)
                         }
                     )

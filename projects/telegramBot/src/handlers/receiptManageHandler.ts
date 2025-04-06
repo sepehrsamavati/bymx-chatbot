@@ -20,15 +20,15 @@ export const receiptManageHandler: IUpdateHandler = {
     ],
     chatTypes: ["all"],
     async handler(context, update) {
-        if (!accessHelper(UserType.Manager, context.user.type) || !update.callback_query?.message)
+        if (!accessHelper(UserType.Manager, context.user.type))
             return null;
 
         const text = update.message?.text;
-        const queryData = update.callback_query?.data;
+        const queryData = update.callback_query?.message && update.callback_query?.data;
 
         if (context.chat?.type !== "private") {
 
-            if (update.callback_query.message.chat.id?.toString() === config.telegram.staticPaymentReceiptChatId) {
+            if (update.callback_query?.message?.chat.id?.toString() === config.telegram.staticPaymentReceiptChatId) {
                 if (queryData?.startsWith("refreshReceipt_")) {
                     const paymentId = queryData.replace("refreshReceipt_", "");
 
@@ -105,8 +105,8 @@ export const receiptManageHandler: IUpdateHandler = {
                     await tgCall(
                         TelegramMethods.EditMessageText,
                         {
-                            chat_id: update.callback_query?.message.chat.id,
-                            message_id: update.callback_query?.message.message_id,
+                            chat_id: update.callback_query?.message?.chat.id,
+                            message_id: update.callback_query?.message?.message_id,
                             ...receiptPanel
                         }
                     );
