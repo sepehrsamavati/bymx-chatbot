@@ -82,7 +82,6 @@ export class AIChatRepository implements IAIChatRepository {
             }>([
                 'model'
             ])
-            .orFail()
             .lean();
 
         if (!res)
