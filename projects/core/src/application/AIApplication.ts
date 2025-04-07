@@ -828,18 +828,23 @@ export default class AIApplication {
             messages: [],
             model: freeModel,
             tokenLimit: 30,
-            systemMessages: [
-                "This is a message from chat, suggest a title for the chat."
-            ],
-            inputMessage: message,
+            inputMessage: (
+                `The message below is from a chat, suggest ONLY AND ONLY A SHORT TITLE for that chat in the message language;`
+                + ` If no title can be extracted ONLY return a dash '-':\n\n'((${message.slice(0, 1500)}))'`
+            ),
         });
 
-        if (!generatedTitleResult?.isComplete)
+        if (!generatedTitleResult?.output)
+            return result.failed("errorOccurred");
+
+        const output = generatedTitleResult.output.replace(/'|"/g, '');
+
+        if (output === '-')
             return result.failed("errorOccurred");
 
         const setTitleResult = await this.#aiChatRepository.updateById({
             id: chatId,
-            title: generatedTitleResult.output,
+            title: output,
         });
 
         if (setTitleResult === true)
