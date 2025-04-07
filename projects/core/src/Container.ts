@@ -19,6 +19,7 @@ import OpenRouterService from "./infrastructure/services/OpenRouterService.js";
 import EventHandlerApplication from "./application/EventHandlerApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
+import MetadataStoreApplication from "./application/MetadataStoreApplication.js";
 import GenerationTaskApplication from "./application/GenerationTaskApplication.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
@@ -27,6 +28,7 @@ import { PromptRepository } from "./infrastructure/repository/mongo/PromptReposi
 import { AIChatRepository } from "./infrastructure/repository/mongo/AIChatRepository.js";
 import { AIModelRepository } from "./infrastructure/repository/mongo/AIModelRepository.js";
 import { UserTempFileRepository } from "./infrastructure/repository/mongo/UserTempFileRepository.js";
+import { MetadataStoreRepository } from "./infrastructure/repository/mongo/MetadataStoreRepository.js";
 import TelegramJoinRequiredChatApplication from "./application/TelegramJoinRequiredChatApplication.js";
 import { MongoDBConnection, MongoDBTransaction } from "./infrastructure/repository/mongo/lib/Context.js";
 import { GenerationTaskRepository } from "./infrastructure/repository/mongo/GenerationTaskRepository.js";
@@ -36,6 +38,7 @@ import { UserSubscriptionUsageRepository } from "./infrastructure/repository/mon
 import { TelegramJoinRequiredChatRepository } from "./infrastructure/repository/mongo/TelegramJoinRequiredChatRepository.js";
 
 type Constants = {
+    projectName: string;
     mongoDbConnectionStringUri: string;
 };
 
@@ -53,6 +56,7 @@ type Repositories = {
     aiModelRepository: RepoInterfaces.IAIModelRepository;
     promptRepository: RepoInterfaces.IPromptRepository;
     userTempFileRepository: RepoInterfaces.IUserTempFileRepository;
+    metadataStoreRepository: RepoInterfaces.IMetadataStoreRepository;
     generationTaskRepository: RepoInterfaces.IGenerationTaskRepository;
     telegramBroadcastRepository: RepoInterfaces.ITelegramBroadcastRepository;
     telegramJoinRequiredChatRepository: RepoInterfaces.ITelegramJoinRequiredChatRepository;
@@ -66,6 +70,7 @@ type Applications = {
     aiChatApplication: AIChatApplication;
     aiModelApplication: AIModelApplication;
     eventHandlerApplication: EventHandlerApplication;
+    metadataStoreApplication: MetadataStoreApplication;
     generationTaskApplication: GenerationTaskApplication;
     userSubscriptionApplication: UserSubscriptionApplication;
     telegramBroadcastApplication: TelegramBroadcastApplication;
@@ -124,6 +129,7 @@ export default class CoreServices {
 
     constructor(autoSetup = true) {
         this.container.register({
+            projectName: asValue("core"),
             mongoDbConnectionStringUri: asValue(config.mongoDbConnectionStringUri),
 
             databaseConnection: asClass(MongoDBConnection, { lifetime: "SINGLETON", dispose: async ctx => await ctx.closeConnection() }),
@@ -136,6 +142,7 @@ export default class CoreServices {
             aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
             aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),
             eventHandlerApplication: asClass(EventHandlerApplication, { lifetime: "SCOPED" }),
+            metadataStoreApplication: asClass(MetadataStoreApplication, { lifetime: "SCOPED" }),
             generationTaskApplication: asClass(GenerationTaskApplication, { lifetime: "SCOPED" }),
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
@@ -158,6 +165,7 @@ export default class CoreServices {
             planRepository: asClass(errorCatcher(PlanRepository), { lifetime: "SCOPED" }),
             promptRepository: asClass(errorCatcher(PromptRepository), { lifetime: "SCOPED" }),
             userTempFileRepository: asClass(errorCatcher(UserTempFileRepository), { lifetime: "SCOPED" }),
+            metadataStoreRepository: asClass(errorCatcher(MetadataStoreRepository), { lifetime: "SCOPED" }),
             generationTaskRepository: asClass(errorCatcher(GenerationTaskRepository), { lifetime: "SCOPED" }),
             telegramBroadcastRepository: asClass(errorCatcher(TelegramBroadcastRepository), { lifetime: "SCOPED" }),
             telegramJoinRequiredChatRepository: asClass(errorCatcher(TelegramJoinRequiredChatRepository), { lifetime: "SCOPED" }),
@@ -172,8 +180,16 @@ export default class CoreServices {
                 });
     }
 
-    createApplicationScope() {
+    createApplicationScope(opts?: {
+        projectName?: string;
+    }) {
         const scope = this.container.createScope();
+
+        if (opts?.projectName)
+            scope.register({
+                projectName: asValue(opts.projectName)
+            });
+
         return {
             applications: scope.cradle as Applications,
             dispose: scope.dispose

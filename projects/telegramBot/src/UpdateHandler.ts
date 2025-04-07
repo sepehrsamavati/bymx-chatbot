@@ -127,7 +127,9 @@ export class UpdateHandler {
             }
         }
 
-        const container = this.services.core.createApplicationScope();
+        const container = this.services.core.createApplicationScope({
+            projectName: "telegramBot"
+        });
 
         if (user.status === UserStatus.Blocked)
             await container.applications.userApplication.setUserStatus(user.id, UserStatus.EULA);
