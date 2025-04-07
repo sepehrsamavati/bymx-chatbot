@@ -5,6 +5,7 @@ import type { PromptBasicInfo, PromptDBModel } from "../entities/prompt";
 import type { CreateUserSubscriptionUsage } from "../entities/userSubscriptionUsage";
 import type { AIChat, AIChatDBModel, SearchAIChat, UpdateAIChat } from "../entities/aiChat";
 import type { User, UserDBModel, CreateUserModel, UpdateUserModel, SearchUserModel } from "../entities/user";
+import type { CreateMetadataStoreModel, MetadataStore, SearchMetadataStoreModel } from "../entities/metadataStore";
 import type { CreateUserTempFile, SearchUserTempFile, UpdateUserTempFile, UserTempFile } from "../entities/userTempFile";
 import type { GenerationTask, GenerationTaskDBModel, SearchGenerationTaskModel, UpdateGenerationTaskModel } from "../entities/generationTask";
 import type { CreateTelegramBroadcast, SearchTelegramBroadcast, TelegramBroadcast, UpdateTelegramBroadcast } from "../entities/telegramBroadcast";
@@ -127,4 +128,10 @@ export type IGenerationTaskRepository = {
     getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<GenerationTask[] | null>;
     updateOne(filter: Pick<GenerationTask, 'internalId'>, update: UpdateGenerationTaskModel): Promise<boolean | null>;
     updateMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>, update: UpdateGenerationTaskModel): Promise<boolean | null>;
+}
+
+export type IMetadataStoreRepository = {
+    /** Returns ID on success */
+    create(metadata: CreateMetadataStoreModel): Promise<string | null>;
+    getOne(filter: SearchMetadataStoreModel): Promise<MetadataStore | null>;
 }
