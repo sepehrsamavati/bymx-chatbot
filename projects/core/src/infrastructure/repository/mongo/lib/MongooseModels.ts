@@ -5,11 +5,12 @@ import { promptModelDefinition } from "../models/Prompt.js";
 import { aiChatModelDefinition } from "../models/AIChat.js";
 import { aiModelModelDefinition } from "../models/AIModel.js";
 import { userTempFileModelDefinition } from "../models/UserTempFile.js";
+import { metadataStoreModelDefinition } from "../models/MetadataStore.js";
+import { generationTaskModelDefinition } from "../models/GenerationTask.js";
 import { userSubscriptionModelDefinition } from "../models/UserSubscription.js";
 import { telegramBroadcastModelDefinition } from "../models/TelegramBroadcast.js";
 import { userSubscriptionUsageModelDefinition } from "../models/UserSubscriptionUsage.js";
 import { telegramJoinRequiredChatModelDefinition } from "../models/TelegramJoinRequiredChat.js";
-import { generationTaskModelDefinition } from "../models/GenerationTask.js";
 
 export default class MongooseModels {
     readonly models;
@@ -25,6 +26,7 @@ export default class MongooseModels {
             prompt: promptModelDefinition.createModel(this.connection),
             userTempFile: userTempFileModelDefinition.createModel(this.connection),
             generationTask: generationTaskModelDefinition.createModel(this.connection),
+            metadataStore: metadataStoreModelDefinition.createModel(this.connection),
             telegramBroadcast: telegramBroadcastModelDefinition.createModel(this.connection),
             telegramJoinRequiredChat: telegramJoinRequiredChatModelDefinition.createModel(this.connection),
         });
