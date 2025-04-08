@@ -352,13 +352,10 @@ export default class UserApplication {
             setSaveMessagesAutomatically ? (
                 await this.#userRepository.update(
                     userId,
-                    (
-                        memoryAmount === AIChatHistoryMemory.None ? (
-                            { saveMessages: false }
-                        ) : (
-                            { saveMessages: true, memoryAmount }
-                        )
-                    )
+                    {
+                        memoryAmount,
+                        saveMessages: memoryAmount !== AIChatHistoryMemory.None,
+                    }
                 )
             ) : (
                 await this.#userRepository.update(userId, { memoryAmount })
