@@ -11,8 +11,8 @@ import translate from "@iamtraction/google-translate";
 import { PlanType } from "../types/enums/planTypes.js";
 import { UserStatus } from "../types/enums/userStatus.js";
 import { countTokens } from "../helpers/lmTokenHelper.js";
-import { AIChatHistoryMemory } from "../export/shared.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
+import type { AIModel } from "../types/entities/aiModel.js";
 import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
 import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
@@ -27,7 +27,7 @@ import { OperationResult, OperationResultWithData } from "../common/dto/Operatio
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 
-type MultiModalInput = {
+type MultiModalInputMessage = {
     text: { text: string; };
     voice: {
         voice: {
@@ -51,6 +51,42 @@ type MultiModalOutput = {
         /** Seconds */
         duration: number;
     };
+}
+
+type MultiModalInput = {
+    inputMessage: MultiModalInputMessage[keyof MultiModalInputMessage];
+    /** Should convert output text into audio; Default: Read from user preferences */
+    voiceResponse?: boolean;
+
+    user: User;
+
+    /** Default: false */
+    createDefaultChat?: boolean;
+    model?: AIModel;
+    history?: {
+        chat?: Omit<AIChat, 'user'>;
+        /** Number of messages to extract as history; Default: Read from user preferences */
+        historyMessagesCount?: number;
+    };
+
+    attachment?: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {}
+}
+
+type PreprocessingOutput = {
+    chat?: AIChat;
+    model: AIModel;
+    totalRemainingPoints: number;
+    historyMessages: PromptBasicInfo[];
+    subscriptions: NonNullable<Awaited<ReturnType<ServicesType['userSubscriptionApplication']['getActiveSubscriptions']>>>['subscriptions'];
+
+    userInputText: string;
+    inputTextForModel: string;
+    inputTokens: number;
+    /** Use only in view / Do not use in app logic -> Call saveSubscriptionsUsage after each step */
+    totalUserPointUsage: number;
+    image?: UserTempFile;
+    maxOutputTokens?: number;
+    fileFsId?: string;
 }
 
 type FalAiResponse = Awaited<ReturnType<typeof fal.subscribe>>;
@@ -97,15 +133,18 @@ export default class AIApplication {
      * - Get points remaining
      * @returns Info on success / Operation result on error/fail
      */
-    private async middleware(user: User) {
-        const result = new OperationResultWithData<any>().failed("errorOccurred");
+    async #multiModalPreprocess(preprocessInput: MultiModalInput) {
+        const { user, createDefaultChat: shouldCreateDefaultChat } = preprocessInput;
+        preprocessInput.attachment ||= {};
+
+        const result = new OperationResultWithData<PreprocessingOutput>().failed("errorOccurred");
 
         if (user.status !== UserStatus.OK)
             return result.failed("shouldAcceptTermsOfService");
 
-        let selectedChat = user.selectedChat;
+        let _chat = preprocessInput.history?.chat || user.selectedChat;
 
-        if (!selectedChat) {
+        if (shouldCreateDefaultChat && !_chat) {
             const hasChats = await this.#aiChatRepository.exists(user.id);
 
             if (hasChats === null)
@@ -114,12 +153,10 @@ export default class AIApplication {
             if (hasChats)
                 return result.failed("selectChatBeforeUse"); // select chat
 
-            const defaultModel = await this.#aiModelCache.getDefault();
-
             const openAIChat = {
                 title: "",
                 user: user,
-                model: defaultModel,
+                model: preprocessInput.model || await this.#aiModelCache.getDefault(),
                 behavior: AIChatBehavior.None,
                 isHidden: false,
             } satisfies Partial<AIChat>;
@@ -141,7 +178,7 @@ export default class AIApplication {
             });
 
             if (updateResult?.ok) {
-                selectedChat = user.selectedChat = {
+                _chat = user.selectedChat = {
                     ...openAIChat,
                     id: defaultChatId
                 };
@@ -150,10 +187,12 @@ export default class AIApplication {
             }
         }
 
-        if (selectedChat.model?.isDeleted !== false)
+        const _model = preprocessInput.model || _chat?.model;
+
+        if (!_model || _model.isDeleted !== false)
             return result.failed("modelNotAvailable");
 
-        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        let { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
 
         const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
 
@@ -162,28 +201,119 @@ export default class AIApplication {
 
         let historyMessages: PromptBasicInfo[] = [];
 
-        if (user.memoryAmount && user.saveMessages) {
-            const _historyMessages = await this.#promptRepository.getRecentHistory(selectedChat.id, user.memoryAmount);
+        if (_chat) {
+            const historyMessagesCount = preprocessInput.history?.historyMessagesCount ?? user.memoryAmount;
+            if (historyMessagesCount) {
+                const _historyMessages = await this.#promptRepository.getRecentHistory(_chat.id, historyMessagesCount);
 
-            if (_historyMessages === null)
-                return result.failed();
+                if (_historyMessages === null)
+                    return result.failed();
 
-            historyMessages = _historyMessages.reverse();
+                historyMessages = _historyMessages.reverse();
+            }
         }
 
-        const modelIsFree = selectedChat.model.provider === AIModelProvider.OpenRouter && (selectedChat.model.pricePmu.input + selectedChat.model.pricePmu.output === 0);
+        const modelIsFree = _model.provider === AIModelProvider.OpenRouter && (_model.pricePmu.input + _model.pricePmu.output === 0);
 
         if (!modelIsFree && totalRemainingPoints <= 0) {
             return result.failed("noPointAvailable");
         }
 
-        return {
-            result,
-            selectedChat,
+        let totalUserPointUsage = 0;
+        let extractableFileFsId: string | undefined = undefined;
+        let userInputText = 'text' in preprocessInput.inputMessage ? preprocessInput.inputMessage.text : "";
+        let inputTextForModel = userInputText;
+
+        // Convert user speech to text (to send to model)
+        if ('voice' in preprocessInput.inputMessage && preprocessInput.inputMessage.voice) {
+            if (preprocessInput.inputMessage.voice.duration) {
+                const predictedPointCost = calculatePointUsage({ usd: (preprocessInput.inputMessage.voice.duration * this.#openAI.speechToTextPmu) / 1e6 });
+                if (totalRemainingPoints - predictedPointCost < 1)
+                    return result.failed("pointNotEnough");
+            }
+
+            const userTextMessage = await this.#openAI.speechToText({
+                inputAudioPath: getTempFilePath(preprocessInput.inputMessage.voice.file),
+                prompt: user.voiceResponse.languagePrompt,
+            });
+
+            if (!userTextMessage)
+                return result.failed();
+
+            const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * this.#openAI.speechToTextPmu) / 1e6 });
+            totalUserPointUsage += speechToTextUserPointCost;
+            totalRemainingPoints -= speechToTextUserPointCost;
+
+            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
+
+            // Couldn't retrieve text from user speech audio
+            if (userTextMessage.output.length === 0) {
+                return result.failed("noContentInAudio");
+            }
+
+            userInputText = userTextMessage.output;
+            inputTextForModel = userInputText;
+        }
+
+        if ('file' in preprocessInput.attachment && preprocessInput.attachment.file && extractableFileContentExtensions.includes(preprocessInput.attachment.file.extension)) { // extract file content of requested file
+            extractableFileFsId = preprocessInput.attachment.file.fsId;
+            const fileContent = await getFileContent(getTempFilePath(preprocessInput.attachment.file));
+            if (fileContent)
+                inputTextForModel += `\n\nFile extension=${preprocessInput.attachment.file.extension}\nFile content=\n${fileContent}`;
+        } else { // extract content from latest file in messages history
+            const lastMessageWithFileIndex = historyMessages.findLastIndex(msg => typeof msg.fileId === "string"); // get latest message in history with attachment
+            const lastExtractableFileFsId = lastMessageWithFileIndex !== -1 ? historyMessages.at(lastMessageWithFileIndex)?.fileId : undefined;
+            if (lastExtractableFileFsId) {
+                const tempFile = await this.#userTempFileApplication.getByFsId(lastExtractableFileFsId);
+                if (tempFile.ok && tempFile.data) {
+                    const fileContent = await getFileContent(getTempFilePath(tempFile.data));
+                    if (fileContent)
+                        historyMessages[lastMessageWithFileIndex].input += `\n\nFile extension=${tempFile.data.extension}\nFile content=\n${fileContent}`; // modify user input from history temporary so that model can see file content
+                }
+            }
+        }
+
+        const image = 'image' in preprocessInput.attachment ? preprocessInput.attachment.image : undefined;
+        const inputTokens = countTokens(inputTextForModel, _model.name) + (image ? 500 : 0);
+
+        if (image && _model.provider !== AIModelProvider.OpenAI)
+            return result.failed("modelOnlySupportsText");
+
+        const predictedCost = modelCostPredication({
+            inputUnits: inputTokens,
+            model: _model,
+            pointUsageLimit: totalRemainingPoints,
+            offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
+        });
+
+        if (predictedCost.inputLimit)
+            return result.failed("pointNotEnough");
+
+        const historyTokensCount = countTokens(historyMessages.map(m => m.input + "\n" + m.output).join('\n'), _model.name);
+
+        if ((historyTokensCount + inputTokens) >= _model.llmInfo.contextWindow)
+            return result.failed("modelMemoryExceeded");
+
+
+        result.succeeded().setData({
+            chat: _chat ? {
+                user: preprocessInput.user,
+                ..._chat,
+            } : undefined,
+            model: _model,
             subscriptions,
-            historyMessages,
+            totalUserPointUsage,
             totalRemainingPoints,
-        };
+            historyMessages,
+            image,
+            userInputText,
+            inputTokens,
+            inputTextForModel,
+            maxOutputTokens: predictedCost.outputTokens,
+            fileFsId: extractableFileFsId,
+        });
+
+        return result;
     }
 
     async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedMediaResponse>> {
@@ -569,104 +699,17 @@ export default class AIApplication {
         return result;
     }
 
-    private async _multiModalChatCompletion(
-        user: User,
-        inputMessage: MultiModalInput[keyof MultiModalInput],
-        messageAttachment: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {},
-        opts?: {
-            /** Optional; Prevent double getting data and validations */
-            middlewareResult?: Awaited<ReturnType<typeof AIApplication.prototype.middleware>>;
-        }
-    ): Promise<OperationResultWithData<MultiModalOutput>> {
-        const _middlewareResult = opts?.middlewareResult ?? await this.middleware(user);
-
-        if (_middlewareResult instanceof OperationResultWithData)
-            return _middlewareResult;
-
-        const { subscriptions, selectedChat, historyMessages } = _middlewareResult;
-        let { totalRemainingPoints } = _middlewareResult;
+    private async _multiModalChatCompletion(multiModalInput: MultiModalInput): Promise<OperationResultWithData<MultiModalOutput>> {
         const result = new OperationResultWithData<MultiModalOutput>();
-        const userWantsVoiceResponse = user.voiceResponse.on;
+        const preprocessResult = await this.#multiModalPreprocess(multiModalInput);
 
-        /** Use only in view / Do not use in app logic -> Call saveSubscriptionsUsage after each step */
-        let totalUserPointUsage = 0;
-        let extractableFileFsId: string | undefined = undefined;
-        let userInputText = 'text' in inputMessage ? inputMessage.text : "";
-        let inputTextForModel = userInputText;
+        if (!(preprocessResult.ok && preprocessResult.data))
+            return result.failed(preprocessResult.message);
 
-        // Convert user speech to text (to send to model)
-        if ('voice' in inputMessage && inputMessage.voice) {
-            if (inputMessage.voice.duration) {
-                const predictedPointCost = calculatePointUsage({ usd: (inputMessage.voice.duration * this.#openAI.speechToTextPmu) / 1e6 });
-                if (totalRemainingPoints - predictedPointCost < 1)
-                    return result.failed("pointNotEnough");
-            }
-
-            const userTextMessage = await this.#openAI.speechToText({
-                inputAudioPath: getTempFilePath(inputMessage.voice.file),
-                prompt: user.voiceResponse.languagePrompt,
-            });
-
-            if (!userTextMessage)
-                return result.failed();
-
-            const speechToTextUserPointCost = calculatePointUsage({ usd: (userTextMessage.duration * this.#openAI.speechToTextPmu) / 1e6 });
-            totalUserPointUsage += speechToTextUserPointCost;
-            totalRemainingPoints -= speechToTextUserPointCost;
-
-            await this.#userSubscriptionApplication.saveSubscriptionsUsage(speechToTextUserPointCost, subscriptions);
-
-            // Couldn't retrieve text from user speech audio
-            if (userTextMessage.output.length === 0) {
-                return result.failed("noContentInAudio").setData({
-                    pointUsage: speechToTextUserPointCost,
-                    plainText: "",
-                    isComplete: false,
-                });
-            }
-
-            userInputText = userTextMessage.output;
-            inputTextForModel = userInputText;
-        }
-
-        if ('file' in messageAttachment && messageAttachment.file && extractableFileContentExtensions.includes(messageAttachment.file.extension)) { // extract file content of requested file
-            extractableFileFsId = messageAttachment.file.fsId;
-            const fileContent = await getFileContent(getTempFilePath(messageAttachment.file));
-            if (fileContent)
-                inputTextForModel += `\n\nFile extension=${messageAttachment.file.extension}\nFile content=\n${fileContent}`;
-        } else { // extract content from latest file in messages history
-            const lastMessageWithFileIndex = historyMessages.findLastIndex(msg => typeof msg.fileId === "string"); // get latest message in history with attachment
-            const lastExtractableFileFsId = lastMessageWithFileIndex !== -1 ? historyMessages.at(lastMessageWithFileIndex)?.fileId : undefined;
-            if (lastExtractableFileFsId) {
-                const tempFile = await this.#userTempFileApplication.getByFsId(lastExtractableFileFsId);
-                if (tempFile.ok && tempFile.data) {
-                    const fileContent = await getFileContent(getTempFilePath(tempFile.data));
-                    if (fileContent)
-                        historyMessages[lastMessageWithFileIndex].input += `\n\nFile extension=${tempFile.data.extension}\nFile content=\n${fileContent}`; // modify user input from history temporary so that model can see file content
-                }
-            }
-        }
-
-        const image = 'image' in messageAttachment ? messageAttachment.image : undefined;
-        const inputTokens = countTokens(inputTextForModel, selectedChat.model.name) + (image ? 500 : 0);
-
-        if (image && selectedChat.model.provider !== AIModelProvider.OpenAI)
-            return result.failed("modelOnlySupportsText");
-
-        const predictedCost = modelCostPredication({
-            inputUnits: inputTokens,
-            model: selectedChat.model,
-            pointUsageLimit: totalRemainingPoints,
-            offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
-        });
-
-        if (predictedCost.inputLimit)
-            return result.failed("pointNotEnough");
-
-        const historyTokensCount = countTokens(historyMessages.map(m => m.input + "\n" + m.output).join('\n'), selectedChat.model.name);
-
-        if ((historyTokensCount + inputTokens) >= selectedChat.model.llmInfo.contextWindow)
-            return result.failed("modelMemoryExceeded");
+        const { subscriptions, chat, historyMessages, model, inputTokens, maxOutputTokens, image } = preprocessResult.data;
+        let { totalRemainingPoints, totalUserPointUsage } = preprocessResult.data;
+        const { user } = multiModalInput;
+        const userWantsVoiceResponse = multiModalInput.voiceResponse ?? multiModalInput.user.voiceResponse.on;
 
         let resultData: IOpenAITextResult;
         const sendLangToGpt = inputTokens < 3 && historyMessages.length === 0;
@@ -679,16 +722,16 @@ export default class AIApplication {
         }
 
         const startTime = performance.now();
-        const res = await (selectedChat.model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
-            inputMessage: inputTextForModel,
+        const res = await (model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
+            inputMessage: preprocessResult.data.inputTextForModel,
             messages: historyMessages,
-            model: selectedChat.model,
+            model: model,
             systemMessages: [
-                systemMessageMapper(selectedChat.behavior),
+                systemMessageMapper(chat?.behavior),
                 userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
             ],
             userId: user.id,
-            tokenLimit: predictedCost.outputTokens,
+            tokenLimit: maxOutputTokens,
             imageUrl: imageUrl,
             languageCode: sendLangToGpt ? user.lang : undefined
         });
@@ -701,7 +744,7 @@ export default class AIApplication {
         resultData = res;
 
         const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
-            model: selectedChat.model,
+            model: model,
             inputUnits: res.inputTokens,
             outputUnits: res.outputTokens,
         });
@@ -712,19 +755,19 @@ export default class AIApplication {
         const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
 
         await this.#promptRepository.create({
-            chat: selectedChat,
+            chat: chat,
             cost: cost,
             insertDate: new Date(),
             isDeleted: false,
-            input: userInputText,
+            input: preprocessResult.data.userInputText,
             output: res.output,
             points: textGenerateUserPointCost,
-            model: selectedChat.model.name,
+            model: model.name,
             saved: user.saveMessages,
             usages: savedUsageIds ?? [],
             promptUser: user,
             responseTime: responseTime,
-            fileId: extractableFileFsId,
+            fileId: preprocessResult.data.fileFsId,
         });
         /* --END-- */
 
@@ -775,36 +818,15 @@ export default class AIApplication {
         });
     }
 
-    public async multiModalChatCompletion(
-        user: User,
-        inputMessage: MultiModalInput[keyof MultiModalInput],
-        messageAttachment: MultiModalInputAttachment[keyof MultiModalInputAttachment] | {},
-        opts?: {
-            /** Optional; Prevent double getting data and validations */
-            middlewareResult?: Awaited<ReturnType<typeof AIApplication.prototype.middleware>>;
-            /** Disables saving and restoring history; `Modifies passed user object!` Default: false; */
-            temporary?: boolean;
-            /** `Modifies passed user object!` Default: false; */
-            disableVoiceOutput?: boolean;
-        }
-    ): Promise<OperationResultWithData<MultiModalOutput>> {
-        if (this.#messageLock.isLocked(user.id))
+    public async multiModalChatCompletion(multiModalInput: MultiModalInput): Promise<OperationResultWithData<MultiModalOutput>> {
+        if (this.#messageLock.isLocked(multiModalInput.user.id))
             return new OperationResultWithData<MultiModalOutput>().failed("youHavePendingPrompts");
 
-        this.#messageLock.lock(user.id);
+        this.#messageLock.lock(multiModalInput.user.id);
 
-        if (opts?.temporary) {
-            user.saveMessages = false;
-            user.memoryAmount = AIChatHistoryMemory.None;
-        }
+        const result = await this._multiModalChatCompletion(multiModalInput);
 
-        if (opts?.disableVoiceOutput) {
-            user.voiceResponse.on = false;
-        }
-
-        const result = await this._multiModalChatCompletion(user, inputMessage, messageAttachment, opts);
-
-        this.#messageLock.unlock(user.id);
+        this.#messageLock.unlock(multiModalInput.user.id);
 
         return result;
     }
@@ -824,7 +846,7 @@ export default class AIApplication {
         if (!chat)
             return result.failed("itemNotFound");
 
-        const generatedTitleResult = await this.#openRouter.multiTextMessage({
+        const generatedTitleResult = await (freeModel.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
             messages: [],
             model: freeModel,
             tokenLimit: 30,

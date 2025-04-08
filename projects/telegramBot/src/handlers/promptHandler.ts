@@ -366,14 +366,15 @@ export const promptHandler: IUpdateHandler = {
             context.services.fileProcessingLockCache.unlock(context.user.id);
         }
 
-        const res = await context.services.aiApplication.multiModalChatCompletion(
-            context.user,
-            multiModalInput,
-            {
+        const res = await context.services.aiApplication.multiModalChatCompletion({
+            user: context.user,
+            createDefaultChat: true,
+            inputMessage: multiModalInput,
+            attachment: {
                 image: imageFile,
                 file: attachmentFile
-            }
-        );
+            },
+        });
 
         if (attachmentFile)
             unlockFileProcessing();

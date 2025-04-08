@@ -72,9 +72,16 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
     if (!chat)
         result.failed("itemNotFound");
     else {
-        user.voiceResponse.on = false; // not supported
-        user.selectedChat = { ...chat, user };
-        const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion(user, { text: query.promptText }, {});
+        const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion({
+            user,
+            voiceResponse: false,
+            inputMessage: {
+                text: query.promptText
+            },
+            history: {
+                chat: chat
+            },
+        });
 
         if (chatCompletionResult.ok && chatCompletionResult.data)
             result

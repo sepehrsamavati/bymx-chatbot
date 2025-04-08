@@ -75,17 +75,16 @@ export const inlineQueryHandler: IUpdateHandler = {
 
             queryStore.delete(context.user.id);
 
-            const res = await context.services.aiApplication.multiModalChatCompletion(
-                context.user,
-                {
-                    text: inputText
+            const res = await context.services.aiApplication.multiModalChatCompletion({
+                user: context.user,
+                createDefaultChat: true,
+                inputMessage: {
+                    text: inputText,
                 },
-                {},
-                {
-                    temporary: true,
-                    disableVoiceOutput: true,
+                history: {
+                    historyMessagesCount: 0
                 }
-            );
+            });
 
             if (res.ok && res.data) {
                 await tgCall(
