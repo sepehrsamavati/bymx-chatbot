@@ -69,6 +69,7 @@ export const create3dModelHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: `Image.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()
@@ -155,6 +156,7 @@ export const create3dModelHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: document.file_name || `File.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()

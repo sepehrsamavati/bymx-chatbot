@@ -88,6 +88,7 @@ export const promptHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: `Voice.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()
@@ -243,6 +244,7 @@ export const promptHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: attachmentTgDocument.file_name || `File.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()
@@ -335,6 +337,7 @@ export const promptHandler: IUpdateHandler = {
                                 size: fileInfo.result.file_size,
                                 tgId: fileInfo.result.file_id,
                                 tgUniqueId: fileInfo.result.file_unique_id,
+                                filename: `Image.${fileExtension}`,
                                 vectorIds: [],
                                 user: context.user,
                                 lastAccessed: new Date()

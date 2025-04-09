@@ -96,6 +96,7 @@ export const musicGenerateHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: `Music.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()

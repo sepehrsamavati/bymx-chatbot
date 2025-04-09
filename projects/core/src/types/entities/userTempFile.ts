@@ -4,13 +4,13 @@ import type { FlattenToIDs, StoredEntity } from "../contracts/entities";
 export type UserTempFile = {
     /** File System ID (fsId) */
     fsId: string;
-    tgId?: string;
     filename: string;
-    tgUniqueId: string;
     lastAccessed: Date;
-    openAiFileId?: string;
     size: number;
     user: User;
+    openAiFileId?: string;
+    tgId?: string;
+    tgUniqueId?: string;
     vectorIds: string[];
     extension: string;
 }

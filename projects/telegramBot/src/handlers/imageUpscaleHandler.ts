@@ -69,6 +69,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: `Image.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()
@@ -153,6 +154,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
                             size: fileInfo.result.file_size,
                             tgId: fileInfo.result.file_id,
                             tgUniqueId: fileInfo.result.file_unique_id,
+                            filename: `Image.${fileExtension}`,
                             vectorIds: [],
                             user: context.user,
                             lastAccessed: new Date()
