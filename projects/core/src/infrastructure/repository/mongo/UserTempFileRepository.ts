@@ -21,7 +21,8 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             tgUniqueId: userTempFile.tgUniqueId,
             vectorIds: userTempFile.vectorIds,
             user: userTempFile.user,
-            lastAccessed: userTempFile.lastAccessed
+            lastAccessed: userTempFile.lastAccessed,
+            filename: userTempFile.filename,
         });
         return Boolean(res?._id);
     }
@@ -54,7 +55,8 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             tgUniqueId: res.tgUniqueId,
             openAiFileId: res.openAiFileId,
             vectorIds: res.vectorIds,
-            lastAccessed: res.lastAccessed
+            lastAccessed: res.lastAccessed,
+            filename: res.filename,
         } : null;
     }
 
@@ -94,7 +96,8 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             tgId: item.tgId,
             tgUniqueId: item.tgUniqueId,
             vectorIds: item.vectorIds,
-            openAiFileId: item.openAiFileId
+            openAiFileId: item.openAiFileId,
+            filename: item.filename,
         })) : null;
     }
 

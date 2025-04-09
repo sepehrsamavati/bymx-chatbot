@@ -26,6 +26,11 @@ const schema = new mongoose.Schema<UserTempFileMongoStored>({
         ref: userModelDefinition.model,
         required: true,
     },
+    filename: {
+        type: String,
+        required: true,
+        maxlength: 256,
+    },
     extension: {
         type: String,
         required: true,
