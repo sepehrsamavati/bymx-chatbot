@@ -3,11 +3,13 @@ import path from 'node:path';
 import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
+import fileHandler from '@fastify/multipart';
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import TelegramAuth from "../dto/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
+import { uploadAttachment } from './api/v1/file.js';
 import authGuard from "../middlewares/authGuard.js";
 import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
@@ -33,6 +35,15 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         // index: "index.html",
         // constraints: { host: 'example.com' } // optional: default {}
     });
+
+    fastifyInstance.register((instance, _, next) => {
+
+        instance.register(fileHandler);
+
+        instance.post("/upload", uploadAttachment);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/file" });
 
     fastifyInstance.register((instance, _, next) => {
 
