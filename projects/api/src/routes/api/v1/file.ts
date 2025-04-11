@@ -23,7 +23,7 @@ export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
     //
     // or
 
-    await pipeline(data.file, fs.createWriteStream(path.join(config.cacheDirectory, "from-api", data.filename)))
+    await pipeline(data.file, fs.createWriteStream(path.join(config.storageBasePath, "from-api", data.filename)))
 
     result.succeeded();
 

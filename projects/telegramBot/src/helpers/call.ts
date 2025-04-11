@@ -24,7 +24,7 @@ export const downloadFile = async (tgFilePath: string, extension?: string) => {
 
     const fileId = randomUUID();
 
-    let storedFilePath = path.join(config.cacheDirectory, fileId);
+    let storedFilePath = path.join(config.storageBasePath, fileId);
     if (extension)
         storedFilePath = storedFilePath + `.${extension}`;
 

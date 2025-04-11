@@ -15,7 +15,7 @@ if (config.ffprobePath)
 export async function audioConvert(inBuffer: Buffer, format: string) {
     return new Promise<Buffer | null>(resolve => {
         // const outputBuffer: Buffer[] = [];
-        const outputTempPath = path.join(config.cacheDirectory, `audio-convert-${randomUUID()}.temp`);
+        const outputTempPath = path.join(config.storageBasePath, `audio-convert-${randomUUID()}.temp`);
 
         // Create a readable stream from the input buffer
         const inputStream = new Readable();
@@ -44,7 +44,7 @@ export async function audioConvert(inBuffer: Buffer, format: string) {
 }
 
 export async function getAudioDuration(inBuffer: Buffer): Promise<number | null> {
-    const tempFilePath = path.join(config.cacheDirectory, `audio-duration-${randomUUID()}.temp`);
+    const tempFilePath = path.join(config.storageBasePath, `audio-duration-${randomUUID()}.temp`);
 
     try {
         await fs.writeFile(tempFilePath, inBuffer);

@@ -27,7 +27,7 @@ const config = {
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     chatCountLimit: 5,
-    cacheDirectory: process.env.BYMX_CACHE_STORAGE ?? "./data/cache",
+    storageBasePath: process.env.BYMX_STORAGE_BASE_PATH ?? "./data/cache",
     activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),
     /** Minutes */
@@ -165,8 +165,8 @@ configError(
     Number.isNaN(config.activeSubscriptionLimit) || config.activeSubscriptionLimit < 1 || config.activeSubscriptionLimit > 2000
 );
 
-if (!fs.existsSync(config.cacheDirectory))
-    fs.mkdirSync(config.cacheDirectory, { recursive: true });
+if (!fs.existsSync(config.storageBasePath))
+    fs.mkdirSync(config.storageBasePath, { recursive: true });
 
 if (config.httpProxyUri) {
     // Corporate proxy uses CA not in undici's certificate store
