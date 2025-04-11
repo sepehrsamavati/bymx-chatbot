@@ -88,6 +88,39 @@ export default class UserTempFileApplication {
         return result.succeeded();
     }
 
+    async deleteByFsId(fsId: string) {
+        const result = new OperationResult();
+
+        const file = await this.#userTempFileRepository.get({
+            isDeleted: false,
+            fsId: fsId,
+        });
+
+        if (!file)
+            return result.failed("itemNotFound");
+
+        const filePath = getTempFilePath(file);
+
+        const [
+            fsUnlinkResult,
+            updateResult
+        ] = await Promise.allSettled([
+            fs.unlink(filePath),
+            this.#userTempFileRepository.updateById({
+                id: file.fsId,
+                isDeleted: true,
+            })
+        ]);
+
+        if (fsUnlinkResult.status === "rejected")
+            errorLogger(`UserTempFileApp / deleteByFsId / Error while deleting file '${filePath}'`, fsUnlinkResult.reason);
+
+        if (updateResult.status === "rejected")
+            errorLogger(`UserTempFileApp / deleteByFsId / Error while updating inactive file status / FsId: '${file.fsId}'`, updateResult.reason);
+
+        return result.succeeded();
+    }
+
     async deleteInactiveFiles() {
         const result = new OperationResult();
 
