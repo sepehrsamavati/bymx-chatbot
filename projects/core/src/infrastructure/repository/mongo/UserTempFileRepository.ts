@@ -27,7 +27,7 @@ export class UserTempFileRepository implements IUserTempFileRepository {
         return Boolean(res?._id);
     }
 
-    async get(filter: SearchUserTempFile): Promise<Omit<UserTempFile, "user"> | null> {
+    async get(filter: SearchUserTempFile) {
         const _filter: FilterQuery<UserTempFile> = {};
 
         if (filter.user !== undefined)
@@ -52,6 +52,7 @@ export class UserTempFileRepository implements IUserTempFileRepository {
             fsId: res.fsId,
             tgId: res.tgId,
             size: res.size,
+            user: res.user.toString(),
             tgUniqueId: res.tgUniqueId,
             openAiFileId: res.openAiFileId,
             vectorIds: res.vectorIds,

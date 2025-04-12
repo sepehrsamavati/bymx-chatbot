@@ -5,6 +5,7 @@ import { errorLogger, logger } from "../helpers/logger.js";
 import { fileStorageHelper } from "../helpers/storageHelper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import { FlattenToIDs } from "../types/contracts/entities.js";
 
 export default class UserTempFileApplication {
     #userTempFileRepository;
@@ -29,7 +30,7 @@ export default class UserTempFileApplication {
     }
 
     async getByFsId(fsId: UserTempFile['fsId']) {
-        const result = new OperationResultWithData<Omit<UserTempFile, 'user'>>();
+        const result = new OperationResultWithData<FlattenToIDs<UserTempFile, 'user'>>();
 
         const res = await this.#userTempFileRepository.get({
             isDeleted: false,

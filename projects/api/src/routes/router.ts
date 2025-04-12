@@ -1,5 +1,6 @@
 import url from 'node:url';
 import path from 'node:path';
+import IdDto from '../dto/IdDto.js';
 import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
@@ -9,7 +10,6 @@ import FalAiResult from "../dto/FalAiResult.js";
 import TelegramAuth from "../dto/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
-import { uploadAttachment } from './api/v1/file.js';
 import authGuard from "../middlewares/authGuard.js";
 import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
@@ -19,6 +19,7 @@ import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
+import * as file from './api/v1/file.js';
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
 import * as model from "./api/v1/model.js";
@@ -40,7 +41,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         instance.register(fileHandler);
 
-        instance.post("/upload", uploadAttachment);
+        instance.post("/upload", file.uploadAttachment);
+        instance.delete("/attachment", { preValidation: dtoValidator(IdDto) }, file.deleteAttachment);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/file" });

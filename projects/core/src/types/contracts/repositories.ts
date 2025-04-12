@@ -80,7 +80,7 @@ export type ITelegramBroadcastRepository = {
 export type IUserTempFileRepository = {
     create(userTempFile: CreateUserTempFile): Promise<boolean | null>;
     /** Gets entity and updates `lastAccessed` property */
-    get(filter: SearchUserTempFile): Promise<Omit<UserTempFile, 'user'> | null>;
+    get(filter: SearchUserTempFile): Promise<FlattenToIDs<UserTempFile, 'user'> | null>;
     getInactive(lastAccessedLowerThan: Date, limit: number): Promise<Omit<UserTempFile, 'user'>[] | null>;
     updateById(update: UpdateUserTempFile): Promise<boolean | null>;
     countUserUsage(userId: string, fromDate: Date): Promise<number | null>;
