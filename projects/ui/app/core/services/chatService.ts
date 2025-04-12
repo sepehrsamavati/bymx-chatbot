@@ -52,7 +52,7 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.GET,
         });
     },
-    submitPrompt(dto: { chatId: string; promptText: string; }) {
+    submitPrompt(dto: { chatId: string; promptText: string; attachmentFileId?: string; }) {
         return HttpClient.send<OperationResultWithData<{ plainText?: string; isComplete: boolean; pointUsage: number; }>>({
             path: "/api/v1/chat/prompt",
             method: HttpClient.Methods.POST,

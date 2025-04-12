@@ -39,9 +39,12 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
     fastifyInstance.register((instance, _, next) => {
 
+        instance.addHook('onRequest', jwt);
+        instance.addHook('onRequest', authGuard);
+
         instance.register(fileHandler);
 
-        instance.post("/upload", file.uploadAttachment);
+        instance.put("/upload", file.uploadAttachment);
         instance.delete("/attachment", { preValidation: dtoValidator(IdDto) }, file.deleteAttachment);
 
         next();

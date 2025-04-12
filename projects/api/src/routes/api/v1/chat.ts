@@ -3,7 +3,7 @@ import type ChatID from "../../../dto/chat/ChatID.js";
 import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
-import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
+import type { CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
 import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
@@ -70,30 +70,43 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
 
 
     if (!chat)
-        result.failed("itemNotFound");
-    else {
-        const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion({
-            user,
-            voiceResponse: false,
-            inputMessage: {
-                text: query.promptText
-            },
-            history: {
-                chat: chat
-            },
-        });
+        return reply.status(200).send(result.failed("itemNotFound"));
 
-        if (chatCompletionResult.ok && chatCompletionResult.data)
-            result
-                .succeeded()
-                .setData({
-                    isComplete: chatCompletionResult.data.isComplete,
-                    plainText: chatCompletionResult.data.plainText,
-                    pointUsage: chatCompletionResult.data.pointUsage,
-                });
-        else
-            result.failed(chatCompletionResult.message);
+    let attachmentFile: UserTempFileEntity.UserTempFile | null = null;
+
+    if (query.attachmentFileId) {
+        const file = await request.locals.applications.userTempFileApplication.getByFsId(query.attachmentFileId);
+
+        if (file.data?.user !== user.id)
+            return reply.status(200).send(result.failed("itemNotFound"));
+
+        attachmentFile = file.data as UserTempFileEntity.UserTempFile;
     }
+
+    const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion({
+        user,
+        voiceResponse: false,
+        attachment: {
+            file: attachmentFile,
+        },
+        inputMessage: {
+            text: query.promptText
+        },
+        history: {
+            chat: chat
+        },
+    });
+
+    if (chatCompletionResult.ok && chatCompletionResult.data)
+        result
+            .succeeded()
+            .setData({
+                isComplete: chatCompletionResult.data.isComplete,
+                plainText: chatCompletionResult.data.plainText,
+                pointUsage: chatCompletionResult.data.pointUsage,
+            });
+    else
+        result.failed(chatCompletionResult.message);
 
     return reply.status(200).send(result);
 

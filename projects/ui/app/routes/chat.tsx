@@ -8,10 +8,29 @@ import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import type { PromptViewModel } from "bymx-core/types";
+import AttachFile from "@mui/icons-material/AttachFile";
+import UploadFile from "@mui/icons-material/UploadFile";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, Chip, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import fileService from "~/core/services/fileService";
+
+type ChatMessage = PromptViewModel & {
+    attachmentFilename?: string;
+};
+
+type AttachmentFile = {
+    id: string;
+    name: string;
+};
+
+type SelectedAttachmentFile = {
+    id?: string;
+    /** 0-100 */
+    uploadedAmount: number;
+    name: AttachmentFile['name'];
+};
 
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
@@ -125,6 +144,7 @@ function ChatMoreActions(props: {
 function MessageBubble(props?: {
     text?: string;
     date?: Date;
+    attachmentFilename?: string;
     pointUsage?: number;
     modelTitle?: string;
 }) {
@@ -182,6 +202,15 @@ function MessageBubble(props?: {
         >
             <div ref={divRef}>
                 <Markdown>{props?.text}</Markdown>
+
+                {props?.attachmentFilename ? (
+                    <Chip
+                        disabled
+                        size="small"
+                        icon={<AttachFile />}
+                        label={props.attachmentFilename}
+                    />
+                ) : null}
             </div>
             <Typography
                 component="span"
@@ -204,13 +233,14 @@ export default function Chat() {
     const session = useSession();
     const navigate = useNavigate();
     const { chatId } = useParams();
-    const [messages, setMessages] = useState<PromptViewModel[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const initialized = useRef(false);
     const didFirstScrollToBottom = useRef(false);
     const [inputText, setInputText] = useState("");
     const reachedToFirstMessage = useRef(false);
     const isLoadingMessages = useRef(false);
     const chatSectionRef = useRef<HTMLDivElement>(null);
+    const [uploadingFile, setUploadingFile] = useState<SelectedAttachmentFile>();
     const [modelChangeLock, setModelChangeLock] = useState(true);
     const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const [selectedModel, setSelectedModel] = useState("");
@@ -270,12 +300,18 @@ export default function Chat() {
     const submitPrompt = useCallback(() => {
         if (!chatId) return;
         setWaitingForCompletion(true);
+
+        const _inputText = inputText;
+        const _attachmentFile = uploadingFile;
+
         setInputText("");
+        setUploadingFile(undefined);
         const inputDate = Date.now();
         chatService
             .submitPrompt({
                 chatId,
-                promptText: inputText,
+                promptText: _inputText,
+                attachmentFileId: _attachmentFile?.id,
             })
             .then(res => {
                 if (res.result.data) {
@@ -287,13 +323,17 @@ export default function Chat() {
                             outputDate: Date.now(),
                             modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
                             input: inputText,
+                            attachmentFilename: _attachmentFile?.name,
                             output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number
                         }
                     )]);
+                } else {
+                    setInputText(_inputText);
+                    setUploadingFile(_attachmentFile);
                 }
             })
             .finally(() => setWaitingForCompletion(false));
-    }, [chatId, inputText]);
+    }, [chatId, inputText, uploadingFile]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
@@ -331,6 +371,85 @@ export default function Chat() {
                 setMemoryAmountChangeLock(false);
             });
     }, [memoryAmountChangeLock, chatId]);
+
+    const uploadFile = useCallback((file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const xhr = new XMLHttpRequest();
+
+        return new Promise((resolve) => {
+            xhr.upload.addEventListener("progress", (event) => {
+                if (event.lengthComputable) {
+                    setUploadingFile(_current => {
+                        if (_current)
+                            return (
+                                {
+                                    ..._current,
+                                    uploadedAmount: Math.round((event.loaded / event.total) * 100),
+                                }
+                            );
+
+                        return undefined;
+                    });
+                }
+            });
+
+            xhr.addEventListener("error", () => {
+                setUploadingFile(undefined);
+            });
+
+            xhr.addEventListener("loadend", () => {
+                if (!(xhr.readyState === 4 && xhr.status === 200)) {
+                    setUploadingFile(undefined);
+                    return resolve(false);
+                }
+
+                const res = JSON.parse(xhr.response);
+
+                if (typeof res.data === "string")
+                    setUploadingFile(_current => {
+                        if (_current)
+                            return (
+                                {
+                                    ..._current,
+                                    id: res.data,
+                                }
+                            );
+
+                        return undefined;
+                    });
+
+                if (!res.ok)
+                    setUploadingFile(undefined);
+                resolve(res.ok);
+            });
+
+            xhr.open("PUT", "/api/v1/file/upload", true);
+            xhr.send(formData);
+        });
+    }, []);
+
+    const deleteUploadedFile = useCallback(() => {
+        if (!uploadingFile?.id)
+            return;
+
+        setUploadingFile(undefined);
+
+        fileService
+            .deleteAttachment(uploadingFile?.id);
+
+    }, [uploadingFile]);
+
+    const fileSelectHandler = useCallback((file: File) => {
+        if (uploadingFile)
+            return;
+        setUploadingFile({
+            name: file.name,
+            uploadedAmount: 0,
+        });
+        uploadFile(file);
+    }, [uploadFile, uploadingFile]);
 
     useEffect(() => {
         if (initialized.current || !chatId) return;
@@ -455,7 +574,7 @@ export default function Chat() {
                     >
                         <Box marginInline={1} marginBlock={2}>
                             <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
-                                <MessageBubble text={message.input} date={message.input.length < 15 ? undefined : new Date(message.inputDate)} />
+                                <MessageBubble attachmentFilename={message.attachmentFilename} text={message.input} date={message.input.length < 15 ? undefined : new Date(message.inputDate)} />
                             </Card>
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
@@ -474,6 +593,31 @@ export default function Chat() {
                         submitPrompt();
                     }}
                 >
+                    <Box
+                        sx={{
+                            ' input': {
+                                display: "none",
+                                visibility: "hidden",
+                            }
+                        }}
+                    >
+                        {uploadingFile ? (
+                            <>
+                                <Chip
+                                    onDelete={uploadingFile.id ? deleteUploadedFile : undefined}
+                                    icon={uploadingFile.id ? undefined : <CircularProgress variant="determinate" size="0.8em" value={uploadingFile.uploadedAmount} />}
+                                    label={uploadingFile.name}
+                                />
+                            </>
+                        ) : (
+                            <label htmlFor="prompt-attachment">
+                                <IconButton disabled={waitingForCompletion} onClick={() => document.getElementById('prompt-attachment')?.click()}>
+                                    <UploadFile />
+                                </IconButton>
+                                <input id="prompt-attachment" type="file" onChange={e => e.target.files && fileSelectHandler(e.target.files[0])} />
+                            </label>
+                        )}
+                    </Box>
                     <TextField
                         fullWidth
                         size="small"

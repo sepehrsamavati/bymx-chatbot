@@ -38,6 +38,7 @@ const schema = new mongoose.Schema<UserTempFileMongoStored>({
     },
     fsId: {
         type: String,
+        unique: true,
         required: true,
     },
     size: {
@@ -47,11 +48,11 @@ const schema = new mongoose.Schema<UserTempFileMongoStored>({
     },
     tgId: {
         type: String,
-        required: true,
+        required: false,
     },
     tgUniqueId: {
         type: String,
-        required: true
+        required: false
     },
     openAiFileId: {
         type: String,

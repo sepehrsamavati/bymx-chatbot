@@ -1,6 +1,6 @@
 import ChatID from "./ChatID.js";
 import { Expose, Type } from "class-transformer";
-import { IsDefined, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDefined, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export default class ChatPrompt extends ChatID {
     @Expose()
@@ -10,4 +10,12 @@ export default class ChatPrompt extends ChatID {
     @MinLength(1)
     @MaxLength(2048)
     promptText!: string;
+
+    @Expose()
+    @Type(() => String)
+    @IsOptional()
+    @IsString()
+    @MinLength(15)
+    @MaxLength(55)
+    attachmentFileId?: string;
 }
