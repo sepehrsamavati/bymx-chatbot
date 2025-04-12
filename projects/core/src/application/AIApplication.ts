@@ -13,8 +13,8 @@ import { UserStatus } from "../types/enums/userStatus.js";
 import { countTokens } from "../helpers/lmTokenHelper.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
 import type { AIModel } from "../types/entities/aiModel.js";
-import { getTempFilePath } from "../helpers/storageHelper.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
+import { fileStorageHelper } from "../helpers/storageHelper.js";
 import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
 import { IOpenAITextResult } from "../types/contracts/services.js";
 import { AIModelProvider } from "../types/enums/aiModelProvider.js";
@@ -233,7 +233,7 @@ export default class AIApplication {
             }
 
             const userTextMessage = await this.#openAI.speechToText({
-                inputAudioPath: getTempFilePath(preprocessInput.inputMessage.voice.file),
+                inputAudioPath: fileStorageHelper.userTemporary.getFilePath(preprocessInput.inputMessage.voice.file.fsId),
                 prompt: user.voiceResponse.languagePrompt,
             });
 
@@ -257,7 +257,7 @@ export default class AIApplication {
 
         if ('file' in preprocessInput.attachment && preprocessInput.attachment.file && extractableFileContentExtensions.includes(preprocessInput.attachment.file.extension)) { // extract file content of requested file
             extractableFileFsId = preprocessInput.attachment.file.fsId;
-            const fileContent = await getFileContent(getTempFilePath(preprocessInput.attachment.file));
+            const fileContent = await getFileContent(fileStorageHelper.userTemporary.getFilePath(preprocessInput.attachment.file.fsId));
             if (fileContent)
                 inputTextForModel += `\n\nFile extension=${preprocessInput.attachment.file.extension}\nFile content=\n${fileContent}`;
         } else { // extract content from latest file in messages history
@@ -266,7 +266,7 @@ export default class AIApplication {
             if (lastExtractableFileFsId) {
                 const tempFile = await this.#userTempFileApplication.getByFsId(lastExtractableFileFsId);
                 if (tempFile.ok && tempFile.data) {
-                    const fileContent = await getFileContent(getTempFilePath(tempFile.data));
+                    const fileContent = await getFileContent(fileStorageHelper.userTemporary.getFilePath(tempFile.data.fsId));
                     if (fileContent)
                         historyMessages[lastMessageWithFileIndex].input += `\n\nFile extension=${tempFile.data.extension}\nFile content=\n${fileContent}`; // modify user input from history temporary so that model can see file content
                 }
@@ -603,7 +603,7 @@ export default class AIApplication {
             return result.failed("invalidInput");
 
         const audioFileData = await fs.readFile(
-            getTempFilePath(opts.audioFile)
+            fileStorageHelper.userTemporary.getFilePath(opts.audioFile.fsId)
         );
         const audioLength = await getAudioDuration(audioFileData);
 

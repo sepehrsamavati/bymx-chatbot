@@ -11,10 +11,7 @@ export default (async function (request, reply) {
         const tempFile = await request.locals.applications.userTempFileApplication.getByFsId(id);
 
         if (tempFile.ok && tempFile.data) {
-            const filePath = storageHelper.getTempFilePath({
-                extension: tempFile.data.extension,
-                fsId: tempFile.data.fsId,
-            });
+            const filePath = storageHelper.fileStorageHelper.userTemporary.getFilePath(tempFile.data.fsId);
 
             const file = await fs.readFile(filePath);
 

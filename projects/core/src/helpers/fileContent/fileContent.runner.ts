@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import { errorLogger } from "../logger.js";
 import { createRequire } from "node:module";
-import { getTempFilePath } from "../storageHelper.js";
 import { tryGetFileExtension } from "../fileHelper.js";
+import { fileStorageHelper } from "../storageHelper.js";
 import type { UserTempFile } from "../../types/entities/userTempFile.js";
 
 const require = createRequire(import.meta.url);
@@ -16,7 +16,7 @@ export async function getFileContent(path: string): Promise<string | null>;
 export async function getFileContent(tempFile: Pick<UserTempFile, 'fsId' | 'extension'>): Promise<string | null>;
 export async function getFileContent(pathOrTempFile: string | Pick<UserTempFile, 'fsId' | 'extension'>) {
 
-    const filePath = typeof pathOrTempFile === "string" ? pathOrTempFile : getTempFilePath(pathOrTempFile);
+    const filePath = typeof pathOrTempFile === "string" ? pathOrTempFile : fileStorageHelper.userTemporary.getFilePath(pathOrTempFile.fsId);
 
     if (!fs.existsSync(filePath))
         return null;

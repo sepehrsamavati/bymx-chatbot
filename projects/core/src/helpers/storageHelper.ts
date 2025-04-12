@@ -3,10 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import config from "../config.js";
 import { logger } from "./logger.js";
+import { randomUUID } from "node:crypto";
 import { TempFileStatus } from "../types/enums/fileStatus.js";
-import type { UserTempFile } from "../types/entities/userTempFile.js";
 
-export const getTempFilePath = (tempFile: Pick<UserTempFile, 'fsId' | 'extension'>) => path.join(config.storageBasePath, tempFile.fsId) + `.${tempFile.extension}`;
+export const generateFileSystemId = (): string => randomUUID();
 
 const createHelperBase = <T extends string>(directoryName: T) => {
     const directory = path.join(config.storageBasePath, directoryName);
@@ -82,8 +82,12 @@ const createHelper = <T extends string>(directoryName: T) => {
 export const fileStorageHelper = Object.freeze({
     /** Server side temporary files; Not accepted */
     temporary: tempFileHelper,
+
     /** Temporary stored user files */
     userTemporary: createHelper("user-temp-files"),
+
+    audioConvert: createHelperBase("audio-convert"),
+    audioDuration: createHelperBase("audio-duration"),
 });
 
 export const tryDelete = async (path: string) => {

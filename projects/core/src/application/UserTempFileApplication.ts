@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { errorLogger, logger } from "../helpers/logger.js";
-import { getTempFilePath } from "../helpers/storageHelper.js";
+import { fileStorageHelper } from "../helpers/storageHelper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
@@ -99,7 +99,7 @@ export default class UserTempFileApplication {
         if (!file)
             return result.failed("itemNotFound");
 
-        const filePath = getTempFilePath(file);
+        const filePath = fileStorageHelper.userTemporary.getFilePath(file.fsId);
 
         const [
             fsUnlinkResult,
@@ -133,7 +133,7 @@ export default class UserTempFileApplication {
             return result.failed();
 
         for (const tempFile of inactiveFiles) {
-            const filePath = getTempFilePath(tempFile);
+            const filePath = fileStorageHelper.userTemporary.getFilePath(tempFile.fsId);
 
             const [
                 fsUnlinkResult,

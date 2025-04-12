@@ -1,10 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { randomUUID } from "node:crypto";
-import { config } from "bymx-core/server";
 import { finished } from "node:stream/promises";
 import { setTimeout } from 'node:timers/promises';
+import { config, storageHelper } from "bymx-core/server";
 import { OperationResultWithData } from "bymx-core/shared";
 import type { TelegramResponse } from "../types/telegram.js";
 import type { TelegramMethods } from "../types/enums/telegramMethods.js";
@@ -22,11 +21,9 @@ export const downloadFile = async (tgFilePath: string, extension?: string) => {
     if (!(response.body && response.status === 200))
         return result.failed();
 
-    const fileId = randomUUID();
+    const fileId = storageHelper.generateFileSystemId();
 
-    let storedFilePath = path.join(config.storageBasePath, fileId);
-    if (extension)
-        storedFilePath = storedFilePath + `.${extension}`;
+    const storedFilePath = storageHelper.fileStorageHelper.userTemporary.getFilePath(fileId);
 
     const body = Readable.from(response.body);
     const downloadWriteStream = fs.createWriteStream(storedFilePath);

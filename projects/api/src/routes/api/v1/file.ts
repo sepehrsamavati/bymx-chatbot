@@ -1,37 +1,44 @@
-import { config } from "bymx-core/server";
 import type { RouteHandlerMethod } from "fastify";
 import type { CaptionOnly } from "bymx-core/types";
 import { OperationResultWithData } from "bymx-core/shared";
+import { fileHelper, storageHelper } from "bymx-core/server";
 
 import fs from 'node:fs';
-import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
 export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
 
-    const result = new OperationResultWithData<CaptionOnly[]>();
+    const result = new OperationResultWithData<string>();
 
+    if (!request.locals.user)
+        return reply.status(401).send(result);
 
     const data = await request.file();
 
     if (!data)
-        return reply.status(200).send(result);
+        return reply.status(400).send(result.failed());
 
-    // to accumulate the file in memory! Be careful!
-    //
-    // await data.toBuffer() // Buffer
-    //
-    // or
+    const extension = fileHelper.tryGetFileExtension(data.mimetype);
 
-    await pipeline(data.file, fs.createWriteStream(path.join(config.storageBasePath, "from-api", data.filename)))
+    if (!fileHelper.extractableFileContentExtensions.includes(extension))
+        return reply.status(400).send(result.failed("targetFileNotSupported"));
 
-    result.succeeded();
+    const fileId = storageHelper.generateFileSystemId();
+    const filePath = storageHelper.fileStorageHelper.userTemporary.getFilePath(fileId);
 
-    // be careful of permission issues on disk and not overwrite
-    // sensitive files that could cause security risks
+    if ((await request.locals.applications.userTempFileApplication.addTempFile({
+        fsId: fileId,
+        extension: extension,
+        filename: data.filename,
+        lastAccessed: new Date(),
+        size: 0,
+        user: request.locals.user,
+        vectorIds: [],
+    })).ok) {
+        await pipeline(data.file, fs.createWriteStream(filePath));
 
-    // also, consider that if the file stream is not consumed, the promise will never fulfill
+        result.succeeded().setData(fileId);
+    }
 
     return reply.status(200).send(result);
-
 };
