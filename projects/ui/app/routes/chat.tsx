@@ -611,10 +611,15 @@ export default function Chat() {
                             </>
                         ) : (
                             <label htmlFor="prompt-attachment">
-                                <IconButton disabled={waitingForCompletion} onClick={() => document.getElementById('prompt-attachment')?.click()}>
+                                <IconButton size="small" disabled={waitingForCompletion} onClick={() => document.getElementById('prompt-attachment')?.click()}>
                                     <UploadFile />
                                 </IconButton>
-                                <input id="prompt-attachment" type="file" onChange={e => e.target.files && fileSelectHandler(e.target.files[0])} />
+                                <input
+                                    id="prompt-attachment"
+                                    type="file"
+                                    accept=".pdf,.txt,.js,.mjs,.ts,.jsx,.tsx,.css,.go,.json,.csproj,.cs,.cc,.java"
+                                    onChange={e => e.target.files && fileSelectHandler(e.target.files[0])}
+                                />
                             </label>
                         )}
                     </Box>

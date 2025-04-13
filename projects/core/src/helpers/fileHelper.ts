@@ -8,6 +8,7 @@ export const mimeTypeFileExtensionMap = Object.freeze({
     "text/html": "html",
     "application/json": "json",
     "application/javascript": "js",
+    "application/x-javascript": "js",
 } as { [Key: string]: string | undefined });
 
 export const extractableFileContentExtensions = Object.freeze([
@@ -104,7 +105,8 @@ export const tryGetFileExtension = (inp: string) => {
             "text/html": "html",
             "application/json": "json",
             "application/javascript": "js",
-        })[inp] ?? "";
+            "application/x-javascript": "js",
+        })[inp.trim()] ?? "";
     } else if (inp.length < 10 && /^[a-zA-Z0-9]{1,5}$/.test(inp)) {
         extension = inp;
     }
