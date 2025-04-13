@@ -1,17 +1,15 @@
-// import userService from "./services/user";
-// import type { IUserInfo } from "../types/user";
+import { UIText } from "./i18n/i18n";
+import colors from "./config/colors";
 import type { PaletteMode } from "@mui/material";
-import { createContext, useContext } from "react";
 import ThemeManager from "./helper/ThemeManager";
+import userService from "./services/userService";
+import { createContext, useContext } from "react";
+import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { LocalStorage_v2 } from "../types/localStorage";
-import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
-import { UIText } from "./i18n/i18n";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
-import userService from "./services/userService";
-import modelService from "./services/modelService";
-import colors from "./config/colors";
-// import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
+import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
+import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
 export default class Session {
     private _signOutLock = false;
@@ -28,11 +26,12 @@ export default class Session {
 
         const response = await userService.telegramAuth(window.Telegram.WebApp.initData);
 
-        if (response.result.data) {
+        if (response.result?.data) {
             this.user = response.result.data;
             this.refreshUI();
             this.syncChatModels();
         } else {
+            this.snackbarProvider(response.result?.message, { variant: "error" });
             this.signOut();
         }
 
@@ -67,7 +66,7 @@ export default class Session {
     }
 
     async syncChatModels() {
-        const models = (await modelService.getAll()).result.data;
+        const models = (await modelService.getAll()).result?.data;
         if (Array.isArray(models)) {
             this._chatModels = models;
             this.refreshUI();
@@ -122,8 +121,16 @@ export default class Session {
     }
 
     public readonly themeManager = new ThemeManager(this);
-    // public readonly snackbarProvider = snackbarProvider;
-    // public readonly closeSnackbar = closeSnackbar;
+    public readonly snackbarProvider = (...args: Parameters<typeof snackbarProvider>) => {
+        return snackbarProvider(args[0], {
+            ...args[1],
+            extendedOptions: {
+                uiText: this.uiText,
+                ...args[1]?.extendedOptions
+            },
+        });
+    };
+    public readonly closeSnackbar = closeSnackbar;
 }
 
 export const SessionContext = createContext({} as Session);

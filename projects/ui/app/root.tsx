@@ -8,13 +8,16 @@ import {
 } from "react-router";
 
 import "./app.css";
+import { useMemo, useState } from "react";
 import type { Route } from "./+types/root";
+import { SnackbarProvider } from "notistack";
 import { ThemeProvider } from "@mui/material";
 import { CacheProvider } from "@emotion/react";
+import HttpClient from "./core/helper/HttpClient";
 import { AuthenticateUser } from "./components/auth";
-import { useCallback, useMemo, useState } from "react";
 import Session, { SessionContext } from "./core/Session";
 import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
+import { SnackbarProviderConfigurator } from "./core/helper/snackbarProvider";
 
 // export const links: Route.LinksFunction = () => [
 //   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -53,20 +56,31 @@ export default function App() {
   const [themeName, setTheme] = useState<ThemeName>('light');
   const [, setDummyState] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const session = useMemo<Session>(() => new Session(setTheme, () => setDummyState(current => current + 1)), []);
+  const session = useMemo<Session>(() => {
+    const sessionInstance = new Session(setTheme, () => setDummyState(current => current + 1));
+
+    HttpClient.session = sessionInstance;
+
+    return sessionInstance;
+  }, []);
 
   return (
-    <CacheProvider value={cacheRtl}>
-      <ThemeProvider key={themeName} theme={muiThemeOptions(session.themeManager)}>
-        <SessionContext.Provider value={session}>
-          {session.user ? (
-            <Outlet />
-          ) : (
-            <AuthenticateUser />
-          )}
-        </SessionContext.Provider>
-      </ThemeProvider>
-    </CacheProvider>
+    <>
+      <SnackbarProvider maxSnack={3}>
+        <SnackbarProviderConfigurator />
+      </SnackbarProvider>
+      <CacheProvider value={cacheRtl}>
+        <ThemeProvider key={themeName} theme={muiThemeOptions(session.themeManager)}>
+          <SessionContext.Provider value={session}>
+            {session.user ? (
+              <Outlet />
+            ) : (
+              <AuthenticateUser />
+            )}
+          </SessionContext.Provider>
+        </ThemeProvider>
+      </CacheProvider>
+    </>
   );
 }
 

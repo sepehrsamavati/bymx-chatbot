@@ -7,14 +7,15 @@ import MoreVert from "@mui/icons-material/MoreVert";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
+import fileService from "~/core/services/fileService";
 import type { PromptViewModel } from "bymx-core/types";
 import AttachFile from "@mui/icons-material/AttachFile";
 import UploadFile from "@mui/icons-material/UploadFile";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
+import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, Chip, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
-import fileService from "~/core/services/fileService";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -75,8 +76,10 @@ function ChatMoreActions(props: {
         chatService
             .clearMessages(props?.chatId as string)
             .then(res => {
-                if (res.result.ok)
+                if (res.result?.ok)
                     props?.onClearMessage?.();
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             })
             .finally(() => setClearingHistory(false));
     }, [props]);
@@ -86,8 +89,10 @@ function ChatMoreActions(props: {
         chatService
             .delete(props?.chatId as string)
             .then(res => {
-                if (res.result.ok)
-                    navigate("/ui/chats")
+                if (res.result?.ok)
+                    navigate("/ui/chats");
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             })
             .finally(() => setDeletingChat(false));
     }, [props, navigate]);
@@ -278,10 +283,10 @@ export default function Chat() {
                 lastMessageId,
             })
             .then(res => {
-                if (res.result.data)
+                if (res.result?.data)
                     setMessages(_current => {
                         const oldMessages = [..._current];
-                        const messagesToAdd = [...(res.result.data || [])]
+                        const messagesToAdd = [...(res.result?.data || [])]
                             .filter(message => !oldMessages.some(m => m.id === message.id)); // prevent duplicate
 
                         const newMessages = [...messagesToAdd, ...oldMessages];
@@ -290,6 +295,8 @@ export default function Chat() {
 
                         return newMessages;
                     });
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             })
             .finally(() => {
                 isLoadingMessages.current = false;
@@ -314,7 +321,7 @@ export default function Chat() {
                 attachmentFileId: _attachmentFile?.id,
             })
             .then(res => {
-                if (res.result.data) {
+                if (res.result?.data) {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
                     setMessages(_current => [..._current, (
                         {
@@ -324,10 +331,11 @@ export default function Chat() {
                             modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
                             input: inputText,
                             attachmentFilename: _attachmentFile?.name,
-                            output: res.result.data?.plainText ?? "ERR", points: res.result.data?.pointUsage as number
+                            output: res.result?.data?.plainText ?? "ERR", points: res.result?.data?.pointUsage as number
                         }
                     )]);
                 } else {
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
                     setInputText(_inputText);
                     setUploadingFile(_attachmentFile);
                 }
@@ -347,8 +355,10 @@ export default function Chat() {
         chatService
             .setChatModel({ chatId, modelId })
             .then(res => {
-                if (res.result.ok)
+                if (res.result?.ok)
                     setSelectedModel(modelId);
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             })
             .finally(() => {
                 setModelChangeLock(false);
@@ -362,10 +372,12 @@ export default function Chat() {
         chatService
             .setMemoryAmount({ chatId, amount: memoryAmount })
             .then(res => {
-                if (res.result.ok && session.user) {
+                if (res.result?.ok && session.user) {
                     session.user.memoryAmount = memoryAmount;
                     session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
                 }
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             })
             .finally(() => {
                 setMemoryAmountChangeLock(false);
@@ -397,17 +409,21 @@ export default function Chat() {
 
             xhr.addEventListener("error", () => {
                 setUploadingFile(undefined);
+                session.snackbarProvider(session.uiText.errorOccurred, { variant: "error" });
             });
 
             xhr.addEventListener("loadend", () => {
+                const res = xhr.getResponseHeader("content-type")?.includes("application/json") ? JSON.parse(xhr.response) : null;
+
+                errorResponseMessageFormatter(res);
+
                 if (!(xhr.readyState === 4 && xhr.status === 200)) {
                     setUploadingFile(undefined);
+                    session.snackbarProvider(res.message || session.uiText.errorOccurred, { variant: "error", anchorOrigin: { horizontal: "center", vertical: "bottom", } });
                     return resolve(false);
                 }
 
-                const res = JSON.parse(xhr.response);
-
-                if (typeof res.data === "string")
+                if (res.ok && typeof res.data === "string")
                     setUploadingFile(_current => {
                         if (_current)
                             return (
@@ -420,8 +436,10 @@ export default function Chat() {
                         return undefined;
                     });
 
-                if (!res.ok)
+                if (!res.ok) {
                     setUploadingFile(undefined);
+                    session.snackbarProvider(res.message, { variant: "error" });
+                }
                 resolve(res.ok);
             });
 
@@ -460,10 +478,12 @@ export default function Chat() {
         chatService
             .getChatModelId(chatId)
             .then(res => {
-                if (res.result.ok && res.result.data) {
+                if (res.result?.ok && res.result.data) {
                     setSelectedModel(res.result.data);
                     setModelChangeLock(false);
                 }
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
             });
     }, [getMessages, chatId]);
 

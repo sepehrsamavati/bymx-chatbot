@@ -38,9 +38,9 @@ export class UIText {
             if (!importer)
                 return;
 
-            const { result: { data } } = await importer(language);
-            if (data)
-                this.#languageData = data;
+            const importResponse = await importer(language);
+            if (importResponse.result?.data)
+                this.#languageData = importResponse.result.data;
         } catch (error) {
             console.error(`Failed to load language data for "${language}":`, error);
             // Optional: You could reset to default data if loading fails

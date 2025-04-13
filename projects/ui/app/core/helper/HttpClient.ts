@@ -1,3 +1,7 @@
+import type Session from "../Session";
+import type { I18nKey } from "../i18n/i18n";
+import { stringHelper } from "bymx-core/shared";
+
 enum HttpMethods {
     GET, POST, PUT, PATCH, DELETE
 }
@@ -12,7 +16,7 @@ interface IOptions {
 }
 
 type RequestResult<T> = {
-    result: T;
+    result: T | null;
     status: number;
 };
 
@@ -31,8 +35,17 @@ const createQueryString = (data: any) => {
     }).join('&')
 }
 
+export const errorResponseMessageFormatter = (dto: unknown) => {
+    if (dto && typeof dto === "object" && 'message' in dto && HttpClient.session?.uiText[dto.message as I18nKey]) {
+        if (dto.message as I18nKey === "fileUploadLimitReached") {
+            dto.message = stringHelper.formatter(HttpClient.session.uiText.fileUploadLimitReached, [20, 4]);
+        }
+    }
+}
+
 export default abstract class HttpClient {
     static readonly Methods = HttpMethods;
+    static session: Session | null = null;
 
     static async send<ResponseType>(options: IOptions) {
         let result: RequestResult<ResponseType> | null = null;
@@ -139,16 +152,32 @@ export default abstract class HttpClient {
             window.location.reload();
 
         if (rawResponse.status === 500)
-            console.warn({
-                type: 'warn',
-                text: ""
-            });
+            HttpClient.session?.snackbarProvider(HttpClient.session.uiText.errorOccurred, { variant: "error" });
 
-        if (config.options.jsonConvert === true && rawResponse.status === 200) {
-            const dto = await rawResponse.json();
+        let jsonResponse: unknown = null;
+        const responseIsJson = rawResponse.headers.get("content-type")?.includes("application/json");
+
+        if (rawResponse.status < 200 || rawResponse.status > 299) {
+            if (rawResponse.status === 400 && responseIsJson) {
+                jsonResponse = await rawResponse.json();
+                if (Array.isArray(jsonResponse)) {
+                    HttpClient.session?.snackbarProvider(HttpClient.session.uiText.invalidInput, { variant: "error" });
+                    return {
+                        result: null,
+                        status: rawResponse.status,
+                    };
+                }
+            }
+        }
+
+        if (config.options.jsonConvert === true && responseIsJson) {
+            const dto = jsonResponse ?? await rawResponse.json();
+
+            errorResponseMessageFormatter(dto);
+
             return {
                 result: dto as ResponseType,
-                status: 200
+                status: rawResponse.status,
             };
         }
 

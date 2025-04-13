@@ -14,6 +14,9 @@ export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
     if (!request.locals.user)
         return reply.status(401).send(result);
 
+    if (!(await request.locals.applications.userTempFileApplication.getUserUsageStatus(request.locals.user.id)).ok)
+        return reply.status(429).send(result.failed("fileUploadLimitReached"));
+
     const data = await request.file({
         limits: {
             fileSize: MAX_SIZE
