@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import type IdDto from "../../../dto/IdDto.js";
 import { pipeline } from 'node:stream/promises';
 import type { RouteHandlerMethod } from "fastify";
-import { fileHelper, storageHelper } from "bymx-core/server";
+import { errorLogger, fileHelper, storageHelper } from "bymx-core/server";
 import { OperationResult, OperationResultWithData } from "bymx-core/shared";
+
+const MAX_SIZE = 10 * 1024 * 1024;
 
 export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
 
@@ -12,7 +14,11 @@ export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
     if (!request.locals.user)
         return reply.status(401).send(result);
 
-    const data = await request.file();
+    const data = await request.file({
+        limits: {
+            fileSize: MAX_SIZE
+        }
+    });
 
     if (!data)
         return reply.status(400).send(result.failed());
@@ -23,20 +29,30 @@ export const uploadAttachment: RouteHandlerMethod = async (request, reply) => {
         return reply.status(400).send(result.failed("targetFileNotSupported"));
 
     const fileId = storageHelper.generateFileSystemId();
-    const filePath = storageHelper.fileStorageHelper.userTemporary.getFilePath(fileId);
+    const tempFile = storageHelper.fileStorageHelper.userTemporary.tempFile(fileId);
 
-    if ((await request.locals.applications.userTempFileApplication.addTempFile({
-        fsId: fileId,
-        extension: extension,
-        filename: data.filename,
-        lastAccessed: new Date(),
-        size: 0,
-        user: request.locals.user,
-        vectorIds: [],
-    })).ok) {
-        await pipeline(data.file, fs.createWriteStream(filePath));
+    try {
+        await pipeline(data.file, fs.createWriteStream(tempFile.path));
+    } catch (err) {
+        errorLogger("HTTP server saving attachment file to FS", err);
+    }
 
-        result.succeeded().setData(fileId);
+    const storeResult = await request.locals.applications.userTempFileApplication
+        .addTempFile({
+            fsId: fileId,
+            extension: extension,
+            filename: data.filename,
+            lastAccessed: new Date(),
+            size: data.file.bytesRead,
+            user: request.locals.user,
+            vectorIds: [],
+        });
+
+    if (storeResult.ok) {
+        if (await tempFile.acceptFile())
+            result.succeeded().setData(fileId);
+        else // try to rollback
+            await request.locals.applications.userTempFileApplication.deleteByFsId(fileId);
     }
 
     return reply.status(200).send(result);
