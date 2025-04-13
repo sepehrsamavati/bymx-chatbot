@@ -1,4 +1,7 @@
 export const mimeTypeFileExtensionMap = Object.freeze({
+    "audio/mpeg": "mp3",
+    "audio/wav": "wav",
+    "audio/wave": "wav",
     "text/plain": "txt",
     "text/x-python": "py",
     "image/png": "png",
@@ -93,20 +96,7 @@ export const tryGetFileExtension = (inp: string) => {
     }
     // Mimetype
     else if (inp.includes('/')) {
-        extension = ({
-            "audio/mpeg": "mp3",
-            "audio/wav": "wav",
-            "audio/wave": "wav",
-            "text/plain": "txt",
-            "text/x-python": "py",
-            "image/png": "png",
-            "image/jpeg": "jpg",
-            "text/css": "css",
-            "text/html": "html",
-            "application/json": "json",
-            "application/javascript": "js",
-            "application/x-javascript": "js",
-        })[inp.trim()] ?? "";
+        extension = mimeTypeFileExtensionMap[inp.trim()] ?? "";
     } else if (inp.length < 10 && /^[a-zA-Z0-9]{1,5}$/.test(inp)) {
         extension = inp;
     }
