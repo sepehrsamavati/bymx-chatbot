@@ -127,7 +127,7 @@
     "staticPaymentHelpText": "Complete your payment via the link below and send the payment ID or receipt screenshot.",
     "purchaseLink": "Purchase link",
     "price": "Price",
-    "irt": "IRR",
+    "irt": "Iranian toman",
     "anOpenPaymentExists": "Please cancel the previous payment before creating a new one!",
     "sendReceiptTextOrScreenshot": "Please send the payment ID or receipt screenshot!",
     "staticPaymentSubmitted": "Your payment has been submitted successfully. Please wait for admin approval.",

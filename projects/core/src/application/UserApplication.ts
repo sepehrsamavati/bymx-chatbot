@@ -31,8 +31,11 @@ export default class UserApplication {
     }
 
     async upsert(user: UpsertUserModel) {
-
-        const _user = await this.#userRepository.getAndUpdate(user, { tgId: user.tgId });
+        const _user = await this.#userRepository.getAndUpdate({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+        }, { tgId: user.tgId });
 
         if (_user) {
             return _user;

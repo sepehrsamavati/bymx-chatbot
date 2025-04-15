@@ -103,13 +103,15 @@ export class UpdateHandler {
             }
         }
 
+        const tgLangCode = UIText.langCodes.includes(fromTgUser?.language_code as UIText.LangCode) ? fromTgUser?.language_code as UIText.LangCode : null;
+
         // use root container (do not create scope)
         const user = await this.services.core.applications.userApplication.upsert({
             tgId: userId,
             firstName: fromTgUser?.first_name ?? "",
             lastName: fromTgUser?.last_name,
             username: fromTgUser?.username,
-            lang: "fa",
+            lang: tgLangCode ?? "fa",
             invite: inviterUserId ? { by: inviterUserId, used: false } : undefined
         });
 
