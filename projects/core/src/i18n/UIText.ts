@@ -248,6 +248,7 @@ const keys = [
     "save",
     "modelMemoryExceeded",
     "onlyAvailableToXUsers",
+    "changeLanguage",
     "language",
     "noAccess",
     "profile",

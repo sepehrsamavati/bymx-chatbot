@@ -140,6 +140,7 @@ export const userCommandHandler: IUpdateHandler = {
                                 + `\n\n${emojiIcon.model} ${context.uiText.modelsCost}: /models`
                                 + `\n\n${emojiIcon.recycle} ${context.uiText.clearCurrentChatHistory}: /clear`
                                 + `\n\n${emojiIcon.help} ${context.uiText.help}: /help`
+                                + `\n\n${emojiIcon.globe} ${context.uiText.changeLanguage}: /language`
                         }
                     )
                 ]);
@@ -302,6 +303,8 @@ export const userCommandHandler: IUpdateHandler = {
                 );
                 return { shouldContinue: false };
             case "/language":
+            case "/lang":
+            case "/change_language":
                 const languageItems = UIText.langCodes.map(langCode => ({ code: langCode, title: UIText.default[langCode]._language, }));
                 await tgCall(
                     TelegramMethods.SendMessage,
