@@ -10,5 +10,5 @@ export * as costCalculator from "../helpers/costCalculator.js";
 export { default as exitHelper } from "../helpers/exitHelper.js";
 export { ServicesType, default as CoreServices } from "../Container.js";
 export { default as httpServerUrls } from "../helpers/httpServerUrls.js";
-export { default as isContactSupported } from "../helpers/isContactSupported.js";
+export { default as isPhoneNumberSupported } from "../helpers/isPhoneNumberSupported.js";
 export { default as PaymentServices } from "../infrastructure/services/staticPayment/Container.js";

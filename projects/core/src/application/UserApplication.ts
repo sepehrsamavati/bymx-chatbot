@@ -11,6 +11,7 @@ import { UserMode, type UserModeType } from "../types/enums/userMode.js";
 import { AIChatHistoryMemory } from "../types/enums/aiChatHistoryMemory.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../types/entities/user.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import { LangCode, langCodes } from "../i18n/UIText.js";
 
 export default class UserApplication {
     #userRepository;
@@ -218,7 +219,7 @@ export default class UserApplication {
         if (!user)
             return null;
 
-        const result = await this.#userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(user.id);
+        const result = await this.#userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(user);
 
         if (!result)
             return {
@@ -364,6 +365,27 @@ export default class UserApplication {
 
         if (updateResult?.ok)
             result.succeeded();
+
+        return result;
+    }
+
+    async setLanguage(user: User, language: string) {
+        const result = new OperationResult();
+
+        const _language = language as LangCode;
+
+        if (!langCodes.includes(_language))
+            return result.failed("invalidInput");
+
+        if (user.lang === _language)
+            result.succeeded("itemChangedSuccessfully");
+
+        const updateResult = await this.#userRepository.update(user.id, { lang: _language });
+
+        if (updateResult?.ok) {
+            user.lang = _language; // update memory
+            result.succeeded("itemChangedSuccessfully");
+        }
 
         return result;
     }

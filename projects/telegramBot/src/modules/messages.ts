@@ -1,6 +1,6 @@
 import getPlanInfoView from "../helpers/getPlanInfoView.js";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
-import { config, costCalculator } from "bymx-core/server";
+import { config, costCalculator, isPhoneNumberSupported } from "bymx-core/server";
 import type { RequestContext } from "../types/telegram.js";
 import { AiModelEntity, PaymentEntity, UserEntity } from "bymx-core/types";
 import emojiIcon, { paymentStatusIcon } from "../helpers/emojiIcon.js";
@@ -88,7 +88,7 @@ export const getChatListPanel = async (context: RequestContext) => {
 };
 
 export const getUserSubscriptionsList = async (context: RequestContext) => {
-    const result = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user.id);
+    const result = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user);
 
     if (!result)
         return null;
@@ -152,10 +152,10 @@ export const getPanel = async (context: RequestContext) => {
 
     return {
         text: stringHelper.digitLocalization(
-            `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}`
+            `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}${isPhoneNumberSupported(userInfo?.user.phoneNumber) ? "" : ` (${stringHelper.formatter(context.uiText.onlyAvailableToXUsers, context.uiText.iranian)})`}`
             + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) && userInfo?.activePurchasedPlans !== 0 ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
             + `\n${emojiIcon.price} ${context.uiText.buyPlans}: /buy_plan`
-            + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount}`
+            + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount ?? '-'}`
             + (
                 userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
                     ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${stringHelper.thousandSeparator(userInfo?.paidSubscriptionsRemainingPoints ?? "")}`

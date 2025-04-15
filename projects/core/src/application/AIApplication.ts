@@ -192,7 +192,7 @@ export default class AIApplication {
         if (!_model || _model.isDeleted !== false)
             return result.failed("modelNotAvailable");
 
-        let { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        let { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
 
@@ -326,7 +326,7 @@ export default class AIApplication {
         const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
-        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         if (!(subscriptions && totalRemainingPoints !== undefined))
             return result.failed();
@@ -423,7 +423,7 @@ export default class AIApplication {
         const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
-        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         if (!(subscriptions && totalRemainingPoints !== undefined))
             return result.failed();
@@ -518,7 +518,7 @@ export default class AIApplication {
 
         recalculateCost();
 
-        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         if (!(subscriptions && totalRemainingPoints !== undefined))
             return result.failed();
@@ -620,7 +620,7 @@ export default class AIApplication {
         // const costUsdCent = 3.5;
         const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
-        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user.id, true) ?? {};
+        const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         if (!(subscriptions && totalRemainingPoints !== undefined))
             return result.failed();

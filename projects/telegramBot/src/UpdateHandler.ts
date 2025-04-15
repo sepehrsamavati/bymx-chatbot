@@ -171,7 +171,7 @@ export class UpdateHandler {
 
         const requestContext: RequestContext = {
             user: user,
-            uiText: UIText.default.fa,
+            uiText: UIText.default[user.lang] || UIText.default.fa,
             callStack: callStack,
             chat,
             botId: this.botInfo.id,

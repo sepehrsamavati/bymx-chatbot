@@ -66,6 +66,9 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (update.isDeleted !== undefined)
             _update.isDeleted = update.isDeleted;
 
+        if (update.lang !== undefined)
+            _update.lang = update.lang;
+
         if (update.mode !== undefined)
             _update.mode = update.mode;
 

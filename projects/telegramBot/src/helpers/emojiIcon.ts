@@ -51,6 +51,7 @@ const emojiIcon = Object.freeze({
     tools: '🛠',
     phone: '📱',
     phoneInHand: '🤳',
+    globe: '🌎',
 });
 
 export default emojiIcon;

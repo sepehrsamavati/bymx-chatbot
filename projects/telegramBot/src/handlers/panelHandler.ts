@@ -1,7 +1,7 @@
 import tgCall from "../helpers/call.js";
 import emojiIcon from "../helpers/emojiIcon.js";
 import type { IUpdateHandler } from "../types/telegram.js";
-import { AIChatHistoryMemory, UserMode } from "bymx-core/shared";
+import { AIChatHistoryMemory, UIText, UserMode } from "bymx-core/shared";
 import startLinkGenerator from "../helpers/startLinkGenerator.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
@@ -379,6 +379,38 @@ export const panelHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             }
+            default:
+                if (queryData?.startsWith("setLanguage_")) {
+                    const targetLanguage = queryData.replace("setLanguage_", "");
+                    const updateResult = await context.services.userApplication.setLanguage(context.user, targetLanguage);
+
+                    if (!updateResult.ok) {
+                        await tgCall(
+                            TelegramMethods.AnswerCallbackQuery,
+                            {
+                                callback_query_id: update.callback_query?.id,
+                                text: context.getUit(updateResult.message),
+                                show_alert: true,
+                                cache_time: 1,
+                            }
+                        );
+                        return { shouldContinue: false };
+                    }
+
+                    context.uiText = UIText.default[context.user.lang]; // update memory
+
+                    const _panel = await getPanel(context);
+
+                    await tgCall(
+                        TelegramMethods.EditMessageText,
+                        {
+                            chat_id: update.callback_query?.message.chat.id,
+                            message_id: update.callback_query?.message.message_id,
+                            ..._panel
+                        }
+                    );
+                }
+                break;
         }
 
         return null;

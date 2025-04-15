@@ -149,7 +149,7 @@ export const planHandler: IUpdateHandler = {
             return { shouldContinue: false };
         } else if (queryData?.startsWith("buyPlan_") && update.callback_query?.message) {
             const planId = queryData.replace("buyPlan_", "");
-            const currentSubscriptionsInfo = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user.id);
+            const currentSubscriptionsInfo = await context.services.userSubscriptionApplication.getActiveSubscriptionsExtendedInfo(context.user);
 
             if (!currentSubscriptionsInfo)
                 return null;

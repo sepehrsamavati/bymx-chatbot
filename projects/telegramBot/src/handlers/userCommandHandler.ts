@@ -1,7 +1,7 @@
 import tgCall from "../helpers/call.js";
 import { config } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
-import { UserMode, UserStatus } from "bymx-core/shared";
+import { reduceTo2DArray, UIText, UserMode, UserStatus } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { paymentMessageCache } from "../modules/paymentMessageJob.js";
@@ -296,6 +296,29 @@ export const userCommandHandler: IUpdateHandler = {
                                         url: config.apiServer.baseAddress + "ui/"
                                     }
                                 }]
+                            ]
+                        }
+                    }
+                );
+                return { shouldContinue: false };
+            case "/language":
+                const languageItems = UIText.langCodes.map(langCode => ({ code: langCode, title: UIText.default[langCode]._language, }));
+                await tgCall(
+                    TelegramMethods.SendMessage,
+                    {
+                        chat_id: update.message?.chat.id,
+                        message_id: update.message?.message_id,
+                        reply_parameters: {
+                            allow_sending_without_reply: true,
+                            message_id: update.message?.message_id
+                        },
+                        text: (
+                            `${emojiIcon.globe} ${context.uiText.selectLanguage}`
+                        ),
+                        reply_markup: {
+                            inline_keyboard: [
+                                ...reduceTo2DArray(languageItems)
+                                    .map(rowLanguages => rowLanguages.map(language => ({ text: language.title, callback_data: `setLanguage_${language.code}` })))
                             ]
                         }
                     }

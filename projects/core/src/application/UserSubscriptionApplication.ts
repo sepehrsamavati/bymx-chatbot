@@ -4,6 +4,7 @@ import type { User } from "../types/entities/user.js";
 import { PlanType } from "../types/enums/planTypes.js";
 import { getTodayRange } from "../helpers/dateHelper.js";
 import { OperationResult } from "../common/dto/OperationResult.js";
+import isPhoneNumberSupported from "../helpers/isPhoneNumberSupported.js";
 import type { CreateUserSubscription, UserSubscription } from "../types/entities/userSubscription.js";
 
 type SubscriptionWithUsage = Omit<UserSubscription, 'user'> & { _usage: number };
@@ -19,25 +20,20 @@ export default class UserSubscriptionApplication {
         this.#userSubscriptionUsageRepository = container.userSubscriptionUsageRepository;
     }
 
-    /** @deprecated */
-    async #_countUserActivePaidSubscriptions(userId: string) {
-        return await this.#userSubscriptionRepository.count({
-            user: userId,
-            expiryNotBefore: new Date(),
-            planType: PlanType.Expirable,
-        });
-    }
-
-    async getActiveSubscriptions(userId: string, upsertDailyFree = false) {
-        const subscriptions = await this.#userSubscriptionRepository.getAllActive(userId, new Date());
+    async getActiveSubscriptions(user: User, upsertDailyFree = false) {
+        const subscriptions = await this.#userSubscriptionRepository.getAllActive(user.id, new Date());
 
         if (!subscriptions)
             return null;
 
         let hasDailyFree = subscriptions.some(subscription => subscription.plan.type === PlanType.DailyFree);
 
-        if (upsertDailyFree && !hasDailyFree) {
-            const dailyFreeSubscription = await this.upsertCurrentDailyFreeSubscription(userId);
+        if (
+            upsertDailyFree // should upsert daily free if needed/possible
+            && !hasDailyFree // do not upsert if it's currently extracted
+            && isPhoneNumberSupported(user.phoneNumber) // do not upsert if account is not supported
+        ) {
+            const dailyFreeSubscription = await this.#upsertCurrentDayFreeSubscription(user.id);
 
             if (!dailyFreeSubscription)
                 return null;
@@ -104,14 +100,14 @@ export default class UserSubscriptionApplication {
     }
 
     /** Extended `getActiveSubscriptions` */
-    async getActiveSubscriptionsExtendedInfo(userId: string) {
-        const result = await this.getActiveSubscriptions(userId, false);
+    async getActiveSubscriptionsExtendedInfo(user: User) {
+        const result = await this.getActiveSubscriptions(user, false);
 
         if (!result)
             return result;
 
         const dailyFreeSubscription = result.subscriptions.find(s => s.plan.type === PlanType.DailyFree) ?? null;
-        const dailyFreePointStatus = await this.#getDailyFreePointStatus(userId, dailyFreeSubscription);
+        const dailyFreePointStatus = await this.#getDailyFreePointStatus(user, dailyFreeSubscription);
         const paidSubscriptions = result.subscriptions.filter(subscription => subscription.plan.type !== PlanType.DailyFree);
 
         return {
@@ -122,7 +118,7 @@ export default class UserSubscriptionApplication {
         };
     }
 
-    async upsertCurrentDailyFreeSubscription(userId: string) {
+    async #upsertCurrentDayFreeSubscription(userId: string) {
         let activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null | undefined = await this.#getActiveDailyFreeSubscription(userId);
 
         if (!activeDailyFreeSubscription) {
@@ -181,16 +177,25 @@ export default class UserSubscriptionApplication {
     /**
      * @param activeDailyFreeSubscription Passing subscription object or null will use cache / passing undefined will get from repository
      */
-    async #getDailyFreePointStatus(userId: string, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
+    async #getDailyFreePointStatus(user: User, activeDailyFreeSubscription: Omit<UserSubscription, "user"> | null = null) {
         if (!activeDailyFreeSubscription)
-            activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(userId);
+            activeDailyFreeSubscription = await this.#getActiveDailyFreeSubscription(user.id);
 
         if (!activeDailyFreeSubscription) // daily free subscription not created
+        {
+            if (!isPhoneNumberSupported(user.phoneNumber)) // no points available to unsupported accounts
+                return {
+                    subscription: null,
+                    used: config.dailyFreePoints,
+                    ...this.calculateDailyFreePoints(config.dailyFreePoints)
+                };
+
             return {
                 subscription: null,
                 used: 0,
                 ...this.calculateDailyFreePoints(0)
             };
+        }
 
         const freePointUsage = await this.#userSubscriptionUsageRepository.getPointUsageById(activeDailyFreeSubscription.id);
 
@@ -204,9 +209,9 @@ export default class UserSubscriptionApplication {
         };
     }
 
-    async purchasePlan(userId: User['id'], planId: string) {
+    async purchasePlan(user: User, planId: string) {
         const result = new OperationResult();
-        const activeSubscriptions = await this.getActiveSubscriptionsExtendedInfo(userId);
+        const activeSubscriptions = await this.getActiveSubscriptionsExtendedInfo(user);
 
         if (!activeSubscriptions)
             return result.failed("errorOccurred");
@@ -226,7 +231,7 @@ export default class UserSubscriptionApplication {
         expiry.setDate(expiry.getDate() + plan.days);
 
         const res = await this.#userSubscriptionRepository.create({
-            user: userId,
+            user: user.id,
             plan: plan,
             expiry: expiry,
             insertDate: new Date(),

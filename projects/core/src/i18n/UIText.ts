@@ -1,10 +1,12 @@
 import faData from "./languages/fa.json" with { type: 'json' };
+import enData from "./languages/en.json" with { type: 'json' };
 
-export const langCodes = ["fa"] as const;
+export const langCodes = ["fa", "en"] as const;
 
 export type LangCode = typeof langCodes[number];
 
 const keys = [
+    "_language",
     "_langCode",
     "_tgStart",
     "_tgHelp",
@@ -63,7 +65,6 @@ const keys = [
     "shouldGivePhoneNumber",
     "clickBottomButton",
     "sendPhoneNumber",
-    "phoneNumberNotSupported",
     "phoneNumberNotValid",
     "youHavePendingPrompts",
     "noActiveSubscription",
@@ -246,6 +247,13 @@ const keys = [
     "featureIsInBeta",
     "save",
     "modelMemoryExceeded",
+    "onlyAvailableToXUsers",
+    "language",
+    "noAccess",
+    "profile",
+    "iranian",
+    "iranianAccounts",
+    "selectLanguage",
 ] as const;
 
 export type UITextKey = typeof keys[number];
@@ -262,6 +270,7 @@ type UITextObject = {
 
 const UIText: UITextObject = {
     fa: faData,
+    en: enData,
 };
 
 export const getUit = (uit: UITextLanguage, keyOrMessage: UITextOptionalKey) => uit[keyOrMessage as UITextKey] || keyOrMessage;

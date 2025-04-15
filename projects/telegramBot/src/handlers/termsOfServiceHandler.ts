@@ -2,7 +2,6 @@ import tgCall from "../helpers/call.js";
 import { UserStatus } from "bymx-core/shared";
 import emojiIcon from "../helpers/emojiIcon.js";
 import { setTimeout } from 'node:timers/promises';
-import { isContactSupported } from "bymx-core/server";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { getGivePhoneNumberPanel, getPanel } from "../modules/messages.js";
@@ -23,7 +22,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
             await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
 
             // auto approve if phone number exists
-            if (context.user.phoneNumber && isContactSupported(context.user.phoneNumber)) {
+            if (context.user.phoneNumber /* && isContactSupported(context.user.phoneNumber) */) {
                 // update database
                 const userUpdateResult = await context.services.userApplication.setUserStatus(context.user.id, UserStatus.OK);
 
@@ -89,13 +88,13 @@ export const termsOfServiceHandler: IUpdateHandler = {
                         }
                     };
 
-                const contactIsSupported = isContactSupported(message.contact.phone_number);
-                if (!contactIsSupported)
-                    return {
-                        call: {
-                            text: `❌ ${context.uiText.phoneNumberNotSupported}`
-                        }
-                    };
+                // const contactIsSupported = isContactSupported(message.contact.phone_number);
+                // if (!contactIsSupported)
+                //     return {
+                //         call: {
+                //             text: `❌ ${stringHelper.formatter(context.uiText.phoneNumberNotSupported, context.uiText.iranianAccounts)}`
+                //         }
+                //     };
 
                 const _panel = await getPanel(context);
 

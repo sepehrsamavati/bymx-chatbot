@@ -69,6 +69,14 @@ export const receiptManageHandler: IUpdateHandler = {
                     }
                 };
 
+            const targetUser = await context.services.userApplication.getUserById(payment.userId);
+            if (!targetUser)
+                return {
+                    call: {
+                        text: "userNotFound"
+                    }
+                };
+
             const approvePayment = await context.services.paymentApplication.approveById(paymentId, context.user.id);
 
             await tgCall(
@@ -82,7 +90,7 @@ export const receiptManageHandler: IUpdateHandler = {
             );
 
             if (approvePayment.ok) {
-                const purchase = await context.services.userSubscriptionApplication.purchasePlan(payment.userId, payment.productId);
+                const purchase = await context.services.userSubscriptionApplication.purchasePlan(targetUser, payment.productId);
 
                 if (!purchase.ok) {
                     const rollbackStatus = await context.services.paymentApplication.unsetValidityStatus(paymentId);
