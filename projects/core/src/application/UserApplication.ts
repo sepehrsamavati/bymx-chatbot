@@ -279,7 +279,7 @@ export default class UserApplication {
             return await rollback();
 
         const inviter = await this.getUserById(invitedUser.invite.by);
-        const setInviteAsUsed = async () => this.#userRepository.update(invitedUser.id, { inviteUsed: true });
+        const setInviteAsUsed = () => this.#userRepository.update(invitedUser.id, { inviteUsed: true });
 
         if (!inviter) {
             logger.warn(`Inviter '${invitedUser.invite.by}' of user '${invitedUser.id}' not found! Skipping invite...`);
