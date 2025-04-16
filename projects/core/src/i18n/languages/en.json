@@ -243,5 +243,6 @@
     "profile": "Profile",
     "iranian": "Iranian",
     "iranianAccounts": "Iranian accounts",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "sendPhoneNumberToContinue": "To continue, please send your phone number"
 }
