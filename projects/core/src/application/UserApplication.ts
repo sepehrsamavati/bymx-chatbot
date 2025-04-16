@@ -262,10 +262,13 @@ export default class UserApplication {
 
         this.#inviteLockCache.lock(invitedUser.id);
 
-        if (!(await this.#transaction.start()))
-            return result;
-
         const unlock = () => this.#inviteLockCache.unlock(invitedUser.id);
+
+        if (!(await this.#transaction.start())) {
+            unlock();
+            return result;
+        }
+
         const rollback = async () => {
             await this.#transaction.rollback();
             unlock();
