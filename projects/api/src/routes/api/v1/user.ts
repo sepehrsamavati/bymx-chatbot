@@ -2,9 +2,10 @@ import { UserEntity } from "bymx-core/types";
 import { config, crypto } from "bymx-core/server";
 import type { RouteHandlerMethod } from "fastify";
 import { signToken } from "../../../helpers/jwtHelper.js";
-import { OperationResultWithData } from "bymx-core/shared";
-import type TelegramAuth from "../../../dto/TelegramAuth.js";
+import { OperationResult, OperationResultWithData } from "bymx-core/shared";
+import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
 import { createSetCookieString } from "../../../helpers/cookieHelper.js";
+import ChangeLanguage from "../../../dto/user/ChangeLanguage.js";
 
 export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
 
@@ -57,9 +58,9 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
 
     if (user) {
 
-        if(!user.phoneNumber)
+        if (!user.phoneNumber)
             return reply.status(200).send(result.failed("sendPhoneNumberToContinue"));
-        
+
         const userInfo: UserEntity.UserViewModel = {
             id: user.id,
             type: user.type,
@@ -77,6 +78,24 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
     }
     else
         result.failed("userNotFound");
+
+    return reply.status(200).send(result);
+
+};
+
+export const changeLanguage: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    if (!request.locals.user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    const user = await request.locals.applications.userApplication.getUserById(request.locals.user.id);
+
+    if (!user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    result = await request.locals.applications.userApplication.setLanguage(user, (request.locals.dto as ChangeLanguage).lang);
 
     return reply.status(200).send(result);
 

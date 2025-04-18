@@ -99,10 +99,16 @@ export default class Session {
         syncedWithTg: false,
         themeName: "light",
         isLoggedIn: false,
-        language: "fa",
+        language: "en",
     });
 
-    public readonly uiText = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
+    public uiText = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
+
+    languageChange(langCode: string) {
+        this.localStorage.data.language = langCode;
+        this.localStorage.rewrite();
+        window.location.reload();
+    }
 
     /** @todo */
     public async signOut() {

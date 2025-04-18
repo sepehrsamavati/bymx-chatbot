@@ -1,5 +1,5 @@
 import HttpClient from "../helper/HttpClient";
-import type { IOperationResultWithData, UserEntity } from "bymx-core/types";
+import type { IOperationResult, IOperationResultWithData, UserEntity } from "bymx-core/types";
 
 const userService = Object.freeze({
     telegramAuth(initData: string) {
@@ -7,6 +7,13 @@ const userService = Object.freeze({
             path: "/api/v1/user/tgAuth",
             method: HttpClient.Methods.POST,
             body: { initData },
+        });
+    },
+    changeLanguage(langCode: string) {
+        return HttpClient.send<IOperationResult>({
+            path: "/api/v1/user/language",
+            method: HttpClient.Methods.PATCH,
+            body: { lang: langCode },
         });
     },
     /** @todo */

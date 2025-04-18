@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Stack from "@mui/material/Stack";
 import { Link, Outlet } from "react-router";
-import { Box, Drawer } from "@mui/material";
+import { Box, Drawer, FormControl, InputLabel, MenuItem, Select, Typography, type SelectChangeEvent } from "@mui/material";
 import Menu from "@mui/icons-material/Menu";
 import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
@@ -11,12 +11,31 @@ import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import bymxHeader from "../assets/images/baymax_header.png";
+import userService from "~/core/services/userService";
+import { UIText } from "bymx-core/shared";
 
 function Header() {
     const session = useSession();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
+    const [languageChangeLock, setLanguageChangeLock] = useState(false);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
+
+    const handleLanguageChange = useCallback((event: SelectChangeEvent<string>) => {
+        const langCode = event.target.value as UIText.LangCode;
+        setLanguageChangeLock(true);
+        userService
+            .changeLanguage(langCode)
+            .then(res => {
+                if (res.result?.ok && session.user)
+                    session.languageChange(langCode);
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
+            })
+            .finally(() => {
+                setLanguageChangeLock(false);
+            });
+    }, []);
 
     return (
         <header>
@@ -54,19 +73,35 @@ function Header() {
                 anchor="left"
                 open={menuIsOpen}
                 variant="temporary"
-                // sx={{
-                //     '.MuiPaper-root': {
-                //         left: 'unset',
-                //         right: 0,
-                //     }
-                // }}
                 onClose={closeMenuRequestHandler}
             >
                 <Box
                     width="75vw"
                     height="100%"
                     maxWidth="360px"
+                    padding={2}
                 >
+                    <Stack direction="row" flexWrap="wrap" justifyContent="space-between">
+                        <Typography>{session.uiText.language}</Typography>
+                        <FormControl
+                            component="div"
+                            size="small"
+                        >
+                            <InputLabel size="small">{session.uiText.language}</InputLabel>
+                            <Select
+                                disabled={languageChangeLock}
+                                size="small"
+                                sx={{
+                                    borderRadius: 50,
+                                }}
+                                onChange={handleLanguageChange}
+                                value={session.user?.lang}
+                                label={session.uiText.language}
+                            >
+                                {UIText.langCodes.map(langCode => <MenuItem value={langCode}>{langCode}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+                    </Stack>
                     <Box marginBlock={3} textAlign="center">
                         <IconButton
                             color="inherit"

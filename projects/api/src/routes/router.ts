@@ -7,12 +7,13 @@ import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
-import TelegramAuth from "../dto/TelegramAuth.js";
+import TelegramAuth from "../dto/user/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
 import authGuard from "../middlewares/authGuard.js";
 import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
+import ChangeLanguage from '../dto/user/ChangeLanguage.js';
 import { dtoValidator } from "../middlewares/dtoValidator.js";
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
@@ -52,9 +53,17 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
     fastifyInstance.register((instance, _, next) => {
 
-        instance.addHook('onRequest', jwt);
-
         instance.post("/tgAuth", { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
+
+    fastifyInstance.register((instance, _, next) => {
+
+        instance.addHook('onRequest', jwt);
+        instance.addHook('onRequest', authGuard);
+
+        instance.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
