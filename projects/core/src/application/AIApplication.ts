@@ -194,9 +194,9 @@ export default class AIApplication {
 
         let { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
-        const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
+        // const dailyFreeSubscription = subscriptions?.find(subscription => subscription.plan.type === PlanType.DailyFree);
 
-        if (!(subscriptions && dailyFreeSubscription && totalRemainingPoints !== undefined))
+        if (!(subscriptions /* && dailyFreeSubscription */ && totalRemainingPoints !== undefined))
             return result.failed();
 
         let historyMessages: PromptBasicInfo[] = [];
@@ -282,7 +282,7 @@ export default class AIApplication {
         const predictedCost = modelCostPredication({
             inputUnits: inputTokens,
             model: _model,
-            pointUsageLimit: totalRemainingPoints,
+            pointUsageLimit: modelIsFree ? Number.POSITIVE_INFINITY : totalRemainingPoints,
             offsetCost: historyMessages.map(msg => msg.cost).reduce((a, b) => a + b, 0)
         });
 
