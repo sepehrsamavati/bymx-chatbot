@@ -56,11 +56,12 @@ export default class Session {
             }
 
             if (window.Telegram?.WebApp) {
+                const _color = this.themeManager.name === "light" ? "#ffffff" : "#000000";
                 window.Telegram.WebApp.setBottomBarColor(
-                    colors.brand
+                    _color
                 );
                 window.Telegram.WebApp.setHeaderColor(
-                    colors.brand
+                    _color
                 );
                 window.Telegram.WebApp.setBackgroundColor(
                     window.Telegram?.WebApp?.colorScheme === "light"

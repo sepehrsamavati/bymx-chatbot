@@ -1,13 +1,13 @@
 const colors = {
-    brand: '#00a152',
-    brandSecondary: '#2979ff',
-    brandSecondaryDarker: '#29bf12',
+    brand: '#0466c8',
+    brandSecondary: '#468faf',
+    brandSecondaryDarker: '#2a6f97',
 
-    brandDarkMode: '#004d40',
-    brandDarker: '#004d40',
+    brandDarkMode: '#001845',
+    brandDarker: '#023e7d',
 
     backgroundLightMode: '#edede9',
-    backgroundDarkMode: '#000814',
+    backgroundDarkMode: '#000000',
 
     antiFlashWhite: '#f5f5f5',
     error: '#d32f2f',

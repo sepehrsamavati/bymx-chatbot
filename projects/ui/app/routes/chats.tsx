@@ -29,7 +29,7 @@ export default function Chats() {
         chatService
             .createNewChat()
             .then(res => {
-                if (res.result.data) {
+                if (res.result?.data) {
                     navigate(`/ui/chat/${res.result.data}`);
                 }
             })
@@ -50,7 +50,7 @@ export default function Chats() {
         chatService
             .setChatTitle(newTitle)
             .then(res => {
-                if (res.result.ok) {
+                if (res.result?.ok) {
                     disposeSetTitleModal();
                     setChats(current => {
                         const targetChat = current.find(c => c.id === newTitle.chatId);
@@ -79,7 +79,7 @@ export default function Chats() {
         chatService
             .getAll()
             .then(res => {
-                if (res.result.data)
+                if (res.result?.data)
                     setChats(res.result.data);
             });
     }, []);
@@ -143,6 +143,7 @@ export default function Chats() {
                     <Button
                         key={chat.id}
                         type="button"
+                        color="inherit"
                         onClick={() => navigate(`/ui/chat/${chat.id}`)}
                         sx={{
                             marginInline: 2,
