@@ -22,6 +22,7 @@ import { imageGenerateHandler } from "./handlers/imageGenerateHandler.js";
 import { TelegramUpdateType } from "./types/enums/telegramUpdateHandler.js";
 import { termsOfServiceHandler } from "./handlers/termsOfServiceHandler.js";
 import { joinRequiredChatHandler } from "./handlers/joinRequiredChatHandler.js";
+import { phoneNumberGuardHandler } from "./handlers/phoneNumberGuardHandler.js";
 import { isCompatibleType, isCompatibleUserMode } from "./helpers/handlerFilter.js";
 import { adminJoinChatPanelHandler } from "./handlers/adminJoinChatPanelHandler.js";
 import { subscriptionManageHandler } from "./handlers/subscriptionManageHandler.js";
@@ -43,6 +44,7 @@ const handlers: IUpdateHandler[] = [
     inviteHandler,
     chatManageHandler,
     subscriptionManageHandler,
+    phoneNumberGuardHandler,
     createNewChatHandler,
     imageGenerateHandler,
     musicGenerateHandler,

@@ -1,5 +1,6 @@
 import tgCall from "../helpers/call.js";
 import type { IUpdateHandler } from "../types/telegram.js";
+import { getGivePhoneNumberPanel } from "../modules/messages.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 
@@ -19,6 +20,7 @@ export const phoneNumberGuardHandler: IUpdateHandler = {
                 TelegramMethods.SendMessage,
                 {
                     chat_id: context.user.id,
+                    ...getGivePhoneNumberPanel(context),
                     text: context.uiText.sendPhoneNumberToContinue,
                     ...(message ? {
                         reply_parameters: {
