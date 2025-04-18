@@ -1,4 +1,5 @@
 import tgCall from "../helpers/call.js";
+import { UserStatus } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { getGivePhoneNumberPanel } from "../modules/messages.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
@@ -16,10 +17,11 @@ export const phoneNumberGuardHandler: IUpdateHandler = {
 
         if (context.chat?.type === "private") {
             const message = update.message || update.callback_query?.message;
+            await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
             await tgCall(
                 TelegramMethods.SendMessage,
                 {
-                    chat_id: context.user.id,
+                    chat_id: context.user.tgId,
                     ...getGivePhoneNumberPanel(context),
                     text: context.uiText.sendPhoneNumberToContinue,
                     ...(message ? {
