@@ -33,6 +33,12 @@ export default class Session {
         } else {
             this.snackbarProvider(response.result?.message, { variant: "error" });
             this.signOut();
+
+            if (response.result?.message === "sendPhoneNumberInBotToContinue")
+                setTimeout(() => {
+                    if (typeof window.Telegram?.WebApp?.close === "function")
+                        window.Telegram.WebApp.close();
+                }, 5e3);
         }
 
         return response;

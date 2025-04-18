@@ -244,5 +244,6 @@
     "iranian": "ایرانی",
     "iranianAccounts": "حساب‌های ایرانی",
     "selectLanguage": "زبان مورد نظر خود را انتخاب کنید",
-    "sendPhoneNumberToContinue": "برای ادامه، لطفاً شماره تلفن خود را ارسال کنید"
+    "sendPhoneNumberToContinue": "برای ادامه، لطفاً شماره تلفن خود را ارسال کنید",
+    "sendPhoneNumberInBotToContinue": "برای ادامه، لطفاً شماره تلفن خود را در بات ارسال کنید"
 }

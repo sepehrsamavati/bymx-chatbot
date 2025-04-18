@@ -56,6 +56,10 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
     const user = await request.locals.applications.userApplication.getUserByTgId(dataValidationResult.tgUserId);
 
     if (user) {
+
+        if(!user.phoneNumber)
+            return reply.status(200).send(result.failed("sendPhoneNumberToContinue"));
+        
         const userInfo: UserEntity.UserViewModel = {
             id: user.id,
             type: user.type,

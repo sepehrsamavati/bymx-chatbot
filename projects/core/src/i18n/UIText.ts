@@ -256,6 +256,7 @@ const keys = [
     "iranianAccounts",
     "selectLanguage",
     "sendPhoneNumberToContinue",
+    "sendPhoneNumberInBotToContinue",
 ] as const;
 
 export type UITextKey = typeof keys[number];

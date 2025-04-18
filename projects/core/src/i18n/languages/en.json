@@ -244,5 +244,6 @@
     "iranian": "Iranian",
     "iranianAccounts": "Iranian accounts",
     "selectLanguage": "Select language",
-    "sendPhoneNumberToContinue": "To continue, please send your phone number"
+    "sendPhoneNumberToContinue": "To continue, please send your phone number",
+    "sendPhoneNumberInBotToContinue": "To continue, please send your phone number in bot"
 }
