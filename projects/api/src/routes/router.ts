@@ -63,6 +63,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         instance.addHook('onRequest', jwt);
         instance.addHook('onRequest', authGuard);
 
+        instance.get("/info", user.getInfo);
         instance.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
 
         next();

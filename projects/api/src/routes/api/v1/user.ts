@@ -100,3 +100,34 @@ export const changeLanguage: RouteHandlerMethod = async (request, reply) => {
     return reply.status(200).send(result);
 
 };
+
+export const getInfo: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<UserEntity.UserInfoViewModel>();
+
+    if (!request.locals.user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    const info = await request.locals.applications.userApplication.getUserInfo({ id: request.locals.user.id });
+
+    if (info)
+        result
+            .succeeded()
+            .setData({
+                user: {
+                    id: info.user.id,
+                    firstName: info.user.firstName,
+                    lastName: info.user.lastName,
+                    lang: info.user.lang,
+                    memoryAmount: info.user.memoryAmount,
+                    saveMessages: info.user.saveMessages,
+                    type: info.user.type,
+                },
+                activePurchasedPlans: info.activePurchasedPlans,
+                dailyFreePoints: info.dailyFreePoints,
+                paidSubscriptionsRemainingPoints: info.paidSubscriptionsRemainingPoints,
+            });
+
+    return reply.status(200).send(result);
+
+};

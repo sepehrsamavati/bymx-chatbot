@@ -70,3 +70,5 @@ export type UserInfoModel = {
     // totalOpenAiPointUsage: number | null;
     // totalOpenAiMessages: number | null;
 };
+
+export type UserInfoViewModel = Omit<UserInfoModel, 'user'> & { user: UserViewModel; };

@@ -39,7 +39,7 @@ export const adminCommandHandler: IUpdateHandler = {
             return {
                 shouldContinue: false,
                 call: {
-                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo(targetUsername))
+                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo({ username: targetUsername }))
                 }
             };
         } else if (text.startsWith("/find_")) {
@@ -47,7 +47,7 @@ export const adminCommandHandler: IUpdateHandler = {
             return {
                 shouldContinue: false,
                 call: {
-                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo(tgId))
+                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo({ tgId: tgId }))
                 }
             };
         } else if (text.startsWith("/receipt_")) {

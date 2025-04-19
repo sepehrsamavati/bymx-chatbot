@@ -115,7 +115,7 @@ export const getUserSubscriptionsList = async (context: RequestContext) => {
 };
 
 export const getPanel = async (context: RequestContext) => {
-    const userInfo = await context.services.userApplication.getUserInfo(context.user.tgId);
+    const userInfo = await context.services.userApplication.getUserInfo({ tgId: context.user.tgId });
 
     const inlineKeyboard = [
         [

@@ -205,19 +205,18 @@ export default class UserApplication {
         };
     }
 
-    getUserInfo(tgId: number): Promise<UserInfoModel | null>;
-    getUserInfo(username: string): Promise<UserInfoModel | null>;
-    async getUserInfo(tgIdOrUsername: number | string): Promise<UserInfoModel | null> {
+    getUserInfo(opts: { id: string }): Promise<UserInfoModel | null>;
+    getUserInfo(opts: { tgId: number }): Promise<UserInfoModel | null>;
+    getUserInfo(opts: { username: string }): Promise<UserInfoModel | null>;
+    async getUserInfo(opts: { id: string } | { tgId: number } | { username: string }): Promise<UserInfoModel | null> {
         let user: User | null = null;
 
-        switch (typeof tgIdOrUsername) {
-            case "string":
-                user = await this.#userRepository.getBy({ username: tgIdOrUsername });
-                break;
-            case "number":
-                user = await this.#userRepository.getBy({ tgId: tgIdOrUsername });
-                break;
-        }
+        if ('tgId' in opts)
+            user = await this.#userRepository.getBy({ tgId: opts.tgId });
+        else if ('id' in opts)
+            user = await this.#userRepository.getBy({ id: opts.id });
+        else if ('username' in opts)
+            user = await this.#userRepository.getBy({ username: opts.username });
 
         if (!user)
             return null;
