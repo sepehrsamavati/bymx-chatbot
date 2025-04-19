@@ -38,80 +38,80 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         // constraints: { host: 'example.com' } // optional: default {}
     });
 
-    fastifyInstance.register((instance, _, next) => {
+    fastifyInstance.register((fileController, _, next) => {
 
-        instance.addHook('onRequest', jwt);
-        instance.addHook('onRequest', authGuard);
+        fileController.addHook('onRequest', jwt);
+        fileController.addHook('onRequest', authGuard);
 
-        instance.register(fileHandler);
+        fileController.register(fileHandler);
 
-        instance.put("/upload", file.uploadAttachment);
-        instance.delete("/attachment", { preValidation: dtoValidator(IdDto) }, file.deleteAttachment);
+        fileController.put("/upload", file.uploadAttachment);
+        fileController.delete("/attachment", { preValidation: dtoValidator(IdDto) }, file.deleteAttachment);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/file" });
 
-    fastifyInstance.register((instance, _, next) => {
+    fastifyInstance.register((userControllerNoAuth, _, next) => {
 
-        instance.post("/tgAuth", { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
-
-        next();
-    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
-
-    fastifyInstance.register((instance, _, next) => {
-
-        instance.addHook('onRequest', jwt);
-        instance.addHook('onRequest', authGuard);
-
-        instance.get("/info", user.getInfo);
-        instance.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
+        userControllerNoAuth.post("/tgAuth", { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
 
-    fastifyInstance.register((instance, _, next) => {
+    fastifyInstance.register((userController, _, next) => {
 
-        instance.addHook('onRequest', jwt);
-        instance.addHook('onRequest', authGuard);
+        userController.addHook('onRequest', jwt);
+        userController.addHook('onRequest', authGuard);
 
-        instance.get("/all", chat.getAllChats);
-        instance.delete("/", { preValidation: dtoValidator(ChatID) }, chat.deleteChat);
-        instance.get("/model", { preValidation: dtoValidator(ChatID) }, chat.getChatSelectedModel);
-        instance.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
-        instance.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
-        instance.patch("/title", { preValidation: dtoValidator(SetChatTitle) }, chat.setChatTitle);
-        instance.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
-        instance.delete("/messages", { preValidation: dtoValidator(ChatID) }, chat.clearChatHistory);
-        instance.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
-        instance.get("/canICreateANewChat", chat.canCreateNewChat);
-        instance.post("/new", chat.createNewChat);
+        userController.get("/info", user.getInfo);
+        userController.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
+
+    fastifyInstance.register((chatController, _, next) => {
+
+        chatController.addHook('onRequest', jwt);
+        chatController.addHook('onRequest', authGuard);
+
+        chatController.get("/all", chat.getAllChats);
+        chatController.delete("/", { preValidation: dtoValidator(ChatID) }, chat.deleteChat);
+        chatController.get("/model", { preValidation: dtoValidator(ChatID) }, chat.getChatSelectedModel);
+        chatController.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
+        chatController.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
+        chatController.patch("/title", { preValidation: dtoValidator(SetChatTitle) }, chat.setChatTitle);
+        chatController.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
+        chatController.delete("/messages", { preValidation: dtoValidator(ChatID) }, chat.clearChatHistory);
+        chatController.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
+        chatController.get("/canICreateANewChat", chat.canCreateNewChat);
+        chatController.post("/new", chat.createNewChat);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });
 
-    fastifyInstance.register((instance, _, next) => {
+    fastifyInstance.register((modelController, _, next) => {
 
-        instance.addHook('onRequest', jwt);
-        instance.addHook('onRequest', authGuard);
+        modelController.addHook('onRequest', jwt);
+        modelController.addHook('onRequest', authGuard);
 
-        instance.get("/all", model.getAllModels);
+        modelController.get("/all", model.getAllModels);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/model" });
 
 
-    fastifyInstance.register((instance, _, next) => {
+    fastifyInstance.register((baseController, _, next) => {
 
-        instance.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
+        baseController.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
 
-        instance.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: dtoValidator(FalAiResult) }, falAiSetResult);
+        baseController.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: dtoValidator(FalAiResult) }, falAiSetResult);
 
-        instance.get("/uiText/:langCode", getLanguageData);
+        baseController.get("/uiText/:langCode", getLanguageData);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
 
-    fastifyInstance.setNotFoundHandler(function (req, res) {
+    fastifyInstance.setNotFoundHandler(function (_req, res) {
         void res.sendFile('index.html')
     });
 };
