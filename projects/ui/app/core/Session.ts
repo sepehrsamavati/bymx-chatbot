@@ -11,6 +11,12 @@ import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
+type CacheStorageItem<T> = {
+    data: T;
+    /** Date.now() */
+    date: number;
+};
+
 export default class Session {
     private _signOutLock = false;
     private _user?: UserEntity.UserViewModel;
@@ -110,6 +116,12 @@ export default class Session {
         this.localStorage.rewrite();
         window.location.reload();
     }
+
+    readonly cacheStorage: {
+        profileInfo?: CacheStorageItem<UserEntity.UserInfoViewModel>;
+    } = {};
+
+    public requestSideMenuOpen?: () => void;
 
     /** @todo */
     public async signOut() {

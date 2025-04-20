@@ -1,18 +1,114 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import Stack from "@mui/material/Stack";
 import { Link, Outlet } from "react-router";
-import { Box, Drawer, FormControl, InputLabel, MenuItem, Select, Typography, type SelectChangeEvent } from "@mui/material";
 import Menu from "@mui/icons-material/Menu";
 import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
+import type { UserEntity } from "bymx-core/types";
 import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
-import bymxHeader from "../assets/images/baymax_header.png";
 import userService from "~/core/services/userService";
-import { UIText } from "bymx-core/shared";
+import { stringHelper, UIText } from "bymx-core/shared";
+import CreditCard from "@mui/icons-material/CreditCard";
+import OfflineBolt from "@mui/icons-material/OfflineBolt";
+import bymxHeader from "../assets/images/baymax_header.png";
+import { Box, Button, Chip, Divider, Drawer, FormControl, InputLabel, MenuItem, Select, Skeleton, Typography, type SelectChangeEvent } from "@mui/material";
+
+function DrawerItem(props?: {
+    title?: React.ReactNode;
+    children?: React.ReactNode;
+}) {
+    return (
+        <Stack marginBlock={1} direction="row" flexWrap="wrap" justifyContent="space-between" alignItems="center">
+            <Typography>{props?.title}</Typography>
+            <Box>{props?.children}</Box>
+        </Stack>
+    );
+}
+
+function ProfileInfo() {
+    const session = useSession();
+    const [data, setData] = useState<UserEntity.UserInfoViewModel | undefined>(session.cacheStorage.profileInfo?.data);
+    const initialized = useRef(false);
+
+    useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
+        if (session.cacheStorage.profileInfo && Date.now() - session.cacheStorage.profileInfo.date < 60e3) {
+            setData(session.cacheStorage.profileInfo.data);
+            return;
+        }
+
+        userService.getProfile()
+            .then(res => {
+                if (res.result?.data) {
+                    setData(res.result.data);
+                    session.cacheStorage.profileInfo = {
+                        data: res.result.data,
+                        date: Date.now(),
+                    };
+                }
+                else
+                    session.snackbarProvider(session.uiText.errorWhileFetchingData, { variant: "error" });
+            });
+    }, []);
+
+    const fullname = data ? `${data.user.firstName || ""} ${data.user.lastName || ""}` : "";
+
+    return (
+        <Box padding={2}>
+            <DrawerItem title={<span dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"}>{fullname || <Skeleton width={80} />}</span>} />
+            <Divider variant="middle" flexItem />
+            {/* {data.dailyFreePoints ? ( */}
+            <DrawerItem
+                title={
+                    <Button type="button" variant="text" color="inherit" startIcon={<OfflineBolt sx={{ mb: '2px' }} />}>
+                        {session.uiText.dailyFreePoints}
+                    </Button>
+                }
+            >
+                {data?.dailyFreePoints ? (
+                    <Chip
+                        size="small"
+                        color={data.dailyFreePoints.remaining <= 10 ? "warning" : "success"}
+                        label={stringHelper.digitLocalization(`${data.dailyFreePoints.remaining}/${data.dailyFreePoints.total}`, session.uiText._langCode)}
+                    />
+                ) : <Skeleton width={80} />}
+            </DrawerItem>
+            {/* ) : null} */}
+            <DrawerItem
+                title={
+                    <Button type="button" variant="text" color="inherit" startIcon={<CreditCard sx={{ mb: '2px' }} />}>
+                        {session.uiText.activePackages}
+                    </Button>
+                }
+            >
+                {data ? (
+                    typeof data.activePurchasedPlans === "number" && data.activePurchasedPlans > 0 ? (
+                        <>
+                            <span>{stringHelper.digitLocalization(data.activePurchasedPlans, session.uiText._langCode)} </span>
+                            (<Button type="button" variant="text" color="primary" startIcon={<OfflineBolt sx={{ mb: '2px' }} />}>
+                                {stringHelper.digitLocalization(stringHelper.thousandSeparator(data.paidSubscriptionsRemainingPoints ?? 0), session.uiText._langCode)}
+                            </Button>)
+                        </>
+                    ) : (
+                        <Chip
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            label={session.uiText.noActiveSubscription}
+                        />
+                    )
+                ) : <Skeleton width={80} />}
+            </DrawerItem>
+            <Divider variant="middle" flexItem />
+        </Box>
+    );
+}
 
 function Header() {
     const session = useSession();
@@ -36,6 +132,10 @@ function Header() {
                 setLanguageChangeLock(false);
             });
     }, []);
+
+    useEffect(() => {
+        session.requestSideMenuOpen = () => setMenuIsOpen(true);
+    }, [session]);
 
     return (
         <header>
@@ -79,34 +179,35 @@ function Header() {
                     width="75vw"
                     height="100%"
                     maxWidth="360px"
-                    padding={2}
                 >
-                    <Stack direction="row" flexWrap="wrap" justifyContent="space-between">
-                        <Typography>{session.uiText.language}</Typography>
-                        <FormControl
-                            component="div"
-                            size="small"
-                        >
-                            <InputLabel size="small">{session.uiText.language}</InputLabel>
-                            <Select
-                                disabled={languageChangeLock}
+                    <ProfileInfo />
+                    <Box padding={2}>
+                        <DrawerItem title={session.uiText.language}>
+                            <FormControl
+                                component="div"
                                 size="small"
-                                sx={{
-                                    borderRadius: 50,
-                                }}
-                                onChange={handleLanguageChange}
-                                value={session.user?.lang}
-                                label={session.uiText.language}
                             >
-                                {UIText.langCodes.map(langCode => <MenuItem value={langCode}>{langCode}</MenuItem>)}
-                            </Select>
-                        </FormControl>
-                    </Stack>
-                    <Box marginBlock={3} textAlign="center">
-                        <IconButton
-                            color="inherit"
-                            onClick={() => session.themeManager.set(session.themeManager.name === 'light' ? 'dark' : 'light')}
-                        >{session.themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                                <InputLabel size="small">{session.uiText.language}</InputLabel>
+                                <Select
+                                    disabled={languageChangeLock}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 50,
+                                    }}
+                                    onChange={handleLanguageChange}
+                                    value={session.user?.lang}
+                                    label={session.uiText.language}
+                                >
+                                    {UIText.langCodes.map(langCode => <MenuItem key={langCode} value={langCode}>{langCode}</MenuItem>)}
+                                </Select>
+                            </FormControl>
+                        </DrawerItem>
+                        <Box marginBlock={3} textAlign="center">
+                            <IconButton
+                                color="inherit"
+                                onClick={() => session.themeManager.set(session.themeManager.name === 'light' ? 'dark' : 'light')}
+                            >{session.themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                        </Box>
                     </Box>
                 </Box>
             </Drawer>

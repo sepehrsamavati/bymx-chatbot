@@ -1,8 +1,10 @@
 // import type { Route } from "./+types/home";
+import Button from "~/components/button";
 import { useNavigate } from "react-router";
 import Chat from "@mui/icons-material/Chat";
 import { useSession } from "~/core/Session";
 import { Box, Card, Grid, Stack, Typography } from "@mui/material";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 
 // export function meta({ }: Route.MetaArgs) {
 //   return [
@@ -46,6 +48,9 @@ export default function Home() {
 
   return (
     <Box padding={3} marginTop="20vh">
+      <Stack direction="column" alignItems="center" justifyContent="center">
+        <Button size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}</Button>
+      </Stack>
       <Grid container justifyContent="center">
         <Grid padding={3} size={{ xs: 6, md: 4 }} component="div">
           <SquareButton onClick={() => navigate("/ui/chats")} icon={<Chat />} caption={session.uiText.chats} />
