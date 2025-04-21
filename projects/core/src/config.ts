@@ -44,7 +44,9 @@ const config = {
     },
     apiServer: {
         port: Number.parseInt(process.env.BYMX_API_SERVER_PORT ?? "3017"),
-        baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? ""
+        baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? "",
+        cookieKey: "Auth",
+        tokenSignSecret: process.env.BYMX_API_SERVER_COOKIE_SIGN_SECRET || "",
     },
     fileUploadLimit: {
         /** Minutes */
@@ -96,6 +98,11 @@ configError(
 configError(
     "API server base address is not defined/valid URL",
     !URL.canParse(config.apiServer.baseAddress)
+);
+
+configError(
+    "API server cookie/token sign secret is not defined",
+    !config.apiServer.tokenSignSecret
 );
 
 configError(

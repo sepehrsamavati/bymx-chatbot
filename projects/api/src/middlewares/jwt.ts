@@ -1,3 +1,4 @@
+import config from "../../../core/dist/config.js";
 import type { UserEntity } from "bymx-core/types";
 import type { onRequestHookHandler } from "fastify";
 import { validateToken } from "../helpers/jwtHelper.js";
@@ -9,7 +10,7 @@ export default (async function jwtValidator(request, _reply) {
     if (!authToken)
         return;
 
-    const payload = await validateToken(authToken, "test");
+    const payload = await validateToken(authToken, config.apiServer.tokenSignSecret);
 
     if (!payload)
         return;
