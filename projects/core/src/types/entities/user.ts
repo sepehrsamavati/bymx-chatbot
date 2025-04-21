@@ -50,7 +50,7 @@ export type UpdateUserModel = {
     voiceResponseLanguagePrompt?: User['voiceResponse']['languagePrompt'];
 } & Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
 export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName' | 'invite'>;
-export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'isDeleted' | 'username'> & {
+export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'phoneNumber' | 'isDeleted' | 'username'> & {
     status?: {
         equal?: User['status'][];
         notEqual?: User['status'][];

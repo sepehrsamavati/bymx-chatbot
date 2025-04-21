@@ -257,6 +257,10 @@ const keys = [
     "selectLanguage",
     "sendPhoneNumberToContinue",
     "sendPhoneNumberInBotToContinue",
+    "makeSureThePhoneNumberIsCorrect",
+    "otp",
+    "otpSentToTelegram",
+    "yourOtpForLogin",
 ] as const;
 
 export type UITextKey = typeof keys[number];

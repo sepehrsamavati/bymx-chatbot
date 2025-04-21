@@ -253,6 +253,10 @@ export default class UserApplication {
         return await this.#userRepository.getBy({ tgId: tgId });
     }
 
+    async getUserByPhoneNumber(phoneNumber: string): Promise<User | null> {
+        return await this.#userRepository.getBy({ phoneNumber: phoneNumber });
+    }
+
     async useInvite(invitedUser: User) {
         const result = new OperationResultWithData<{ inviter: User }>();
 

@@ -2,10 +2,13 @@ import { UserEntity } from "bymx-core/types";
 import { config, crypto } from "bymx-core/server";
 import type { RouteHandlerMethod } from "fastify";
 import { signToken } from "../../../helpers/jwtHelper.js";
-import { OperationResult, OperationResultWithData } from "bymx-core/shared";
-import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
-import { createSetCookieString } from "../../../helpers/cookieHelper.js";
 import ChangeLanguage from "../../../dto/user/ChangeLanguage.js";
+import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
+import sendMessageToUser from "bymx-tg-endpoint/sendMessageToUser";
+import TelegramOtpLogin from "../../../dto/user/TelegramOtpLogin.js";
+import { createSetCookieString } from "../../../helpers/cookieHelper.js";
+import TelegramOtpRequest from "../../../dto/user/TelegramOtpRequest.js";
+import { OperationResult, OperationResultWithData, stringHelper, UIText } from "bymx-core/shared";
 
 export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
 
@@ -127,6 +130,91 @@ export const getInfo: RouteHandlerMethod = async (request, reply) => {
                 dailyFreePoints: info.dailyFreePoints,
                 paidSubscriptionsRemainingPoints: info.paidSubscriptionsRemainingPoints,
             });
+
+    return reply.status(200).send(result);
+
+};
+
+/** @todo User ID, Code */
+const otpStorage = new Map<string, string>();
+
+export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<UserEntity.UserInfoViewModel>();
+
+    if (!request.locals.user)
+        return reply.status(401).send(result.failed("noAccess"));
+
+    const query = request.locals.dto as TelegramOtpRequest;
+
+    query.phoneNumber = query.phoneNumber.replace('+', '');
+
+    const user = await request.locals.applications.userApplication.getUserByPhoneNumber(query.phoneNumber);
+
+    if (!user)
+        return reply.status(200).send(result.failed("makeSureThePhoneNumberIsCorrect"));
+
+    if (otpStorage.has(user.id))
+        return reply.status(200).send(result.failed("invalid"));
+
+    const code = crypto.randomString(5).toUpperCase();
+
+    otpStorage.set(user.id, code);
+
+    const sendResult = await sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, code));
+
+    if (sendResult?.ok)
+        result.succeeded();
+    else {
+        otpStorage.delete(user.id);
+        result.failed();
+    }
+
+    return reply.status(200).send(result);
+
+};
+
+export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<UserEntity.UserViewModel>();
+
+    if (!request.locals.user)
+        return reply.status(401).send(result.failed("noAccess"));
+
+    const query = request.locals.dto as TelegramOtpLogin;
+
+    query.phoneNumber = query.phoneNumber.replace('+', '');
+
+    const user = await request.locals.applications.userApplication.getUserByPhoneNumber(query.phoneNumber);
+
+    if (!user)
+        return reply.status(200).send(result.failed("makeSureThePhoneNumberIsCorrect"));
+
+    const code = otpStorage.get(user.id);
+
+    if (!code)
+        return reply.status(200).send(result.failed("invalid"));
+
+    if (code === query.otp) {
+        otpStorage.delete(user.id);
+
+        const userInfo: UserEntity.UserViewModel = {
+            id: user.id,
+            type: user.type,
+            lang: user.lang,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            memoryAmount: user.memoryAmount,
+            saveMessages: user.saveMessages,
+        };
+
+        result.succeeded().setData(userInfo);
+
+        const cookie = createSetCookieString("Auth", await signToken(userInfo, "test", 120 * 60e3), 120 * 60);
+        reply.header('Set-Cookie', cookie);
+    }
+    else
+        result.failed("invalidInput");
 
     return reply.status(200).send(result);
 

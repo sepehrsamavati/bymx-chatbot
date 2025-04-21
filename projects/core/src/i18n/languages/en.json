@@ -245,5 +245,9 @@
     "iranianAccounts": "Iranian accounts",
     "selectLanguage": "Select language",
     "sendPhoneNumberToContinue": "To continue, please send your phone number",
-    "sendPhoneNumberInBotToContinue": "To continue, please send your phone number in bot"
+    "sendPhoneNumberInBotToContinue": "To continue, please send your phone number in bot",
+    "makeSureThePhoneNumberIsCorrect": "Please make sure you've entered your phone number correctly!",
+    "otp": "One time password",
+    "otpSentToTelegram": "One time password sent to your chat with bot in Telegram",
+    "yourOtpForLogin": "Your one-time password (OTP) for account login: %s1\n\nIf you did not request this, please contact support!"
 }

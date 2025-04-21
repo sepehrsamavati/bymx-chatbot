@@ -33,6 +33,9 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (filter.tgId !== undefined)
             _filter.tgId = filter.tgId;
 
+        if (filter.phoneNumber !== undefined)
+            _filter.phoneNumber = filter.phoneNumber;
+
         if (filter.username !== undefined)
             _filter.username = MongoSearchHelper.exactStringCaseInsensitive(filter.username);
 
