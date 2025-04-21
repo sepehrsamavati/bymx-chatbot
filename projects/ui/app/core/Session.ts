@@ -34,6 +34,8 @@ export default class Session {
 
         if (response.result?.data) {
             this.user = response.result.data;
+            if (this.user.lang !== this.localStorage.data.language)
+                this.languageChange(this.user.lang, true);
             this.refreshUI();
             this.syncChatModels();
         } else {
@@ -109,12 +111,22 @@ export default class Session {
         language: "en",
     });
 
-    public uiText = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
+    private refreshUiText() {
+        const uit = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();
+        this.uiText = uit;
+        return uit;
+    }
 
-    languageChange(langCode: string) {
+    public uiText = this.refreshUiText();
+
+    languageChange(langCode: string, softRefresh = false) {
         this.localStorage.data.language = langCode;
         this.localStorage.rewrite();
-        window.location.reload();
+        if (softRefresh) {
+            this.refreshUiText();
+        }
+        else
+            window.location.reload();
     }
 
     readonly cacheStorage: {
