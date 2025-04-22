@@ -831,12 +831,62 @@ export default class AIApplication {
         return result;
     }
 
+    async #extractMemoryFootprints(message: string, current?: { candidate: string[]; certain: string[]; }) {
+        const result = new OperationResultWithData<{ candidate: string[]; certain: string[]; }>();
+
+        const freeModel = await this.#aiModelCache.getFreeModel();
+        if (!freeModel)
+            return result.failed("modelNotAvailable");
+
+        const extractedFootprintResult = await (freeModel.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
+            messages: [],
+            model: freeModel,
+            tokenLimit: 30,
+            inputMessage: (
+                `You are an information extraction assistant for a chatbot memory system. Extract ONLY 'PERSONAL/USER PREFERENCE/IMPORTANT' SHORT TEXTS (candidate as possible memory things and certain);`
+                + `;${current ? ` Merge to current memory (candidate to certain) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{candidate:string[];certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object:`
+                + `\n\n'((${message.slice(0, 1500)}))'`
+            ),
+        });
+
+        if (!extractedFootprintResult?.output) {
+            console.log(extractedFootprintResult)
+            return result.failed("errorOccurred");
+        }
+
+        let output = extractedFootprintResult.output;
+
+        if (!output.startsWith('{')) {
+            if (output.startsWith('```json\n'))
+                output = output.slice(8);
+
+            if (output.endsWith('\n```'))
+                output = output.slice(0, -4);
+
+            if (output.endsWith('\n'))
+                output = output.slice(0, -1);
+        }
+
+        const footprints = JSON.parse(output) as { candidate: string[]; certain: string[]; };
+
+        if (!(footprints.candidate && footprints.certain))
+            return result.failed("errorOccurred");
+
+        result.succeeded().setData(footprints);
+
+        console.log(
+            footprints
+        )
+
+        return result;
+    }
+
     async #generateAndSetChatTitle(chatId: string, message: string) {
         const result = new OperationResult();
 
         const freeModel = await this.#aiModelCache.getFreeModel();
         if (!freeModel)
-            return result.failed("itemNotFound");
+            return result.failed("modelNotAvailable");
 
         const chat = await this.#aiChatRepository.getChat({
             id: chatId,

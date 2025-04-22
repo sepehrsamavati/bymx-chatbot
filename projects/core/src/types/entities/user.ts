@@ -21,6 +21,11 @@ export type User = {
     saveMessages: boolean;
     /** Number of messages to resend in chat completion  */
     memoryAmount: AIChatHistoryMemory;
+    /** Custom implementation of AI agent memory */
+    memory?: {
+        on: boolean;
+        footprints: string[];
+    };
     inviteCount: number;
     voiceResponse: {
         on: boolean;

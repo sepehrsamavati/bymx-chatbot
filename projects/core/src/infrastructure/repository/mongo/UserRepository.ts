@@ -146,6 +146,7 @@ export default class UserRepository extends Transactional implements IUserReposi
             inviteCount: result.inviteCount,
             invite: result.invite,
             voiceResponse: result.voiceResponse,
+            memory: result.memory,
         };
 
         const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<AIChat, 'user'>> | mongoose.Types.ObjectId;
