@@ -25,5 +25,7 @@ export default class ThemeManager {
 
         this.#session.localStorage.data.themeName = name;
         this.#session.localStorage.rewrite();
+
+        this.#session.syncUiWithTelegramApp();
     }
 }
