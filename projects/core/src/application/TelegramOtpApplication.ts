@@ -1,0 +1,47 @@
+import { User } from "../types/entities/user.js";
+import type { ServicesType } from "../Container.js";
+import { randomString } from "../helpers/crypto/crypto.runner.js";
+import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+
+export default class TelegramOtpApplication {
+    #otpScope = "tg_otp_auth";
+    #cacheStorage;
+
+    constructor(container: ServicesType) {
+        this.#cacheStorage = container.otpCache;
+    }
+
+    async generateOtp(user: User) {
+        const result = new OperationResultWithData<string>();
+
+        if (this.#cacheStorage.exists(user.id))
+            return result.failed("invalid");
+
+        const code = randomString(5).toUpperCase();
+
+        this.#cacheStorage.set(user.id, {
+            key: user.id,
+            code: code,
+            date: Date.now(),
+            scope: this.#otpScope,
+        });
+
+        result.succeeded().setData(code);
+
+        return result;
+    }
+
+    async useOtp(userId: string, code: string) {
+        const result = new OperationResult().failed("invalid");
+        const correctCode = this.#cacheStorage.get(userId)?.code;
+
+        if (!correctCode)
+            result.failed();
+        else if (correctCode === code) {
+            this.#cacheStorage.unset(userId);
+            result.succeeded();
+        }
+
+        return result;
+    }
+}

@@ -1,4 +1,5 @@
 import config from "./config.js";
+import type { OTP } from "./types/entities/otp.js";
 import type { User } from "./types/entities/user.js";
 import { createContainer, asClass, asValue } from "awilix";
 import AIApplication from "./application/AIApplication.js";
@@ -36,6 +37,7 @@ import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/Us
 import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
 import { UserSubscriptionUsageRepository } from "./infrastructure/repository/mongo/UserSubscriptionUsageRepository.js";
 import { TelegramJoinRequiredChatRepository } from "./infrastructure/repository/mongo/TelegramJoinRequiredChatRepository.js";
+import TelegramOtpApplication from "./application/TelegramOtpApplication.js";
 
 type Constants = {
     projectName: string;
@@ -69,6 +71,7 @@ type Applications = {
     planApplication: PlanApplication;
     aiChatApplication: AIChatApplication;
     aiModelApplication: AIModelApplication;
+    telegramOtpApplication: TelegramOtpApplication;
     eventHandlerApplication: EventHandlerApplication;
     metadataStoreApplication: MetadataStoreApplication;
     generationTaskApplication: GenerationTaskApplication;
@@ -85,6 +88,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
+    otpCache: ServiceInterfaces.ICacheStorage<OTP>;
     openRouter: ServiceInterfaces.IOpenRouterService;
     aiModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
@@ -141,6 +145,7 @@ export default class CoreServices {
             planApplication: asClass(PlanApplication, { lifetime: "SCOPED" }),
             aiChatApplication: asClass(AIChatApplication, { lifetime: "SCOPED" }),
             aiModelApplication: asClass(AIModelApplication, { lifetime: "SCOPED" }),
+            telegramOtpApplication: asClass(TelegramOtpApplication, { lifetime: "SCOPED" }),
             eventHandlerApplication: asClass(EventHandlerApplication, { lifetime: "SCOPED" }),
             metadataStoreApplication: asClass(MetadataStoreApplication, { lifetime: "SCOPED" }),
             generationTaskApplication: asClass(GenerationTaskApplication, { lifetime: "SCOPED" }),
@@ -154,6 +159,7 @@ export default class CoreServices {
             aiMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
+            otpCache: asClass(CacheStorage<OTP>, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
 

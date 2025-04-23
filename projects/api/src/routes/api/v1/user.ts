@@ -135,9 +135,6 @@ export const getInfo: RouteHandlerMethod = async (request, reply) => {
 
 };
 
-/** @todo User ID, Code */
-const otpStorage = new Map<string, string>();
-
 export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<UserEntity.UserInfoViewModel>();
@@ -154,21 +151,15 @@ export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
     if (!user)
         return reply.status(200).send(result.failed("makeSureThePhoneNumberIsCorrect"));
 
-    if (otpStorage.has(user.id))
-        return reply.status(200).send(result.failed("invalid"));
+    const codeGenerateResult = await request.locals.applications.telegramOtpApplication.generateOtp(user);
 
-    const code = crypto.randomString(5).toUpperCase();
+    if (!codeGenerateResult.data)
+        return reply.status(200).send(result.failed(codeGenerateResult.message));
 
-    otpStorage.set(user.id, code);
-
-    const sendResult = await sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, code));
+    const sendResult = await sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, codeGenerateResult.data));
 
     if (sendResult?.ok)
         result.succeeded();
-    else {
-        otpStorage.delete(user.id);
-        result.failed();
-    }
 
     return reply.status(200).send(result);
 
@@ -190,14 +181,9 @@ export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
     if (!user)
         return reply.status(200).send(result.failed("makeSureThePhoneNumberIsCorrect"));
 
-    const code = otpStorage.get(user.id);
+    const otpAuthResult = await request.locals.applications.telegramOtpApplication.useOtp(user.id, query.otp);
 
-    if (!code)
-        return reply.status(200).send(result.failed("invalid"));
-
-    if (code === query.otp) {
-        otpStorage.delete(user.id);
-
+    if (otpAuthResult.ok) {
         const userInfo: UserEntity.UserViewModel = {
             id: user.id,
             type: user.type,
