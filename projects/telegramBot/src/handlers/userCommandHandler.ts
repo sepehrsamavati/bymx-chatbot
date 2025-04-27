@@ -294,7 +294,7 @@ export const userCommandHandler: IUpdateHandler = {
                                 [{
                                     text: `${emojiIcon.phone} ${context.uiText.runWebApplication}`,
                                     web_app: {
-                                        url: config.apiServer.baseAddress + "ui/"
+                                        url: config.apiServer.baseAddress + "ui/tgAuth"
                                     }
                                 }]
                             ]
