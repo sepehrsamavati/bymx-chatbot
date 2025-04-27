@@ -148,8 +148,13 @@ export default abstract class HttpClient {
                 path: config.requestPath
             });
 
-        if (rawResponse.status === 401)
+        if (rawResponse.status === 401) {
+            if (HttpClient.session) {
+                HttpClient.session.localStorage.data.isLoggedIn = false;
+                HttpClient.session.localStorage.rewrite();
+            }
             window.location.reload();
+        }
 
         if (rawResponse.status === 500)
             HttpClient.session?.snackbarProvider(HttpClient.session.uiText.errorOccurred, { variant: "error" });

@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import colors from "~/core/config/colors";
+import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -7,9 +8,10 @@ import CenteredContent from "~/layout/centeredContent";
 import { useLayoutEffect, useRef, useState } from "react";
 import LinearProgress from "@mui/material/LinearProgress";
 
-export function AuthenticateUser() {
+export default function telegramAuth() {
     const initialized = useRef(false);
     const session = useSession();
+    const navigate = useNavigate();
     const [waitingForTelegram, setWaitingForTelegram] = useState(true);
 
     useLayoutEffect(() => {
@@ -21,7 +23,12 @@ export function AuthenticateUser() {
             if (window.Telegram?.WebApp?.initData) {
                 window.clearInterval(timer);
                 setWaitingForTelegram(false);
-                session.getUserInfo();
+                session.getUserInfo()
+                    .then(res => {
+                        if (res.result?.ok) {
+                            navigate("/ui/");
+                        }
+                    });
             }
         }, 500);
     }, [session]);

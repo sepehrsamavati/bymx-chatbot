@@ -14,7 +14,6 @@ import { SnackbarProvider } from "notistack";
 import { ThemeProvider } from "@mui/material";
 import { CacheProvider } from "@emotion/react";
 import HttpClient from "./core/helper/HttpClient";
-import { AuthenticateUser } from "./components/auth";
 import Session, { SessionContext } from "./core/Session";
 import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
 import { SnackbarProviderConfigurator } from "./core/helper/snackbarProvider";
@@ -72,11 +71,7 @@ export default function App() {
       <CacheProvider value={cacheRtl}>
         <ThemeProvider key={themeName} theme={muiThemeOptions(session.themeManager)}>
           <SessionContext.Provider value={session}>
-            {session.user ? (
-              <Outlet />
-            ) : (
-              <AuthenticateUser />
-            )}
+            <Outlet />
           </SessionContext.Provider>
         </ThemeProvider>
       </CacheProvider>

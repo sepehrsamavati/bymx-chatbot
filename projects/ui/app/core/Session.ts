@@ -38,9 +38,13 @@ export default class Session {
                 this.languageChange(this.user.lang, true);
             this.refreshUI();
             this.syncChatModels();
+            this.localStorage.data.isLoggedIn = true;
+            this.localStorage.rewrite();
         } else {
             this.snackbarProvider(response.result?.message, { variant: "error" });
             this.signOut();
+            this.localStorage.data.isLoggedIn = false;
+            this.localStorage.rewrite();
 
             if (response.result?.message === "sendPhoneNumberInBotToContinue")
                 setTimeout(() => {
