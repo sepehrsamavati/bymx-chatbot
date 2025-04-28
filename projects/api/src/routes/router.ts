@@ -7,15 +7,17 @@ import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
-import TelegramAuth from "../dto/user/TelegramAuth.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
 import authGuard from "../middlewares/authGuard.js";
 import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
+import TelegramAuth from "../dto/user/TelegramAuth.js";
 import ChangeLanguage from '../dto/user/ChangeLanguage.js';
 import { dtoValidator } from "../middlewares/dtoValidator.js";
+import TelegramOtpLogin from '../dto/user/TelegramOtpLogin.js';
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
+import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -54,6 +56,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
     fastifyInstance.register((userControllerNoAuth, _, next) => {
 
         userControllerNoAuth.post("/tgAuth", { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
+        userControllerNoAuth.post("/tgOtp", { preValidation: dtoValidator(TelegramOtpRequest) }, user.sendTelegramOtp);
+        userControllerNoAuth.post("/tgOtpAuth", { preValidation: dtoValidator(TelegramOtpLogin) }, user.telegramOtpAuth);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/user" });

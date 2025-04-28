@@ -5,10 +5,7 @@ export default function AuthGuard() {
     const session = useSession();
 
     if (session.localStorage.data.isLoggedIn)
-        return <>
-            Meow
-            <Outlet />
-        </>;
+        return <Outlet />;
 
-    return <>MEOW</>;
+    return null;
 }

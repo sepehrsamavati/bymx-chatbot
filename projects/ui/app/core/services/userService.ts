@@ -22,6 +22,20 @@ const userService = Object.freeze({
             method: HttpClient.Methods.GET,
         });
     },
+    requestTelegramOtp(phoneNumber: string) {
+        return HttpClient.send<IOperationResult>({
+            path: "/api/v1/user/tgOtp",
+            method: HttpClient.Methods.POST,
+            body: { phoneNumber }
+        });
+    },
+    telegramOtpAuth(phoneNumber: string, otp: string) {
+        return HttpClient.send<IOperationResultWithData<UserEntity.UserInfoViewModel>>({
+            path: "/api/v1/user/tgOtpAuth",
+            method: HttpClient.Methods.POST,
+            body: { phoneNumber, otp }
+        });
+    },
     /** @todo */
     logout() {
         return HttpClient.send<null>({

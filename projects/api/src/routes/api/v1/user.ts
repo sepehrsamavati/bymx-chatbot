@@ -137,10 +137,7 @@ export const getInfo: RouteHandlerMethod = async (request, reply) => {
 
 export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
 
-    const result = new OperationResultWithData<UserEntity.UserInfoViewModel>();
-
-    if (!request.locals.user)
-        return reply.status(401).send(result.failed("noAccess"));
+    const result = new OperationResult();
 
     const query = request.locals.dto as TelegramOtpRequest;
 
@@ -168,9 +165,6 @@ export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
 export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<UserEntity.UserViewModel>();
-
-    if (!request.locals.user)
-        return reply.status(401).send(result.failed("noAccess"));
 
     const query = request.locals.dto as TelegramOtpLogin;
 
