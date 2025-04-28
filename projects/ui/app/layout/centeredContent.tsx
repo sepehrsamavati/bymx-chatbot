@@ -13,8 +13,10 @@ export default function CenteredContent(props?: {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "space-around",
                 position: "fixed",
+                overflow: "auto",
+                paddingBlock: 2,
                 left: 0,
                 top: 0,
             }}

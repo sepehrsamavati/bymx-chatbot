@@ -261,6 +261,12 @@ const keys = [
     "otp",
     "otpSentToTelegram",
     "yourOtpForLogin",
+    "willSendOtpToTelegram",
+    "send",
+    "request",
+    "requestOtp",
+    "login",
+    "loginToAccount",
 ] as const;
 
 export type UITextKey = typeof keys[number];

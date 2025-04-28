@@ -249,5 +249,11 @@
     "makeSureThePhoneNumberIsCorrect": "Please make sure you've entered your phone number correctly!",
     "otp": "One time password",
     "otpSentToTelegram": "One time password sent to your chat with bot in Telegram",
-    "yourOtpForLogin": "Your one-time password (OTP) for account login: %s1\n\nIf you did not request this, please contact support!"
+    "yourOtpForLogin": "Your one-time password (OTP) for account login: %s1\n\nIf you did not request this, please contact support!",
+    "willSendOtpToTelegram": "To login, an OTP will be sent to your Telegram private chat with bot.",
+    "send": "Send",
+    "request": "Request",
+    "requestOtp": "Request OTP",
+    "login": "Login",
+    "loginToAccount": "Login to account"
 }
