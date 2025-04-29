@@ -255,5 +255,7 @@
     "request": "Request",
     "requestOtp": "Request OTP",
     "login": "Login",
-    "loginToAccount": "Login to account"
+    "loginToAccount": "Login to account",
+    "phoneNumber": "Phone number",
+    "countryCode": "Country code"
 }

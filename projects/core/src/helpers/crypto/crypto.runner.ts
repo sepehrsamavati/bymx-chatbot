@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import { logger } from "../logger.js";
 
+const englishChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
 export const generateSessionTokenId = async () => crypto.randomBytes(48).toString('hex');
 
 export const generateOtpCode = async () => crypto.randomBytes(8).toString('hex');
@@ -28,4 +30,16 @@ const password = {
 
 export const calculateSha256Hash = (key: string | Buffer, plainValue: string) => crypto.createHmac('sha256', key).update(plainValue).digest();
 
+/** Converts to `base64url` */
 export const randomString = (byteSize = 4) => crypto.randomBytes(byteSize).toString('base64url');
+
+export const randomEnglishString = (length = 4) => {
+    let result = '';
+
+    for (let i = 0; i < length; i++) {
+        result += englishChars.charAt(Math.floor(Math.random() * englishChars.length));
+    }
+
+    return result;
+};
+

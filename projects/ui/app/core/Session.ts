@@ -36,10 +36,7 @@ export default class Session {
             this.user = response.result.data;
             if (this.user.lang !== this.localStorage.data.language)
                 this.languageChange(this.user.lang, true);
-            this.refreshUI();
-            this.syncChatModels();
-            this.localStorage.data.isLoggedIn = true;
-            this.localStorage.rewrite();
+            this.postLoginEvents();
         } else {
             this.snackbarProvider(response.result?.message, { variant: "error" });
             this.signOut();
@@ -54,6 +51,13 @@ export default class Session {
         }
 
         return response;
+    }
+
+    postLoginEvents() {
+        this.refreshUI();
+        this.syncChatModels();
+        this.localStorage.data.isLoggedIn = true;
+        this.localStorage.rewrite();
     }
 
     syncUiWithTelegramApp() {

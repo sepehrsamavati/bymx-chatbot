@@ -30,7 +30,7 @@ const userService = Object.freeze({
         });
     },
     telegramOtpAuth(phoneNumber: string, otp: string) {
-        return HttpClient.send<IOperationResultWithData<UserEntity.UserInfoViewModel>>({
+        return HttpClient.send<IOperationResultWithData<UserEntity.UserViewModel>>({
             path: "/api/v1/user/tgOtpAuth",
             method: HttpClient.Methods.POST,
             body: { phoneNumber, otp }

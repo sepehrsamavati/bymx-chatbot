@@ -267,6 +267,8 @@ const keys = [
     "requestOtp",
     "login",
     "loginToAccount",
+    "phoneNumber",
+    "countryCode",
 ] as const;
 
 export type UITextKey = typeof keys[number];

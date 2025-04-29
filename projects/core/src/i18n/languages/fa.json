@@ -255,5 +255,7 @@
     "request": "درخواست",
     "requestOtp": "درخواست رمز یکبار مصرف",
     "login": "ورود",
-    "loginToAccount": "ورود به حساب"
+    "loginToAccount": "ورود به حساب",
+    "phoneNumber": "شماره تلفن",
+    "countryCode": "کد کشور"
 }

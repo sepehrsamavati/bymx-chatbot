@@ -150,8 +150,11 @@ export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
 
     const codeGenerateResult = await request.locals.applications.telegramOtpApplication.generateOtp(user);
 
-    if (!codeGenerateResult.data)
+    if (!codeGenerateResult.ok)
         return reply.status(200).send(result.failed(codeGenerateResult.message));
+
+    if (!codeGenerateResult.data)
+        return reply.status(200).send(result.succeeded(codeGenerateResult.message));
 
     const sendResult = await sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, codeGenerateResult.data));
 

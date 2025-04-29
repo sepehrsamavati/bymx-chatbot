@@ -1,6 +1,6 @@
 import { User } from "../types/entities/user.js";
 import type { ServicesType } from "../Container.js";
-import { randomString } from "../helpers/crypto/crypto.runner.js";
+import { randomEnglishString } from "../helpers/crypto/crypto.runner.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
 export default class TelegramOtpApplication {
@@ -15,9 +15,9 @@ export default class TelegramOtpApplication {
         const result = new OperationResultWithData<string>();
 
         if (this.#cacheStorage.exists(user.id))
-            return result.failed("invalid");
+            return result.succeeded();
 
-        const code = randomString(5).toUpperCase();
+        const code = randomEnglishString(4).toUpperCase();
 
         this.#cacheStorage.set(user.id, {
             key: user.id,
