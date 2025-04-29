@@ -68,6 +68,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         userController.addHook('onRequest', authGuard);
 
         userController.get("/info", user.getInfo);
+        userController.get("/me", user.getMe);
         userController.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
 
         next();

@@ -104,6 +104,34 @@ export const changeLanguage: RouteHandlerMethod = async (request, reply) => {
 
 };
 
+export const getMe: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResultWithData<UserEntity.UserViewModel>();
+
+    if (!request.locals.user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    const user = await request.locals.applications.userApplication.getUserById(request.locals.user.id);
+
+    if (!user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    const userInfo: UserEntity.UserViewModel = {
+        id: user.id,
+        type: user.type,
+        lang: user.lang,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        memoryAmount: user.memoryAmount,
+        saveMessages: user.saveMessages,
+    };
+
+    result.succeeded().setData(userInfo);
+
+    return reply.status(200).send(result);
+
+};
+
 export const getInfo: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<UserEntity.UserInfoViewModel>();

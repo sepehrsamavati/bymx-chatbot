@@ -27,21 +27,21 @@ export default class Session {
         this._user = v;
     }
 
-    async getUserInfo() {
+    async tgWebAppAuth() {
         this.syncUiWithTelegramApp();
 
         const response = await userService.telegramAuth(window.Telegram.WebApp.initData);
 
         if (response.result?.data) {
+            console.log(this)
             this.user = response.result.data;
+            console.log(this)
             if (this.user.lang !== this.localStorage.data.language)
                 this.languageChange(this.user.lang, true);
             this.postLoginEvents();
         } else {
             this.snackbarProvider(response.result?.message, { variant: "error" });
             this.signOut();
-            this.localStorage.data.isLoggedIn = false;
-            this.localStorage.rewrite();
 
             if (response.result?.message === "sendPhoneNumberInBotToContinue")
                 setTimeout(() => {
@@ -148,6 +148,8 @@ export default class Session {
 
     /** @todo */
     public async signOut() {
+        this.localStorage.data.isLoggedIn = false;
+        this.localStorage.rewrite();
         return true;
         // if (this._signOutLock) return;
         // this._signOutLock = true;

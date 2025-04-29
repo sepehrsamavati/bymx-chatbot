@@ -363,7 +363,7 @@ export default function Chat() {
             .finally(() => {
                 setModelChangeLock(false);
             });
-    }, [modelChangeLock, chatId]);
+    }, [modelChangeLock, chatId, session]);
 
     const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
         if (memoryAmountChangeLock || !chatId) return;
@@ -372,6 +372,7 @@ export default function Chat() {
         chatService
             .setMemoryAmount({ chatId, amount: memoryAmount })
             .then(res => {
+                console.log(session)
                 if (res.result?.ok && session.user) {
                     session.user.memoryAmount = memoryAmount;
                     session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
@@ -382,7 +383,7 @@ export default function Chat() {
             .finally(() => {
                 setMemoryAmountChangeLock(false);
             });
-    }, [memoryAmountChangeLock, chatId]);
+    }, [memoryAmountChangeLock, chatId, session]);
 
     const uploadFile = useCallback((file: File) => {
         const formData = new FormData();

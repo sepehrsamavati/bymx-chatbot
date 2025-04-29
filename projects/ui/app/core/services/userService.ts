@@ -16,6 +16,12 @@ const userService = Object.freeze({
             body: { lang: langCode },
         });
     },
+    getMe() {
+        return HttpClient.send<IOperationResultWithData<UserEntity.UserViewModel>>({
+            path: "/api/v1/user/me",
+            method: HttpClient.Methods.GET,
+        });
+    },
     getProfile() {
         return HttpClient.send<IOperationResultWithData<UserEntity.UserInfoViewModel>>({
             path: "/api/v1/user/info",

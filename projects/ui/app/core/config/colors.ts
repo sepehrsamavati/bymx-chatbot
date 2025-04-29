@@ -3,7 +3,7 @@ const colors = {
     brandSecondary: '#468faf',
     brandSecondaryDarker: '#2a6f97',
 
-    brandDarkMode: '#001845',
+    brandDarkMode: '#2a6f97',
     brandDarker: '#023e7d',
 
     backgroundLightMode: '#edede9',

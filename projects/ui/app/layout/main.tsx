@@ -131,7 +131,7 @@ function Header() {
             .finally(() => {
                 setLanguageChangeLock(false);
             });
-    }, []);
+    }, [session]);
 
     useEffect(() => {
         session.requestSideMenuOpen = () => setMenuIsOpen(true);

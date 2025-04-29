@@ -23,7 +23,7 @@ export default function telegramAuth() {
             if (window.Telegram?.WebApp?.initData) {
                 window.clearInterval(timer);
                 setWaitingForTelegram(false);
-                session.getUserInfo()
+                session.tgWebAppAuth()
                     .then(res => {
                         if (res.result?.ok) {
                             navigate("/ui/");

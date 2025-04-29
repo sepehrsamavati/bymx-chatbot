@@ -140,7 +140,7 @@ export default function Chats() {
                     >{session.uiText.newChat}</Button>
                 ) : null}
                 {chats.map(chat => (
-                    <Box marginInline={2}>
+                    <Box key={chat.id} marginInline={2}>
                         <ButtonGroup
                             fullWidth
                             key={chat.id}
