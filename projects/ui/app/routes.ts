@@ -14,9 +14,9 @@ export default [
     layout("./layout/authGuard.tsx", [
         layout("./layout/main.tsx", [
             ...prefix("ui", [
-                route("/ui", "./routes/home.tsx"),
-                route("/ui/chats", "./routes/chats.tsx"),
-                route("/ui/chat/:chatId", "./routes/chat.tsx"),
+                index("./routes/home.tsx"),
+                route("/chats", "./routes/chats.tsx"),
+                route("/chat/:chatId", "./routes/chat.tsx"),
             ]),
             route("*", "./routes/notFound.tsx"),
         ]),

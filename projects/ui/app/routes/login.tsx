@@ -96,12 +96,11 @@ export default function Login() {
                             sx={{
                                 borderRadius: 50,
                             }}
-                            defaultValue={session.localStorage.data.language}
                             onChange={e => session.languageChange(e.target.value, false)}
-                            value={session.user?.lang}
+                            value={session.localStorage.data.language}
                             label={session.uiText.language}
                         >
-                            {UIText.langCodes.map(langCode => <MenuItem key={langCode} value={langCode}>{langCode}</MenuItem>)}
+                            {UIText.langCodes.map(langCode => <MenuItem selected={session.localStorage.data.language === langCode} key={langCode} value={langCode}>{langCode}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Stack>

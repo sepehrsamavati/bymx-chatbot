@@ -107,7 +107,10 @@ export default class Session {
     constructor(
         readonly setTheme: React.Dispatch<React.SetStateAction<PaletteMode>>,
         public readonly refreshUI: () => void
-    ) { }
+    ) {
+        if (this.localStorage.data.isLoggedIn)
+            this.postLoginEvents();
+    }
 
     public readonly storage = new SessionStorageHelper();
 

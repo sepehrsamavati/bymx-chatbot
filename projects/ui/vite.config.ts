@@ -13,4 +13,7 @@ export default defineConfig({
     },
   },
   plugins: [reactRouter(), tsconfigPaths()],
+  define: {
+    '__APP_VERSION__': JSON.stringify(process.env.npm_package_version),
+  },
 });

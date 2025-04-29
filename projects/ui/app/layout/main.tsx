@@ -123,7 +123,7 @@ function Header() {
         userService
             .changeLanguage(langCode)
             .then(res => {
-                if (res.result?.ok && session.user)
+                if (res.result?.ok)
                     session.languageChange(langCode);
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
@@ -140,9 +140,11 @@ function Header() {
     return (
         <header>
             <Stack direction="row" justifyContent="space-between">
-                <IconButton onClick={openMenuRequestHandler}>
-                    <Menu />
-                </IconButton>
+                <Box padding={0.4}>
+                    <IconButton onClick={openMenuRequestHandler}>
+                        <Menu />
+                    </IconButton>
+                </Box>
 
                 <Link to="/ui">
                     <Box
@@ -193,12 +195,13 @@ function Header() {
                                     size="small"
                                     sx={{
                                         borderRadius: 50,
+                                        minWidth: "90px",
                                     }}
                                     onChange={handleLanguageChange}
-                                    value={session.user?.lang}
+                                    value={session.localStorage.data.language}
                                     label={session.uiText.language}
                                 >
-                                    {UIText.langCodes.map(langCode => <MenuItem key={langCode} value={langCode}>{langCode}</MenuItem>)}
+                                    {UIText.langCodes.map(langCode => <MenuItem selected={session.localStorage.data.language === langCode} key={langCode} value={langCode}>{langCode}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </DrawerItem>
@@ -207,6 +210,9 @@ function Header() {
                                 color="inherit"
                                 onClick={() => session.themeManager.set(session.themeManager.name === 'light' ? 'dark' : 'light')}
                             >{session.themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                        </Box>
+                        <Box marginBlock={15} textAlign="center">
+                            <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
                         </Box>
                     </Box>
                 </Box>
