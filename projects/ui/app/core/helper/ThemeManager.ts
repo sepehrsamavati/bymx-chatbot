@@ -27,5 +27,6 @@ export default class ThemeManager {
         this.#session.localStorage.rewrite();
 
         this.#session.syncUiWithTelegramApp();
+        this.#session.refreshUI?.();
     }
 }

@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [themeName, setTheme] = useState<ThemeName>('light');
+  const [, setTheme] = useState<ThemeName>('light');
   const [, setDummyState] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const session = useMemo<Session>(() => {
@@ -69,7 +69,7 @@ export default function App() {
         <SnackbarProviderConfigurator />
       </SnackbarProvider>
       <CacheProvider value={cacheRtl}>
-        <ThemeProvider key={themeName} theme={muiThemeOptions(session.themeManager)}>
+        <ThemeProvider theme={muiThemeOptions(session.themeManager)}>
           <SessionContext.Provider value={session}>
             <Outlet />
           </SessionContext.Provider>

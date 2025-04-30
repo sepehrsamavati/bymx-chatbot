@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import Stack from "@mui/material/Stack";
 import { Link, Outlet } from "react-router";
 import Menu from "@mui/icons-material/Menu";
@@ -114,6 +114,7 @@ function Header() {
     const session = useSession();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [languageChangeLock, setLanguageChangeLock] = useState(false);
+    const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
 
@@ -131,6 +132,12 @@ function Header() {
             .finally(() => {
                 setLanguageChangeLock(false);
             });
+    }, [session]);
+
+    const toggleTheme = useCallback(() => {
+        const newThemeName = session.themeManager.name === 'light' ? 'dark' : 'light';
+        session.themeManager.set(newThemeName);
+        setChangeThemeIcon(newThemeName === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
     }, [session]);
 
     useEffect(() => {
@@ -208,8 +215,8 @@ function Header() {
                         <Box marginBlock={3} textAlign="center">
                             <IconButton
                                 color="inherit"
-                                onClick={() => session.themeManager.set(session.themeManager.name === 'light' ? 'dark' : 'light')}
-                            >{session.themeManager.name === 'light' ? <LightMode /> : <DarkMode />}</IconButton>
+                                onClick={toggleTheme}
+                            >{changeThemeIcon}</IconButton>
                         </Box>
                         <Box marginBlock={15} textAlign="center">
                             <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
