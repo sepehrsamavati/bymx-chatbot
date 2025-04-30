@@ -42,6 +42,13 @@ export const muiThemeOptions = (themeManager: ThemeManager) => {
             fontFamily: `"Samim", "Roboto", "Helvetica", sans-serif, "Arial"`
         },
         components: {
+            MuiDrawer: {
+                styleOverrides: {
+                    paper: {
+                        backgroundColor: theme === 'light' ? _colors.antiFlashWhite : _colors.backgroundDarkMode
+                    }
+                }
+            },
             MuiLink: {
                 styleOverrides: {
                     root: {

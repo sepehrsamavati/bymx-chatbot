@@ -98,8 +98,8 @@ function ProfileInfo() {
                     ) : (
                         <Chip
                             size="small"
-                            color="primary"
-                            variant="outlined"
+                            color="default"
+                            variant="filled"
                             label={session.uiText.noActiveSubscription}
                         />
                     )
