@@ -30,14 +30,14 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (filter.id !== undefined)
             _filter._id = filter.id;
 
-        if (filter.tgId !== undefined)
-            _filter.tgId = filter.tgId;
+        if (filter.telegram?.id !== undefined)
+            _filter["telegram.id"] = filter.telegram.id;
 
-        if (filter.phoneNumber !== undefined)
-            _filter.phoneNumber = filter.phoneNumber;
+        if (filter.telegram?.phoneNumber !== undefined)
+            _filter["telegram.phoneNumber"] = filter.telegram.phoneNumber;
 
-        if (filter.username !== undefined)
-            _filter.username = MongoSearchHelper.exactStringCaseInsensitive(filter.username);
+        if (filter.telegram?.username !== undefined)
+            _filter["telegram.username"] = MongoSearchHelper.exactStringCaseInsensitive(filter.telegram.username);
 
         if (filter.status?.equal || filter.status?.notEqual) {
             _filter.status = {
@@ -57,14 +57,14 @@ export default class UserRepository extends Transactional implements IUserReposi
         const unsetList: Array<string> = [];
         const _update: UpdateQuery<UserDBModel> = {};
 
-        if (update.username !== undefined)
-            _update.username = update.username;
+        if (update.telegramUsername !== undefined)
+            _update["telegram.username"] = update.telegramUsername;
 
-        if (update.firstName !== undefined)
-            _update.firstName = update.firstName;
+        if (update.telegramFirstName !== undefined)
+            _update["telegram.firstName"] = update.telegramFirstName;
 
-        if (update.lastName !== undefined)
-            _update.lastName = update.lastName;
+        if (update.telegramLastName !== undefined)
+            _update["telegram.lastName"] = update.telegramLastName;
 
         if (update.isDeleted !== undefined)
             _update.isDeleted = update.isDeleted;
@@ -72,8 +72,8 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (update.lang !== undefined)
             _update.lang = update.lang;
 
-        if (update.mode !== undefined)
-            _update.mode = update.mode;
+        if (update.telegramMode !== undefined)
+            _update["telegram.mode"] = update.telegramMode;
 
         if (update.status !== undefined)
             _update.status = update.status;
@@ -84,14 +84,14 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (update.saveMessages !== undefined)
             _update.saveMessages = update.saveMessages;
 
-        if (update.phoneNumber !== undefined)
-            _update.phoneNumber = update.phoneNumber;
+        if (update.telegramPhoneNumber !== undefined)
+            _update["telegram.phoneNumber"] = update.telegramPhoneNumber;
 
         if (update.memoryAmount !== undefined)
             _update.memoryAmount = update.memoryAmount;
 
-        if (update.inviteUsed !== undefined)
-            _update["invite.used"] = update.inviteUsed;
+        if (update.telegramInviteUsed !== undefined)
+            _update["telegram.invite.used"] = update.telegramInviteUsed;
 
         if (update.voiceResponseActive !== undefined)
             _update["voiceResponse.on"] = update.voiceResponseActive;
@@ -107,8 +107,8 @@ export default class UserRepository extends Transactional implements IUserReposi
         }
 
         if (Object.hasOwn(update, 'selectedChat')) {
-            if (update.selectedChat !== undefined)
-                _update.selectedChat = update.selectedChat.id;
+            if (update.telegramSelectedChat !== undefined)
+                _update.selectedChat = update.telegramSelectedChat.id;
             else
                 unsetList.push("selectedChat");
         }
@@ -130,31 +130,33 @@ export default class UserRepository extends Transactional implements IUserReposi
 
         const user: User = {
             id: result._id.toString(),
-            firstName: result.firstName,
-            lastName: result.lastName,
-            username: result.username,
             status: result.status,
             usage: result.usage,
-            mode: result.mode,
             lang: result.lang,
             lastActivity: result.lastActivity,
-            tgId: result.tgId,
             type: result.type,
             saveMessages: result.saveMessages,
             memoryAmount: result.memoryAmount,
-            phoneNumber: result.phoneNumber,
-            inviteCount: result.inviteCount,
-            invite: result.invite,
+            telegram: result.telegram ? {
+                id: result.telegram.id,
+                firstName: result.telegram.firstName,
+                lastName: result.telegram.lastName,
+                username: result.telegram.username,
+                phoneNumber: result.telegram.phoneNumber,
+                inviteCount: result.telegram.inviteCount,
+                invite: result.telegram.invite,
+                mode: result.telegram.mode,
+            } : undefined,
             voiceResponse: result.voiceResponse,
             memory: result.memory,
         };
 
-        const selectedChat = result.selectedChat as any as PopulatedProperty<FlattenToIDs<AIChat, 'user'>> | mongoose.Types.ObjectId;
+        const tgSelectedChat = result.telegram?.selectedChat as any as (PopulatedProperty<FlattenToIDs<AIChat, 'user'>> | mongoose.Types.ObjectId | undefined);
 
-        if (selectedChat && !(selectedChat instanceof mongoose.Types.ObjectId) && user.id === selectedChat.user.toString()) {
-            const chatModel = selectedChat.model as PopulatedProperty<AIChat['model']>;
-            user.selectedChat = {
-                id: selectedChat._id.toString(),
+        if (tgSelectedChat && user.telegram && !(tgSelectedChat instanceof mongoose.Types.ObjectId) && user.id === tgSelectedChat.user.toString()) {
+            const chatModel = tgSelectedChat.model as PopulatedProperty<AIChat['model']>;
+            user.telegram.selectedChat = {
+                id: tgSelectedChat._id.toString(),
                 model: {
                     id: chatModel._id.toString(),
                     isDeleted: chatModel.isDeleted,
@@ -165,9 +167,9 @@ export default class UserRepository extends Transactional implements IUserReposi
                     llmInfo: chatModel.llmInfo,
                     provider: chatModel.provider,
                 },
-                title: selectedChat.title,
-                behavior: selectedChat.behavior,
-                isHidden: selectedChat.isHidden,
+                title: tgSelectedChat.title,
+                behavior: tgSelectedChat.behavior,
+                isHidden: tgSelectedChat.isHidden,
                 user: user,
             };
         }
@@ -196,7 +198,7 @@ export default class UserRepository extends Transactional implements IUserReposi
     async getBy(filter: SearchUserModel): Promise<User | null> {
         const _filter = this.#getFilter(filter);
         const result = await this.#databaseConnection.models.user.findOne(_filter)
-            .populate('selectedChat' satisfies keyof User)
+            .populate('telegram.selectedChat')
             .lean().exec();
         return this.#storedToView(result);
     }
@@ -214,7 +216,7 @@ export default class UserRepository extends Transactional implements IUserReposi
             .findOneAndUpdate(_filter, _update)
             .populate(
                 {
-                    path: 'selectedChat' satisfies keyof User,
+                    path: 'telegram.selectedChat',
                     populate: [
                         {
                             path: 'model',
@@ -248,13 +250,13 @@ export default class UserRepository extends Transactional implements IUserReposi
         const _filter = this.#getFilter(filter);
         const result = await this.#databaseConnection.models.user
             .find(_filter)
-            .select('tgId' satisfies keyof User)
+            .select('telegram.id')
             .lean().exec();
 
         if (!result)
             return null;
 
-        return result.map(item => item.tgId);
+        return result.filter(item => item.telegram).map(item => item.telegram!.id);
     }
 
     async increaseInviteCount(filter: SearchUserModel, amount: number): Promise<boolean | null> {

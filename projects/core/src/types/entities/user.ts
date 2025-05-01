@@ -7,17 +7,30 @@ import type { UserModeType } from "../enums/userMode.js";
 import type { StoredEntity } from "../contracts/entities.js";
 import type { AIChatHistoryMemory } from "../enums/aiChatHistoryMemory.js";
 
+type UserTelegram = {
+    id: number;
+    mode: UserModeType;
+    firstName: string;
+    inviteCount: number;
+    /** Selected chat */
+    selectedChat?: AIChat;
+    invite?: {
+        by: User['id'];
+        used: boolean;
+    };
+    lastName?: string;
+    username?: string;
+    phoneNumber?: string;
+};
+
 export type User = {
     id: string;
-    tgId: number;
     /** Number of times user entity got retrieved from DB */
     usage: number;
     lastActivity: number;
     status: UserStatus;
     lang: LangCode;
     type: UserType;
-    mode: UserModeType;
-    firstName: string;
     saveMessages: boolean;
     /** Number of messages to resend in chat completion  */
     memoryAmount: AIChatHistoryMemory;
@@ -26,36 +39,43 @@ export type User = {
         on: boolean;
         footprints: string[];
     };
-    inviteCount: number;
     voiceResponse: {
         on: boolean;
         type: AIVoice;
         languagePrompt?: string;
     };
-    invite?: {
-        by: User['id'];
-        used: boolean;
-    };
-    /** Selected chat */
-    selectedChat?: AIChat;
-    lastName?: string;
-    username?: string;
-    phoneNumber?: string;
+    telegram?: UserTelegram;
 }
 
 export type UserDBModel = StoredEntity<User>;
 
-export type UserViewModel = Pick<User, 'id' | 'lang' | 'type' | 'firstName' | 'lastName' | 'memoryAmount' | 'saveMessages'>;
+export type UserViewModel = {
+    firstName: string;
+    lastName?: string;
+} & Pick<User, 'id' | 'lang' | 'type' | 'memoryAmount' | 'saveMessages'>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;
 export type UpdateUserModel = {
-    inviteUsed?: NonNullable<User['invite']>['used'];
+
     voiceResponseActive?: User['voiceResponse']['on'];
     voiceResponseType?: User['voiceResponse']['type'];
     voiceResponseLanguagePrompt?: User['voiceResponse']['languagePrompt'];
-} & Partial<Pick<UserDBModel, 'saveMessages' | 'phoneNumber' | 'memoryAmount' | 'username' | 'lang' | 'firstName' | 'lastName' | 'isDeleted' | 'mode' | 'status' | 'type' | 'selectedChat'>>;
-export type UpsertUserModel = Pick<UserDBModel, 'tgId' | 'username' | 'lang' | 'firstName' | 'lastName' | 'invite'>;
-export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'tgId' | 'phoneNumber' | 'isDeleted' | 'username'> & {
+
+    telegramInviteUsed?: NonNullable<UserTelegram['invite']>['used'];
+    telegramFirstName?: string;
+    telegramLastName?: string;
+    telegramPhoneNumber?: UserTelegram['phoneNumber'];
+    telegramUsername?: UserTelegram['username'];
+    telegramMode?: UserTelegram['mode'];
+    telegramSelectedChat?: UserTelegram['selectedChat'];
+
+} & Partial<Pick<UserDBModel, 'saveMessages' | 'memoryAmount' | 'lang' | 'isDeleted' | 'status' | 'type'>>;
+
+export type UpsertUserModel = Pick<UserDBModel, 'telegram' | 'lang'>;
+
+export type SearchUserModel = Pick<Partial<UserDBModel>, 'id' | 'isDeleted'> & {
+    telegram?: Pick<Partial<UserTelegram>, 'id' | 'phoneNumber' | 'username'>;
+} & {
     status?: {
         equal?: User['status'][];
         notEqual?: User['status'][];

@@ -47,7 +47,7 @@ export type IUserRepository = {
     countAll(): Promise<number | null>;
 
     /** Returns list of Telegram IDs */
-    getTgIds(filter: SearchUserModel): Promise<number[] | null>;
+    getTgIds(filter: SearchUserModel): Promise<(number | null)[] | null>;
 
     /** Returns list of Telegram IDs */
     increaseInviteCount(filter: SearchUserModel, amount: number): Promise<boolean | null>;
@@ -73,7 +73,7 @@ export type ITelegramBroadcastRepository = {
     getById(id: string): Promise<TelegramBroadcast | null>;
     getOne(filter: SearchTelegramBroadcast): Promise<TelegramBroadcast | null>;
     updateById(update: UpdateTelegramBroadcast): Promise<boolean | null>;
-    deletePendingUser(id: string, tgId: User['tgId'], increaseOkCount: boolean): Promise<boolean | null>;
+    deletePendingUser(id: string, tgId: number, increaseOkCount: boolean): Promise<boolean | null>;
     delete(id: string, endDate?: Date): Promise<boolean | null>;
 }
 

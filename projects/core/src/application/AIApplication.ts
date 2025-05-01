@@ -142,7 +142,7 @@ export default class AIApplication {
         if (user.status !== UserStatus.OK)
             return result.failed("shouldAcceptTermsOfService");
 
-        let _chat = preprocessInput.history?.chat || user.selectedChat;
+        let _chat = preprocessInput.history?.chat || user.telegram?.selectedChat;
 
         if (shouldCreateDefaultChat && !_chat) {
             const hasChats = await this.#aiChatRepository.exists(user.id);
@@ -171,17 +171,20 @@ export default class AIApplication {
                 return result.failed(); // error
 
             const updateResult = await this.#userRepository.update(user.id, {
-                selectedChat: {
+                telegramSelectedChat: {
                     ...openAIChat,
                     id: defaultChatId
                 }
             });
 
             if (updateResult?.ok) {
-                _chat = user.selectedChat = {
+                const fullChat = {
                     ...openAIChat,
                     id: defaultChatId
                 };
+                _chat = fullChat;
+                if (user.telegram)
+                    user.telegram.selectedChat = fullChat;
             } else {
                 return result.failed(); // error
             }
