@@ -12,7 +12,7 @@ export const phoneNumberGuardHandler: IUpdateHandler = {
 
     async handler(context, update) {
 
-        if (context.user.phoneNumber?.length)
+        if (context.user.telegram?.phoneNumber?.length)
             return { shouldContinue: true };
 
         if (context.chat?.type === "private") {
@@ -21,7 +21,7 @@ export const phoneNumberGuardHandler: IUpdateHandler = {
             await tgCall(
                 TelegramMethods.SendMessage,
                 {
-                    chat_id: context.user.tgId,
+                    chat_id: context.user.telegram?.id,
                     ...getGivePhoneNumberPanel(context),
                     text: context.uiText.sendPhoneNumberToContinue,
                     ...(message ? {

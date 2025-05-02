@@ -39,7 +39,7 @@ export const adminCommandHandler: IUpdateHandler = {
             return {
                 shouldContinue: false,
                 call: {
-                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo({ username: targetUsername }))
+                    text: getUserManagementText(context, await context.services.userApplication.getUserInfo({ tgUsername: targetUsername }))
                 }
             };
         } else if (text.startsWith("/find_")) {
@@ -166,7 +166,7 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: res.ok ? emojiIcon.ok : emojiIcon.failed
                 }
             };
-        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.tgId
+        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.telegram?.id
             && ["/bc", "/fbc"].includes(text)
         ) {
             const res = await context.services.telegramBroadcastApplication.addToQueue(context.user, update.message.reply_to_message.message_id, text === "/fbc");
@@ -180,7 +180,7 @@ export const adminCommandHandler: IUpdateHandler = {
                     text: res.message
                 },
             };
-        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.tgId
+        } else if (update.message?.reply_to_message && update.message.reply_to_message.chat.id === context.user.telegram?.id
             && (text.startsWith("/send_") || text.startsWith("/forward_"))
         ) {
             const isCopy = text.startsWith("/send_");

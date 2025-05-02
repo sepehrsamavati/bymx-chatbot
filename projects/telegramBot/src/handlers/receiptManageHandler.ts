@@ -124,7 +124,7 @@ export const receiptManageHandler: IUpdateHandler = {
                     await tgCall(
                         TelegramMethods.SendMessage,
                         {
-                            chat_id: user.tgId,
+                            chat_id: user.telegram?.id,
                             text: `${emojiIcon.ok} ${context.uiText.paymentApproved}`,
                             reply_markup: {
                                 inline_keyboard: [
@@ -147,7 +147,7 @@ export const receiptManageHandler: IUpdateHandler = {
                     text: `${context.uiText.sendRejectReason}:\n\n${context.uiText.cancel}: /cancel`
                 }
             };
-        } else if (context.user.mode === UserMode.Manager.SetStaticPaymentRejectReason && text && text.length < 3e3) {
+        } else if (context.user.telegram?.mode === UserMode.Manager.SetStaticPaymentRejectReason && text && text.length < 3e3) {
 
             const selectedPaymentId = context.services.selectedStaticPaymentIdCacheStorage.get(context.user.id);
 
@@ -180,7 +180,7 @@ export const receiptManageHandler: IUpdateHandler = {
                         const sendToUser = await tgCall(
                             TelegramMethods.SendMessage,
                             {
-                                chat_id: user.tgId,
+                                chat_id: user.telegram?.id,
                                 text: `${emojiIcon.failed} ${context.uiText.paymentRejected}\n\n${context.uiText.reason}: ${text}`,
                                 reply_markup: {
                                     inline_keyboard: [
@@ -213,7 +213,7 @@ export const receiptManageHandler: IUpdateHandler = {
                     text: `${context.uiText.sendGatewayPaymentId}:\n\n${context.uiText.cancel}: /cancel`
                 }
             };
-        } else if (context.user.mode === UserMode.Manager.SetStaticPaymentGatewayId && text) {
+        } else if (context.user.telegram?.mode === UserMode.Manager.SetStaticPaymentGatewayId && text) {
             const selectedPaymentId = context.services.selectedStaticPaymentIdCacheStorage.get(context.user.id);
 
             await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

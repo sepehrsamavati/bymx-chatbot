@@ -1,11 +1,11 @@
 import tgCall from "./helpers/call.js";
-import { UIText, UserStatus } from "bymx-core/shared";
 import { planHandler } from "./handlers/planHandler.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
 import { inviteHandler } from "./handlers/inviteHandler.js";
 import { promptHandler } from "./handlers/promptHandler.js";
 import { errorLogger, type IServices } from "bymx-core/server";
+import { UIText, UserMode, UserStatus } from "bymx-core/shared";
 import { joinChatHandler } from "./handlers/joinChatHandler.js";
 import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
@@ -109,12 +109,16 @@ export class UpdateHandler {
 
         // use root container (do not create scope)
         const user = await this.services.core.applications.userApplication.upsert({
-            tgId: userId,
-            firstName: fromTgUser?.first_name ?? "",
-            lastName: fromTgUser?.last_name,
-            username: fromTgUser?.username,
+            telegram: {
+                id: userId,
+                firstName: fromTgUser?.first_name ?? "",
+                lastName: fromTgUser?.last_name,
+                username: fromTgUser?.username,
+                inviteCount: 0,
+                mode: UserMode.General.Normal,
+                invite: inviterUserId ? { by: inviterUserId, used: false } : undefined
+            },
             lang: tgLangCode ?? "fa",
-            invite: inviterUserId ? { by: inviterUserId, used: false } : undefined
         });
 
         if (!user)
@@ -166,7 +170,7 @@ export class UpdateHandler {
         }
 
         // consider user modes
-        _handlers = _handlers.filter(h => isCompatibleUserMode(h, user.mode));
+        _handlers = _handlers.filter(h => isCompatibleUserMode(h, user.telegram?.mode ?? []));
 
         // consider chat types
         _handlers = _handlers.filter(h => h.chatTypes ? (h.chatTypes.includes("all") || (chat?.type && h.chatTypes.includes(chat.type))) : chat?.type === "private");
@@ -198,7 +202,7 @@ export class UpdateHandler {
                     `Unhandled exception in handler '${handlerCtx.name}'`
                     + `\n   - Time (local): ${new Date().toLocaleString()}`
                     + `\n   - User ID: ${user.id}`
-                    + `\n   - Telegram ID: ${user.tgId}`
+                    + `\n   - Telegram ID: ${user.telegram?.id}`
                     + `\n   - Handler callstack: ${requestContext.callStack.length > 0 ? requestContext.callStack.map(handler => handler.name.split(/\\|\//).pop()?.split('.').shift()).join(' / ') : '-'}`
                     + `\n   - Callstack: ${err instanceof Error ? err.stack ?? "-" : "-"}`
                     + "\n"

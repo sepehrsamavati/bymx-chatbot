@@ -95,7 +95,7 @@ export const inlineQueryHandler: IUpdateHandler = {
                         parse_mode: res.data.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }],
+                                [{ text: `${emojiIcon.point} ${res.data.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.telegram?.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }],
                                 [{ text: `${emojiIcon.history} ${context.uiText.chatWithAi}`, url: startLinkGenerator(context.botUsername) }],
                             ]
                         },

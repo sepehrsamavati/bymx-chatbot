@@ -25,7 +25,7 @@ export const joinRequiredChatHandler: IUpdateHandler = {
 
         for (const chat of chats) {
             const chatId = chat.chatId;
-            const userId = context.user.tgId;
+            const userId = context.user.telegram?.id;
             const chatMemberTempId = `u${userId}_c${chatId}`;
 
             if (context.services.chatMemberCacheStorage.exists(chatMemberTempId)) {

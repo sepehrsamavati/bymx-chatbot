@@ -64,7 +64,7 @@ export const panelHandler: IUpdateHandler = {
 
         switch (queryData) {
             case "panel": {
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
                 const _panel = await getPanel(context);
@@ -239,7 +239,7 @@ export const panelHandler: IUpdateHandler = {
                     {
                         chat_id: update.callback_query?.message.chat.id,
                         message_id: update.callback_query?.message.message_id,
-                        text: `${emojiIcon.gift} ${context.uiText.inviteFriends}\n\n${context.uiText.inviteDescriptionText}\n\n${context.uiText.yourInviteLink}:\n${startLinkGenerator(context, `i${context.user.tgId}`)}`,
+                        text: `${emojiIcon.gift} ${context.uiText.inviteFriends}\n\n${context.uiText.inviteDescriptionText}\n\n${context.uiText.yourInviteLink}:\n${startLinkGenerator(context, `i${context.user.telegram?.id}`)}`,
                         link_preview_options: {
                             is_disabled: true,
                         },

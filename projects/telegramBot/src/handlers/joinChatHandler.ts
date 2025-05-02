@@ -20,11 +20,11 @@ export const joinChatHandler: IUpdateHandler = {
         ) {
             const inviterUser = await context.services.userApplication.getUserByTgId(update.my_chat_member.from.id);
 
-            if (inviterUser && accessHelper(UserType.Manager, inviterUser.type)) {
+            if (inviterUser && inviterUser.telegram && accessHelper(UserType.Manager, inviterUser.type)) {
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
-                        chat_id: inviterUser.tgId,
+                        chat_id: inviterUser.telegram.id,
                         text: `${emojiIcon.info} Bot added to chat '${update.my_chat_member.chat.title}'\n${emojiIcon.identifier}: ${update.my_chat_member.chat.id}`
                     }
                 );

@@ -21,7 +21,7 @@ export const planHandler: IUpdateHandler = {
 
         const queryData = update.callback_query?.data;
 
-        if (context.user.mode === UserMode.General.StaticPayment) {
+        if (context.user.telegram?.mode === UserMode.General.StaticPayment) {
 
             if (queryData === "cancelPayment") {
                 await Promise.all([
@@ -126,9 +126,9 @@ export const planHandler: IUpdateHandler = {
 
             return { shouldContinue: false };
         } else if (queryData?.startsWith("viewPlan_") && update.callback_query?.message) {
-            if (context.user.mode !== UserMode.General.Normal) {
+            if (context.user.telegram && context.user.telegram.mode !== UserMode.General.Normal) {
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
-                context.user.mode = UserMode.General.Normal;
+                context.user.telegram.mode = UserMode.General.Normal;
             }
 
             const planId = queryData.replace("viewPlan_", "");

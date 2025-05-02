@@ -28,7 +28,7 @@ export const userCommandHandler: IUpdateHandler = {
 
         switch (command) {
             case "/start":
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
                 await Promise.allSettled([
@@ -64,7 +64,7 @@ export const userCommandHandler: IUpdateHandler = {
                 return { shouldContinue: context.user.status === UserStatus.EULA };
             case "/cancel":
 
-                if (context.user.mode === UserMode.General.StaticPayment) {
+                if (context.user.telegram?.mode === UserMode.General.StaticPayment) {
                     await Promise.all([
                         context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
                         paymentMessageCache.delete(context.user.id),
@@ -73,7 +73,7 @@ export const userCommandHandler: IUpdateHandler = {
                 }
 
                 let canceled = false;
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     canceled = (await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok;
 
                 return {
@@ -83,14 +83,14 @@ export const userCommandHandler: IUpdateHandler = {
                     }
                 };
             case "/change_model":
-                if (!context.user.selectedChat)
+                if (!context.user.telegram?.selectedChat)
                     return {
                         call: {
                             text: "selectChatBeforeUse"
                         }
                     };
 
-                const _modelListPanel = await getModelListPanel(context, context.user.selectedChat.id);
+                const _modelListPanel = await getModelListPanel(context, context.user.telegram?.selectedChat.id);
 
                 if (!_modelListPanel)
                     return null;
@@ -109,7 +109,7 @@ export const userCommandHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             case "/help":
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
                 await Promise.allSettled([
@@ -185,7 +185,7 @@ export const userCommandHandler: IUpdateHandler = {
                 return { shouldContinue: false };
             case "/panel":
             case "/settings":
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
                 const _panel = await getPanel(context);
