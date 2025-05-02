@@ -102,7 +102,7 @@ export class TelegramBroadcastRepository implements ITelegramBroadcastRepository
         return res.modifiedCount === 1;
     }
 
-    async deletePendingUser(id: string, tgId: User["tgId"], increaseOkCount: boolean): Promise<boolean | null> {
+    async deletePendingUser(id: string, tgId: number, increaseOkCount: boolean): Promise<boolean | null> {
         const res = await this.#databaseConnection.models.telegramBroadcast.updateOne({
             _id: id,
             isDeleted: false,

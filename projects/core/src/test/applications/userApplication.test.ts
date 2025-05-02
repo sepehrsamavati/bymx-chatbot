@@ -15,9 +15,13 @@ test('User application', async helpers => {
 
     await helpers.test('Upsert', async () => {
         const result = await services.applications.userApplication.upsert({
-            firstName: sampleUser.createUserPayload.firstName,
             lang: sampleUser.createUserPayload.lang,
-            tgId: sampleUser.createUserPayload.tgId
+            telegram: sampleUser.createUserPayload.telegram ? {
+                id: sampleUser.createUserPayload.telegram.id,
+                firstName: sampleUser.createUserPayload.telegram.firstName,
+                inviteCount: 0,
+                mode: UserMode.General.Normal,
+            } : undefined,
         });
         sampleUser.createdUserId = result?.id as string;
         assert.strictEqual(typeof result?.id, "string");
@@ -28,13 +32,17 @@ test('User application', async helpers => {
         assert.strictEqual(result.ok, true);
     });
 
-    await helpers.test('Upsert after set user mode (read changes)', async () => {
+    await helpers.test('Upsert after set user tg mode (read changes)', async () => {
         const result = await services.applications.userApplication.upsert({
-            firstName: sampleUser.createUserPayload.firstName,
             lang: sampleUser.createUserPayload.lang,
-            tgId: sampleUser.createUserPayload.tgId
+            telegram: sampleUser.createUserPayload.telegram ? {
+                id: sampleUser.createUserPayload.telegram.id,
+                firstName: sampleUser.createUserPayload.telegram.firstName,
+                inviteCount: 0,
+                mode: UserMode.General.Normal,
+            } : undefined,
         });
-        assert.strictEqual(result?.mode, newUserMode);
+        assert.strictEqual(result?.telegram?.mode, newUserMode);
     });
 
     await services.destroy();

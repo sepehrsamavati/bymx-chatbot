@@ -8,21 +8,23 @@ export class SampleUser {
     createdUserId = "";
 
     readonly userTgId = randomNumber(6);
-    readonly username = "test_" + randomHexString();
+    readonly tgUsername = "test_" + randomHexString();
     readonly createUserPayload: CreateUserModel = {
-        firstName: "UserFirstName",
         insertDate: new Date(),
         isDeleted: false,
         lastActivity: Date.now(),
-        mode: UserMode.General.Normal,
         lang: "fa",
         status: UserStatus.OK,
-        tgId: this.userTgId,
         type: UserType.Normal,
         usage: 0,
         memoryAmount: 3,
         saveMessages: false,
-        inviteCount: 0,
+        telegram: {
+            id: this.userTgId,
+            firstName: "UserFirstName",
+            inviteCount: 0,
+            mode: UserMode.General.Normal,
+        },
         voiceResponse: {
             on: false,
             type: "alloy",
