@@ -61,15 +61,15 @@ export const telegramAuth: RouteHandlerMethod = async (request, reply) => {
 
     if (user) {
 
-        if (!user.phoneNumber)
+        if (!user.telegram?.phoneNumber)
             return reply.status(200).send(result.failed("sendPhoneNumberToContinue"));
 
         const userInfo: UserEntity.UserViewModel = {
             id: user.id,
             type: user.type,
             lang: user.lang,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: user.telegram?.firstName ?? "",
+            lastName: user.telegram?.lastName ?? "",
             memoryAmount: user.memoryAmount,
             saveMessages: user.saveMessages,
         };
@@ -120,8 +120,8 @@ export const getMe: RouteHandlerMethod = async (request, reply) => {
         id: user.id,
         type: user.type,
         lang: user.lang,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.telegram?.firstName ?? "",
+        lastName: user.telegram?.lastName ?? "",
         memoryAmount: user.memoryAmount,
         saveMessages: user.saveMessages,
     };
@@ -147,8 +147,8 @@ export const getInfo: RouteHandlerMethod = async (request, reply) => {
             .setData({
                 user: {
                     id: info.user.id,
-                    firstName: info.user.firstName,
-                    lastName: info.user.lastName,
+                    firstName: info.user.telegram?.firstName ?? "",
+                    lastName: info.user.telegram?.lastName ?? "",
                     lang: info.user.lang,
                     memoryAmount: info.user.memoryAmount,
                     saveMessages: info.user.saveMessages,
@@ -213,8 +213,8 @@ export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
             id: user.id,
             type: user.type,
             lang: user.lang,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: user.telegram?.firstName ?? "",
+            lastName: user.telegram?.lastName ?? "",
             memoryAmount: user.memoryAmount,
             saveMessages: user.saveMessages,
         };
