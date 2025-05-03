@@ -106,11 +106,11 @@ export default class UserRepository extends Transactional implements IUserReposi
                 unsetList.push("voiceResponse.languagePrompt");
         }
 
-        if (Object.hasOwn(update, 'selectedChat')) {
+        if (Object.hasOwn(update, 'telegramSelectedChat')) {
             if (update.telegramSelectedChat !== undefined)
-                _update.selectedChat = update.telegramSelectedChat.id;
+                _update["telegram.selectedChat"] = update.telegramSelectedChat.id;
             else
-                unsetList.push("selectedChat");
+                unsetList.push("telegram.selectedChat");
         }
 
         if (unsetList.length) {
