@@ -22,7 +22,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
             await context.services.userApplication.setUserStatus(context.user.id, UserStatus.PhoneNumber);
 
             // auto approve if phone number exists
-            if (context.user.phoneNumber /* && isContactSupported(context.user.phoneNumber) */) {
+            if (context.user.telegram?.phoneNumber /* && isContactSupported(context.user.phoneNumber) */) {
                 // update database
                 const userUpdateResult = await context.services.userApplication.setUserStatus(context.user.id, UserStatus.OK);
 
@@ -139,7 +139,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
                     await tgCall(
                         TelegramMethods.SendMessage,
                         {
-                            chat_id: useInviteRes.data.inviter.tgId,
+                            chat_id: useInviteRes.data.inviter.telegram?.id,
                             text: `${emojiIcon.ok} ${context.uiText.userJoinedWithYourInviteLink}`
                         }
                     );

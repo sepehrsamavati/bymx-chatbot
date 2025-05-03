@@ -51,13 +51,13 @@ export default class AIChatApplication {
         if (!chat)
             return result;
 
-        if (user.selectedChat?.id === chatId) {
+        if (user.telegram?.selectedChat?.id === chatId) {
             const unsetUserSelectedChat = await this.#userApplication.setUserSelectedChatById(user, null);
 
             if (!unsetUserSelectedChat.ok)
                 return result;
 
-            user.selectedChat = undefined;
+            user.telegram.selectedChat = undefined;
         }
 
         const deleted = await this.#aiChatRepository.updateById({
@@ -159,10 +159,10 @@ export default class AIChatApplication {
     async clearUserSelectedChatHistory(user: User) {
         const result = new OperationResult();
 
-        if (!user.selectedChat)
+        if (!user.telegram?.selectedChat)
             return result.failed("selectChatBeforeUse");
 
-        return this.clearPromptHistory(user.selectedChat.id);
+        return this.clearPromptHistory(user.telegram.selectedChat.id);
     }
 
     async getLastMessages(chatId: string, beforeMessageId: string | undefined, count: number) {

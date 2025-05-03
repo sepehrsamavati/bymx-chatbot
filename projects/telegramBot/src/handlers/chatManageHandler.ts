@@ -24,7 +24,7 @@ export const chatManageHandler: IUpdateHandler = {
         if (queryData?.startsWith("manageChat_")) {
             const chatId = queryData.replace("manageChat_", "");
 
-            if (context.user.selectedChat?.id !== chatId)
+            if (context.user.telegram?.selectedChat?.id !== chatId)
                 return null;
 
             const chatPanel = await getChatPanel(context, chatId);
@@ -44,7 +44,7 @@ export const chatManageHandler: IUpdateHandler = {
         } else if (queryData?.startsWith("renameChat_")) {
             const chatId = queryData.replace("renameChat_", "");
 
-            if (context.user.selectedChat?.id !== chatId)
+            if (context.user.telegram?.selectedChat?.id !== chatId)
                 return null;
 
             await context.services.userApplication.setUserMode(context.user.id, UserMode.ChatManagement.ChangeTitle);
@@ -56,8 +56,8 @@ export const chatManageHandler: IUpdateHandler = {
                     text: "sendNewTitle"
                 }
             };
-        } else if (queryData === "changeChatModel" && context.user.selectedChat) {
-            const _modelListPanel = await getModelListPanel(context, context.user.selectedChat.id);
+        } else if (queryData === "changeChatModel" && context.user.telegram?.selectedChat) {
+            const _modelListPanel = await getModelListPanel(context, context.user.telegram?.selectedChat.id);
 
             if (!_modelListPanel)
                 return null;
@@ -74,7 +74,7 @@ export const chatManageHandler: IUpdateHandler = {
         } else if (queryData?.startsWith("selectChat_")) {
             const chatId = queryData.replace("selectChat_", "");
 
-            if (context.user.selectedChat?.id !== chatId) {
+            if (context.user.telegram?.selectedChat?.id !== chatId) {
                 const chat = await context.services.aiChatApplication.getUserChatById(context.user.id, chatId);
 
                 if (!chat)
@@ -82,8 +82,8 @@ export const chatManageHandler: IUpdateHandler = {
 
                 const res = await context.services.userApplication.setUserSelectedChatById(context.user, chat.id);
 
-                if (res.ok) {
-                    context.user.selectedChat = {
+                if (res.ok && context.user.telegram) {
+                    context.user.telegram.selectedChat = {
                         ...chat,
                         user: context.user
                     };
@@ -108,7 +108,7 @@ export const chatManageHandler: IUpdateHandler = {
             return null;
         } else if (queryData?.startsWith("changeChatModel_")) {
             const modelId = queryData.replace("changeChatModel_", "");
-            const chat = context.user.selectedChat;
+            const chat = context.user.telegram?.selectedChat;
 
             if (!chat)
                 return null;
@@ -137,8 +137,8 @@ export const chatManageHandler: IUpdateHandler = {
                     text: result.ok ? `✅ ${stringHelper.formatter(context.uiText.itemChangedSuccessfully, context.uiText.model)}` : `❌ ${context.uiText.changeModelFailed}`
                 }
             } : { shouldContinue: false };
-        } else if (text && context.user.mode === UserMode.ChatManagement.ChangeTitle) {
-            const selectedChatId = context.user.selectedChat?.id;
+        } else if (text && context.user.telegram?.mode === UserMode.ChatManagement.ChangeTitle) {
+            const selectedChatId = context.user.telegram.selectedChat?.id;
 
             if (!selectedChatId) {
                 await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);

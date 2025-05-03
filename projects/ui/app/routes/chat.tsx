@@ -10,7 +10,7 @@ import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
 import type { PromptViewModel } from "bymx-core/types";
 import AttachFile from "@mui/icons-material/AttachFile";
-// import UploadFile from "@mui/icons-material/UploadFile";
+import UploadFile from "@mui/icons-material/UploadFile";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
@@ -633,8 +633,8 @@ export default function Chat() {
                         ) : (
                             <label htmlFor="prompt-attachment">
                                 <IconButton size="small" disabled={waitingForCompletion} onClick={() => document.getElementById('prompt-attachment')?.click()}>
-                                    {/* <UploadFile /> */}
-                                    <AttachFile />
+                                    <UploadFile />
+                                    {/* <AttachFile /> */}
                                 </IconButton>
                                 <input
                                     id="prompt-attachment"

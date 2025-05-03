@@ -13,6 +13,7 @@ import type { Route } from "./+types/root";
 import { SnackbarProvider } from "notistack";
 import { ThemeProvider } from "@mui/material";
 import { CacheProvider } from "@emotion/react";
+import { stringHelper } from "bymx-core/shared";
 import HttpClient from "./core/helper/HttpClient";
 import Session, { SessionContext } from "./core/Session";
 import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
@@ -52,7 +53,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [, setTheme] = useState<ThemeName>('light');
+  const [themeName, setTheme] = useState<ThemeName>('light');
   const [, setDummyState] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const session = useMemo<Session>(() => {
@@ -63,14 +64,32 @@ export default function App() {
     return sessionInstance;
   }, []);
 
+  const {
+    cacheProviderValue,
+    themeProviderValue,
+  } = useMemo(() => {
+    let direction: "ltr" | "rtl" = "rtl";
+
+    if (session.uiText?._langCode) {
+      direction = stringHelper.langCodeToDirection(session.uiText._langCode);
+      window.document.documentElement.lang = session.uiText._langCode;
+      window.document.documentElement.dir = direction;
+    }
+
+    const cacheProviderValue = cacheRtl(direction);
+    const themeProviderValue = muiThemeOptions(session.themeManager, direction);
+
+    return { cacheProviderValue, themeProviderValue };
+  }, [themeName, session.themeManager, session.uiText._langCode]);
+
   return (
     <>
       <SnackbarProvider maxSnack={3}>
         <SnackbarProviderConfigurator />
       </SnackbarProvider>
-      <CacheProvider value={cacheRtl}>
-        <ThemeProvider theme={muiThemeOptions(session.themeManager)}>
-          <SessionContext.Provider value={session}>
+      <CacheProvider value={cacheProviderValue}>
+        <ThemeProvider theme={themeProviderValue}>
+          <SessionContext.Provider key={session.uiText._langCode} value={session}>
             <Outlet />
           </SessionContext.Provider>
         </ThemeProvider>

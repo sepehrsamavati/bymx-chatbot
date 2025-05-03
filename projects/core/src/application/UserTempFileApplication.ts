@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { errorLogger, logger } from "../helpers/logger.js";
+import { FlattenToIDs } from "../types/contracts/entities.js";
 import { fileStorageHelper } from "../helpers/storageHelper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
-import { FlattenToIDs } from "../types/contracts/entities.js";
 
 export default class UserTempFileApplication {
     #userTempFileRepository;

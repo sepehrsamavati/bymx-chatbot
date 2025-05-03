@@ -31,7 +31,7 @@ export default class UserSubscriptionApplication {
         if (
             upsertDailyFree // should upsert daily free if needed/possible
             && !hasDailyFree // do not upsert if it's currently extracted
-            && isPhoneNumberSupported(user.phoneNumber) // do not upsert if account is not supported
+            && isPhoneNumberSupported(user.telegram?.phoneNumber) // do not upsert if account is not supported
         ) {
             const dailyFreeSubscription = await this.#upsertCurrentDayFreeSubscription(user.id);
 
@@ -183,7 +183,7 @@ export default class UserSubscriptionApplication {
 
         if (!activeDailyFreeSubscription) // daily free subscription not created
         {
-            if (!isPhoneNumberSupported(user.phoneNumber)) // no points available to unsupported accounts
+            if (!isPhoneNumberSupported(user.telegram?.phoneNumber)) // no points available to unsupported accounts
                 return {
                     subscription: null,
                     used: config.dailyFreePoints,

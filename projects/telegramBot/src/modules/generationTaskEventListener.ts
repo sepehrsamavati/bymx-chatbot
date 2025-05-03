@@ -14,7 +14,10 @@ export const cache = new Map<string, {
 export const init = (botUsername: string) => {
     falAiResultEventBus.on("internalProcessFinished", async (result, task) => {
         const cachedItem = cache.get(task.internalId);
-        const chatId = cachedItem?.update.message?.chat.id || task.user.tgId;
+        const chatId = cachedItem?.update.message?.chat.id || task.user.telegram?.id;
+
+        if (!chatId)
+            return;
 
         const context = {
             uiText: UIText.default[task.user.lang]

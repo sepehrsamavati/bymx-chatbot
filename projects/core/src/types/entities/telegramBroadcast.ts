@@ -10,7 +10,7 @@ export type TelegramBroadcast = {
     /** if not null -> not finished */
     endDate: Date | null;
     isForward: boolean;
-    pendingTgIds: User['tgId'][];
+    pendingTgIds: number[];
 }
 
 export type TelegramBroadcastDBModel = StoredEntity<TelegramBroadcast>;

@@ -77,7 +77,7 @@ export const getChatListPanel = async (context: RequestContext) => {
         reply_markup: {
             inline_keyboard: [
                 ...chats.map(chat => [
-                    context.user.selectedChat?.id === chat.id
+                    context.user.telegram?.selectedChat?.id === chat.id
                         ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
                         : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ]),
@@ -115,7 +115,7 @@ export const getUserSubscriptionsList = async (context: RequestContext) => {
 };
 
 export const getPanel = async (context: RequestContext) => {
-    const userInfo = await context.services.userApplication.getUserInfo({ tgId: context.user.tgId });
+    const userInfo = await context.services.userApplication.getUserInfo({ tgId: context.user.telegram?.id! });
 
     const inlineKeyboard = [
         [
@@ -152,10 +152,10 @@ export const getPanel = async (context: RequestContext) => {
 
     return {
         text: stringHelper.digitLocalization(
-            `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}${isPhoneNumberSupported(userInfo?.user.phoneNumber) ? "" : ` (${stringHelper.formatter(context.uiText.onlyAvailableToXUsers, context.uiText.iranian)})`}`
+            `${emojiIcon.point} ${context.uiText.dailyFreePoints}: ${userInfo?.dailyFreePoints ? `${userInfo.dailyFreePoints.remaining}/${userInfo.dailyFreePoints.total}` : '-'}${isPhoneNumberSupported(userInfo?.user.telegram?.phoneNumber) ? "" : ` (${stringHelper.formatter(context.uiText.onlyAvailableToXUsers, context.uiText.iranian)})`}`
             + `\n\n🔹 ${context.uiText.activePackages}: ${!Number.isNaN(userInfo?.activePurchasedPlans) && userInfo?.activePurchasedPlans !== 0 ? userInfo?.activePurchasedPlans : context.uiText.noActiveSubscription}`
             + `\n${emojiIcon.price} ${context.uiText.buyPlans}: /buy_plan`
-            + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.inviteCount ?? '-'}`
+            + `\n\n${emojiIcon.users} ${context.uiText.invitedCount}: ${userInfo?.user.telegram?.inviteCount ?? '-'}`
             + (
                 userInfo?.activePurchasedPlans && !Number.isNaN(userInfo?.paidSubscriptionsRemainingPoints)
                     ? `\n${emojiIcon.extraPoint} ${context.uiText.remainingPackagesPoints}: ${stringHelper.thousandSeparator(userInfo?.paidSubscriptionsRemainingPoints ?? "")}`
@@ -187,7 +187,7 @@ export const getAdminPanel = async (context: RequestContext) => {
             + `\n\n🔸 ${context.uiText.todayJoinedUsersCount}: ${statistics.todayJoinedUsersCount ?? '-'}`
             , context.user.lang
         )
-            + `\n${emojiIcon.list} ${context.uiText.newUsers}: ${statistics.recentlyJoinedUsers?.length ? "\n" + statistics.recentlyJoinedUsers.map(newUser => `${emojiIcon.user} /find_${newUser.tgId} ${newUser.firstName}`).join('\n') : '-'}`
+            + `\n${emojiIcon.list} ${context.uiText.newUsers}: ${statistics.recentlyJoinedUsers?.length ? "\n" + statistics.recentlyJoinedUsers.map(newUser => `${emojiIcon.user} /find_${newUser.telegram?.id} ${newUser.telegram?.firstName}`).join('\n') : '-'}`
         ,
         reply_markup: {
             inline_keyboard: [
@@ -453,15 +453,15 @@ export const getUserManagementText = (context: RequestContext, userInfo: UserEnt
     const lastUserActivityTimeString = stringHelper.digitLocalization(stringHelper.millisecondsToHumanReadable(Date.now() - userInfo.user.lastActivity, context.uiText), context.user.lang);
 
     return (
-        `${emojiIcon.identifier} ${userInfo.user.tgId}${userInfo.user.username ? " @" + userInfo.user.username : ""}`
-        + `\n${userInfo.user.firstName}${userInfo.user.lastName ? ` ${userInfo.user.lastName}` : ""}`
+        `${emojiIcon.identifier} ${userInfo.user.telegram?.id}${userInfo.user.telegram?.username ? " @" + userInfo.user.telegram?.username : ""}`
+        + `\n${userInfo.user.telegram?.firstName}${userInfo.user.telegram?.lastName ? ` ${userInfo.user.telegram?.lastName}` : ""}`
         + `\n\n${emojiIcon.info} ${UserStatus[userInfo.user.status]}`
         + `\n${emojiIcon.phoneInHand} ${new Date(userInfo.user.lastActivity).toLocaleString()} ${lastUserActivityTimeString}`
         + `\n${emojiIcon.free} ${userInfo.dailyFreePoints?.remaining ?? '-'} ${emojiIcon.point}`
         + `\n${emojiIcon.extraPoint} ${userInfo.paidSubscriptionsRemainingPoints ?? '-'} ${emojiIcon.point}`
-        + `\n${emojiIcon.contact} ${userInfo.user.phoneNumber ?? '-'}`
-        + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.tgId}`
-        + `\n\nReply these to any message to send/forward:\n/send_${userInfo.user.tgId}\n/forward_${userInfo.user.tgId}`
+        + `\n${emojiIcon.contact} ${userInfo.user.telegram?.phoneNumber ?? '-'}`
+        + `\n\n${emojiIcon.forbidden} /${userInfo.user.status === UserStatus.Banned ? "unban" : "ban"}${userInfo.user.telegram?.id}`
+        + `\n\nReply these to any message to send/forward:\n/send_${userInfo.user.telegram?.id}\n/forward_${userInfo.user.telegram?.id}`
     )
 };
 
@@ -555,7 +555,7 @@ export const getStaticPaymentReceiptPanel = async (context: RequestContext, paym
     return {
         text: (
             (
-                paymentUser ? (`${emojiIcon.user} ${paymentUser.firstName} /find_${paymentUser.tgId}`) : (`${emojiIcon.user} ${emojiIcon.failed} User not found`)
+                paymentUser ? (`${emojiIcon.user} ${paymentUser.telegram?.firstName} /find_${paymentUser.telegram?.id}`) : (`${emojiIcon.user} ${emojiIcon.failed} User not found`)
             )
             + `\n\n${emojiIcon.calendar} ${stringHelper.dateLocalization(payment.date, context.user.lang)}`
             + `\n\n${paymentStatusIcon[payment.status]} ${context.uiText.status}: ${PaymentStatus[payment.status]}`
@@ -577,7 +577,7 @@ export const getStaticPaymentReceiptInfoKeyboard = (opts: {
     return {
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.identifier} ${opts.customer.tgId}`, url: startLinkGenerator(opts.botUsername, "getUser_" + opts.customer.tgId) }],
+                [{ text: `${emojiIcon.identifier} ${opts.customer.telegram?.id}`, url: startLinkGenerator(opts.botUsername, "getUser_" + opts.customer.telegram?.id) }],
                 [{ text: `${emojiIcon.calendar} ${stringHelper.dateLocalization(opts.payment.date, opts.customer.lang)}`, url: managePaymentLink }],
                 [{ text: `${emojiIcon.refresh} ${stringHelper.dateLocalization(new Date(), "en")}`, callback_data: `refreshReceipt_${opts.payment.id}` }],
                 [{ text: `${emojiIcon.info} View`, url: managePaymentLink }, { text: `${paymentStatusIcon[opts.payment.status]} ${PaymentStatus[opts.payment.status]}`, url: managePaymentLink }],

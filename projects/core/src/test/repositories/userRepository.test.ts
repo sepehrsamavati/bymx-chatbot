@@ -21,19 +21,19 @@ test('User repository', async helpers => {
         const result = await services.repositories.userRepository.getBy({ id: sampleUser.createdUserId });
         const user = result as User;
         assert.notStrictEqual(result, null);
-        assert.strictEqual(user.username, undefined);
-        assert.strictEqual(JSON.stringify({ id: user.id, tgId: user.tgId }), JSON.stringify({ id: sampleUser.createdUserId, tgId: sampleUser.userTgId }));
+        assert.strictEqual(user.telegram?.username, undefined);
+        assert.strictEqual(JSON.stringify({ id: user.id, tgId: user.telegram?.id }), JSON.stringify({ id: sampleUser.createdUserId, tgId: sampleUser.userTgId }));
     });
 
     await helpers.test('Get by Telegram ID', async () => {
-        const result = await services.repositories.userRepository.getBy({ tgId: sampleUser.userTgId });
+        const result = await services.repositories.userRepository.getBy({ telegram: { id: sampleUser.userTgId } });
         const user = result as User;
         assert.notStrictEqual(result, null);
-        assert.strictEqual(user.username, undefined);
+        assert.strictEqual(user.telegram?.username, undefined);
         assert.strictEqual(
             JSON.stringify({
                 id: user.id,
-                tgId: user.tgId,
+                tgId: user.telegram?.id,
                 lastActivity: user.lastActivity
             }),
             JSON.stringify({
@@ -45,14 +45,14 @@ test('User repository', async helpers => {
     });
 
     await helpers.test('Get and update', async update => {
-        const result = await services.repositories.userRepository.getAndUpdate({ username: sampleUser.username }, { tgId: sampleUser.userTgId });
+        const result = await services.repositories.userRepository.getAndUpdate({ telegramUsername: sampleUser.tgUsername }, { telegram: { id: sampleUser.userTgId } });
         const user = result as User;
         assert.notStrictEqual(result, null);
-        assert.strictEqual(user.username, undefined);
+        assert.strictEqual(user.telegram?.username, undefined);
         assert.strictEqual(
             JSON.stringify({
                 id: user.id,
-                tgId: user.tgId,
+                tgId: user.telegram?.id,
                 lastActivity: user.lastActivity,
                 usage: user.usage
             }),
@@ -68,7 +68,7 @@ test('User repository', async helpers => {
             const result = await services.repositories.userRepository.getBy({ id: sampleUser.createdUserId });
             const user = result as User;
             assert.notStrictEqual(result, null);
-            assert.strictEqual(user.username, sampleUser.username);
+            assert.strictEqual(user.telegram?.username, sampleUser.tgUsername);
             assert.strictEqual(user.usage, 1);
             assert.strictEqual(user.lastActivity > sampleUser.createUserPayload.lastActivity, true);
         });

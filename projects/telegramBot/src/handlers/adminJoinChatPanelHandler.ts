@@ -25,7 +25,7 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
 
         switch (queryData) {
             case "joinRequiredChatsPanel": {
-                if (context.user.mode !== UserMode.General.Normal)
+                if (context.user.telegram?.mode !== UserMode.General.Normal)
                     await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
                 const _joinRequiredChatsPanel = await getJoinRequiredChatsPanel(context);
@@ -82,7 +82,7 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
             );
 
             return { shouldContinue: false };
-        } else if (context.user.mode === UserMode.JoinRequiredChatManagement.AddNew && update.message) {
+        } else if (context.user.telegram?.mode === UserMode.JoinRequiredChatManagement.AddNew && update.message) {
             let chat: Chat | null = null, link = "";
 
             if (update.message.text && update.message.reply_to_message?.forward_origin) {
@@ -114,7 +114,7 @@ export const adminJoinChatPanelHandler: IUpdateHandler = {
                 TelegramMethods.GetChatMember,
                 {
                     chat_id: chatId,
-                    user_id: context.user.tgId
+                    user_id: context.user.telegram.id
                 }
             );
 

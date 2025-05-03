@@ -3,24 +3,30 @@ import { prefixer } from 'stylis';
 import createCache from '@emotion/cache';
 import rtlPlugin from 'stylis-plugin-rtl';
 import { faIR } from '@mui/material/locale';
-import { createTheme } from '@mui/material/styles';
+import { createTheme, type Direction } from '@mui/material/styles';
 import type ThemeManager from '../helper/ThemeManager';
 
 const ThemeNames = ['light', 'dark'] as const;
 
 export type ThemeName = typeof ThemeNames[number];
 
-export const cacheRtl = createCache({
-    key: 'muirtl',
-    stylisPlugins: [prefixer, rtlPlugin],
-});
+export const cacheRtl = (languageDirection: Direction) => languageDirection === "rtl" ? (
+    createCache({
+        key: 'muirtl',
+        stylisPlugins: [prefixer, rtlPlugin],
+    })
+) : (
+    createCache({
+        key: 'muiltr',
+    })
+);
 
-export const muiThemeOptions = (themeManager: ThemeManager) => {
+export const muiThemeOptions = (themeManager: ThemeManager, languageDirection: Direction) => {
     const theme = themeManager.name;
     const _colors = colors;
 
     return createTheme({
-        direction: 'rtl',
+        direction: languageDirection,
         palette: {
             mode: theme,
             primary: {

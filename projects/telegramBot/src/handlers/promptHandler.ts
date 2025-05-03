@@ -398,7 +398,7 @@ export const promptHandler: IUpdateHandler = {
                 form.append("reply_to_message_id", update.message?.message_id.toString() as string);
                 form.append("reply_markup", JSON.stringify({
                     inline_keyboard: [
-                        [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                        [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.telegram?.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                     ]
                 }));
                 form.append('duration', result.audio.duration.toString());
@@ -424,7 +424,7 @@ export const promptHandler: IUpdateHandler = {
                         parse_mode: result.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                                [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.telegram?.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
                             ]
                         }
                     }

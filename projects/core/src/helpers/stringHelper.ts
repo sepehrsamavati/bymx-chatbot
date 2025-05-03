@@ -93,6 +93,11 @@ const stringHelper = {
     },
     isRtl(text: string) {
         return rtlRegex.test(text.charAt(0));
+    },
+    langCodeToDirection(langCode: string) {
+        if (langCode === 'fa')
+            return "rtl";
+        return "ltr";
     }
 }
 

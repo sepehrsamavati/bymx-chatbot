@@ -11,13 +11,13 @@ export const inviteHandler: IUpdateHandler = {
     mode: UserMode.General.Normal,
     async handler(context) {
 
-        if (context.user.invite?.used === false) {
+        if (context.user.telegram?.invite?.used === false) {
             const useInviteRes = await context.services.userApplication.useInvite(context.user);
-            if (useInviteRes.ok && useInviteRes.data)
+            if (useInviteRes.ok && useInviteRes.data && useInviteRes.data.inviter.telegram)
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
-                        chat_id: useInviteRes.data.inviter.tgId,
+                        chat_id: useInviteRes.data.inviter.telegram.id,
                         text: `${emojiIcon.ok} ${context.uiText.userJoinedWithYourInviteLink}`
                     }
                 );

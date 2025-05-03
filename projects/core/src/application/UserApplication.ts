@@ -3,6 +3,7 @@ import { logger } from "../helpers/logger.js";
 import type { ServicesType } from "../Container.js";
 import { AIChat } from "../types/entities/aiChat.js";
 import { UserType } from "../types/enums/userTypes.js";
+import { LangCode, langCodes } from "../i18n/UIText.js";
 import { getTodayRange } from "../helpers/dateHelper.js";
 import { accessHelper } from "../helpers/accessHelper.js";
 import { UserStatus } from "../types/enums/userStatus.js";
@@ -11,7 +12,6 @@ import { UserMode, type UserModeType } from "../types/enums/userMode.js";
 import { AIChatHistoryMemory } from "../types/enums/aiChatHistoryMemory.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../types/entities/user.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
-import { LangCode, langCodes } from "../i18n/UIText.js";
 
 export default class UserApplication {
     #userRepository;
@@ -31,11 +31,11 @@ export default class UserApplication {
     }
 
     async upsert(user: UpsertUserModel) {
-        const _user = await this.#userRepository.getAndUpdate({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-        }, { tgId: user.tgId });
+        const _user = user.telegram ? await this.#userRepository.getAndUpdate({
+            telegramFirstName: user.telegram?.firstName,
+            telegramLastName: user.telegram?.lastName,
+            telegramUsername: user.telegram?.username,
+        }, { telegram: { id: user.telegram.id } }) : undefined;
 
         if (_user) {
             return _user;
@@ -46,12 +46,15 @@ export default class UserApplication {
                 isDeleted: false,
                 insertDate: new Date(),
                 lastActivity: Date.now(),
-                mode: UserMode.General.Normal,
+                telegram: user.telegram ? {
+                    ...user.telegram,
+                    inviteCount: 0,
+                    mode: UserMode.General.Normal,
+                } : undefined,
                 status: UserStatus.EULA,
                 type: UserType.Normal,
                 memoryAmount: 3,
                 saveMessages: true,
-                inviteCount: 0,
                 voiceResponse: {
                     on: false,
                     type: "onyx",
@@ -82,7 +85,7 @@ export default class UserApplication {
         }
 
         const updateResult = await this.#userRepository.update(user.id, {
-            selectedChat: chat ? {
+            telegramSelectedChat: chat ? {
                 ...chat,
                 user: user
             } : undefined
@@ -94,11 +97,11 @@ export default class UserApplication {
         return result;
     }
 
-    async setUserMode(userId: User['id'], mode: UserModeType) {
+    async setUserMode(userId: User['id'], tgMode: UserModeType) {
         const result = new OperationResult().failed("errorOccurred");
 
         const updateResult = await this.#userRepository.update(userId, {
-            mode: mode
+            telegramMode: tgMode
         });
 
         if (updateResult?.ok)
@@ -120,9 +123,9 @@ export default class UserApplication {
         return result;
     }
 
-    async setStatusByTelegramId(tgId: User['tgId'], status: UserStatus) {
+    async setStatusByTelegramId(tgId: number, status: UserStatus) {
         const user = await this.#userRepository.getBy({
-            tgId,
+            telegram: { id: tgId },
             isDeleted: false,
         });
 
@@ -132,11 +135,11 @@ export default class UserApplication {
         return this.setUserStatus(user.id, status);
     }
 
-    async setUserPhoneNumber(userId: User['id'], phoneNumber: string, setStatus = false) {
+    async setUserPhoneNumber(userId: User['id'], telegramPhoneNumber: string, setStatus = false) {
         const result = new OperationResult();
 
         const updateResult = await this.#userRepository.update(userId, {
-            phoneNumber: phoneNumber,
+            telegramPhoneNumber: telegramPhoneNumber,
             status: setStatus ? UserStatus.OK : undefined,
         });
 
@@ -207,16 +210,16 @@ export default class UserApplication {
 
     getUserInfo(opts: { id: string }): Promise<UserInfoModel | null>;
     getUserInfo(opts: { tgId: number }): Promise<UserInfoModel | null>;
-    getUserInfo(opts: { username: string }): Promise<UserInfoModel | null>;
-    async getUserInfo(opts: { id: string } | { tgId: number } | { username: string }): Promise<UserInfoModel | null> {
+    getUserInfo(opts: { tgUsername: string }): Promise<UserInfoModel | null>;
+    async getUserInfo(opts: { id: string } | { tgId: number } | { tgUsername: string }): Promise<UserInfoModel | null> {
         let user: User | null = null;
 
         if ('tgId' in opts)
-            user = await this.#userRepository.getBy({ tgId: opts.tgId });
+            user = await this.#userRepository.getBy({ telegram: { id: opts.tgId } });
         else if ('id' in opts)
             user = await this.#userRepository.getBy({ id: opts.id });
-        else if ('username' in opts)
-            user = await this.#userRepository.getBy({ username: opts.username });
+        else if ('tgUsername' in opts)
+            user = await this.#userRepository.getBy({ telegram: { username: opts.tgUsername } });
 
         if (!user)
             return null;
@@ -250,11 +253,11 @@ export default class UserApplication {
     }
 
     async getUserByTgId(tgId: number): Promise<User | null> {
-        return await this.#userRepository.getBy({ tgId: tgId });
+        return await this.#userRepository.getBy({ telegram: { id: tgId } });
     }
 
-    async getUserByPhoneNumber(phoneNumber: string): Promise<User | null> {
-        return await this.#userRepository.getBy({ phoneNumber: phoneNumber });
+    async getUserByPhoneNumber(telegramPhoneNumber: string): Promise<User | null> {
+        return await this.#userRepository.getBy({ telegram: { phoneNumber: telegramPhoneNumber } });
     }
 
     async useInvite(invitedUser: User) {
@@ -278,14 +281,14 @@ export default class UserApplication {
             return result;
         };
 
-        if (!invitedUser.invite || invitedUser.invite.used || invitedUser.status !== UserStatus.OK)
+        if (!invitedUser.telegram?.invite || invitedUser.telegram.invite.used || invitedUser.status !== UserStatus.OK)
             return await rollback();
 
-        const inviter = await this.getUserById(invitedUser.invite.by);
-        const setInviteAsUsed = () => this.#userRepository.update(invitedUser.id, { inviteUsed: true });
+        const inviter = await this.getUserById(invitedUser.telegram.invite.by);
+        const setInviteAsUsed = () => this.#userRepository.update(invitedUser.id, { telegramInviteUsed: true });
 
         if (!inviter) {
-            logger.warn(`Inviter '${invitedUser.invite.by}' of user '${invitedUser.id}' not found! Skipping invite...`);
+            logger.warn(`Inviter '${invitedUser.telegram.invite.by}' of user '${invitedUser.id}' not found! Skipping invite...`);
             await setInviteAsUsed();
             return await rollback();
         }

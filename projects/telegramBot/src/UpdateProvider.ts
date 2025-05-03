@@ -33,7 +33,7 @@ export class UpdateProvider {
                 const user = await this.#services.core.applications.userApplication.getUserById(item.userId);
                 if (user) {
                     await this.#services.payment.applications.paymentApplication.cancel(user.id);
-                    if (user.mode === UserMode.General.StaticPayment)
+                    if (user.telegram?.mode === UserMode.General.StaticPayment)
                         await this.#services.core.applications.userApplication.setUserMode(user.id, UserMode.General.Normal);
                     tgCall(
                         TelegramMethods.SendMessage,

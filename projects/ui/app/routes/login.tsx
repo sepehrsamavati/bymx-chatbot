@@ -9,6 +9,7 @@ import CenteredContent from "~/layout/centeredContent";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Alert, Box, CssBaseline, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { getLanguageList } from "~/core/i18n/i18n";
 
 enum FormState {
     EnterPhoneNumber,
@@ -100,7 +101,7 @@ export default function Login() {
                             value={session.localStorage.data.language}
                             label={session.uiText.language}
                         >
-                            {UIText.langCodes.map(langCode => <MenuItem selected={session.localStorage.data.language === langCode} key={langCode} value={langCode}>{langCode}</MenuItem>)}
+                            {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Stack>
@@ -119,7 +120,9 @@ export default function Login() {
                                                 slotProps={{
                                                     htmlInput: {
                                                         sx: {
+                                                            textAlign: "center",
                                                             fontFamily: "monospace",
+                                                            direction: session.fixDirection("ltr"),
                                                         }
                                                     }
                                                 }}
@@ -138,7 +141,9 @@ export default function Login() {
                                                 slotProps={{
                                                     htmlInput: {
                                                         sx: {
+                                                            textAlign: "center",
                                                             fontFamily: "monospace",
+                                                            direction: session.fixDirection("ltr"),
                                                         }
                                                     }
                                                 }}
