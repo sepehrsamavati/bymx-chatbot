@@ -1,15 +1,16 @@
 import { UIText } from "./i18n/i18n";
 import colors from "./config/colors";
-import type { PaletteMode } from "@mui/material";
 import ThemeManager from "./helper/ThemeManager";
 import userService from "./services/userService";
 import { createContext, useContext } from "react";
 import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
+import type { Direction, PaletteMode } from "@mui/material";
 import type { LocalStorage_v2 } from "../types/localStorage";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
+import { stringHelper } from "bymx-core/shared";
 
 type CacheStorageItem<T> = {
     data: T;
@@ -121,6 +122,14 @@ export default class Session {
         isLoggedIn: false,
         language: "en",
     });
+
+    public fixDirection(targetDirection: Direction) {
+        const langDir = stringHelper.langCodeToDirection(this.uiText._langCode);
+        if (langDir === "ltr")
+            return targetDirection; // no change
+        else
+            return targetDirection === "rtl" ? "ltr" : "rtl"; // invert
+    }
 
     private refreshUiText() {
         const uit = new UIText(this.localStorage.data.language, () => this.refreshUI()).getObject();

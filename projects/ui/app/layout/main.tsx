@@ -16,6 +16,7 @@ import CreditCard from "@mui/icons-material/CreditCard";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
 import { Box, Button, Chip, Divider, Drawer, FormControl, InputLabel, MenuItem, Select, Skeleton, Typography, type SelectChangeEvent } from "@mui/material";
+import { getLanguageList } from "~/core/i18n/i18n";
 
 function DrawerItem(props?: {
     title?: React.ReactNode;
@@ -208,7 +209,7 @@ function Header() {
                                     value={session.localStorage.data.language}
                                     label={session.uiText.language}
                                 >
-                                    {UIText.langCodes.map(langCode => <MenuItem selected={session.localStorage.data.language === langCode} key={langCode} value={langCode}>{langCode}</MenuItem>)}
+                                    {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </DrawerItem>

@@ -1,14 +1,20 @@
 import uitService from "../services/uitService";
-import type { UIText as CoreUIText } from "bymx-core/shared";
+import { UIText as CoreUIText } from "bymx-core/shared";
 
 export type I18nKey = CoreUIText.UITextKey;
 export type I18nLanguage = Record<I18nKey, string>;
 
 const emptyLanguageData = {} as I18nLanguage;
+const codeToNameMap = ({
+    fa: "فارسی",
+    en: "English"
+});
 
 // const languageMap = {
 //     fa: () => import("./fa.json"),
 // };
+
+export const getLanguageList = () => CoreUIText.langCodes.map(langCode => ({ title: codeToNameMap[langCode], langCode }));
 
 export class UIText {
     #instance;
