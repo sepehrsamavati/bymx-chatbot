@@ -87,6 +87,7 @@ export type UserInfoModel = {
         used: number;
         remaining: number;
         total: number;
+        isSupported: boolean;
     } | null;
     paidSubscriptionsRemainingPoints: number | null;
     activePurchasedPlans: number | null;

@@ -67,23 +67,28 @@ function ProfileInfo() {
             {/* {data.dailyFreePoints ? ( */}
             <DrawerItem
                 title={
-                    <Button type="button" variant="text" color="inherit" startIcon={<OfflineBolt sx={{ mb: '2px' }} />}>
+                    <Button size="small" type="button" variant="text" color="inherit" startIcon={<OfflineBolt sx={{ mb: '2px' }} />}>
                         {session.uiText.dailyFreePoints}
                     </Button>
                 }
             >
                 {data?.dailyFreePoints ? (
-                    <Chip
-                        size="small"
-                        color={data.dailyFreePoints.remaining <= 10 ? "warning" : "success"}
-                        label={stringHelper.digitLocalization(`${data.dailyFreePoints.remaining}/${data.dailyFreePoints.total}`, session.uiText._langCode)}
-                    />
+                    <Box textAlign="end">
+                        <Chip
+                            size="small"
+                            color={data.dailyFreePoints.remaining <= 10 ? "warning" : "success"}
+                            label={stringHelper.digitLocalization(`${data.dailyFreePoints.remaining}/${data.dailyFreePoints.total}`, session.uiText._langCode)}
+                        />
+                        {!data.dailyFreePoints.isSupported ? (
+                            <Typography fontSize="0.6em" fontStyle="italic">({stringHelper.formatter(session.uiText.onlyAvailableToXUsers, session.uiText.iranian)})</Typography>
+                        ) : null}
+                    </Box>
                 ) : <Skeleton width={80} />}
             </DrawerItem>
             {/* ) : null} */}
             <DrawerItem
                 title={
-                    <Button type="button" variant="text" color="inherit" startIcon={<CreditCard sx={{ mb: '2px' }} />}>
+                    <Button size="small" type="button" variant="text" color="inherit" startIcon={<CreditCard sx={{ mb: '2px' }} />}>
                         {session.uiText.activePackages}
                     </Button>
                 }

@@ -207,7 +207,7 @@ export default function Login() {
                                         }}
                                         onChange={e => {
                                             const value = e.target.value.toUpperCase().trim();
-                                            if (value.length > 10)
+                                            if (value.length < 10)
                                                 setOtp(value);
                                         }}
                                     />

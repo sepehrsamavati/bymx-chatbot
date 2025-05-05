@@ -12,6 +12,7 @@ import { UserMode, type UserModeType } from "../types/enums/userMode.js";
 import { AIChatHistoryMemory } from "../types/enums/aiChatHistoryMemory.js";
 import type { UpsertUserModel, User, UserInfoModel } from "../types/entities/user.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import isPhoneNumberSupported from "../helpers/isPhoneNumberSupported.js";
 
 export default class UserApplication {
     #userRepository;
@@ -242,6 +243,7 @@ export default class UserApplication {
                 used: dailyFreePointStatus?.used,
                 remaining: dailyFreePointStatus?.remaining,
                 total: dailyFreePointStatus?.total,
+                isSupported: isPhoneNumberSupported(user.telegram?.phoneNumber),
             } : null,
             activePurchasedPlans: result.paidSubscriptions.length,
             paidSubscriptionsRemainingPoints: result.paidSubscriptionsTotalRemainingPoints,
