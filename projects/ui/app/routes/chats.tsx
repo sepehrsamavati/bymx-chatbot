@@ -7,8 +7,9 @@ import Edit from "@mui/icons-material/Edit";
 import Close from "@mui/icons-material/Close";
 import type { CaptionOnly } from "bymx-core/types";
 import chatService from "~/core/services/chatService";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, ButtonGroup, IconButton, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Box, ButtonGroup, Modal, Stack, TextField, Typography } from "@mui/material";
 
 export default function Chats() {
     const navigate = useNavigate();
@@ -125,53 +126,58 @@ export default function Chats() {
                 </Box>
             </Modal>
 
-            <Stack direction="column" height="100%" marginTop={5} gap={1}>
-                {canCreateNewChat ? (
-                    <Button
-                        color="success"
-                        variant="outlined"
-                        onClick={createNewChat}
-                        isLoading={creatingNewChat}
-                        startIcon={<Add />}
-                        sx={{
-                            margin: 2,
-                            borderRadius: 10,
-                        }}
-                    >{session.uiText.newChat}</Button>
-                ) : null}
-                {chats.map(chat => (
-                    <Box key={chat.id} marginInline={2}>
-                        <ButtonGroup
-                            fullWidth
-                            key={chat.id}
-                            variant="contained"
-                            color="inherit"
+            <Stack alignItems="center">
+                <Stack direction="column" width="100%" maxWidth="700px" marginTop={5} gap={1}>
+                    <Stack direction="column" alignItems="center" justifyContent="center">
+                        <Button size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}</Button>
+                    </Stack>
+                    {canCreateNewChat ? (
+                        <Button
+                            color="success"
+                            variant="outlined"
+                            onClick={createNewChat}
+                            isLoading={creatingNewChat}
+                            startIcon={<Add />}
                             sx={{
+                                margin: 2,
                                 borderRadius: 10,
-                                "> button": {
-                                    borderRadius: 10,
-                                }
                             }}
-                        >
-                            <Button fullWidth color="inherit" onClick={() => navigate(`/ui/chat/${chat.id}`)}>
-                                <Box width="100%">{chat.caption || session.uiText.noTitle}</Box>
-                            </Button>
-                            <Button
-                                fullWidth={false}
+                        >{session.uiText.newChat}</Button>
+                    ) : null}
+                    {chats.map(chat => (
+                        <Box key={chat.id} marginInline={2}>
+                            <ButtonGroup
+                                fullWidth
+                                key={chat.id}
+                                variant="contained"
                                 color="inherit"
-                                onClick={() => {
-                                    setNewTitle({
-                                        chatId: chat.id,
-                                        title: chat.caption,
-                                    });
-                                    setTitleModalOpen(true);
+                                sx={{
+                                    borderRadius: 10,
+                                    "> button": {
+                                        borderRadius: 10,
+                                    }
                                 }}
                             >
-                                <Edit />
-                            </Button>
-                        </ButtonGroup>
-                    </Box>
-                ))}
+                                <Button fullWidth color="inherit" onClick={() => navigate(`/ui/chat/${chat.id}`)}>
+                                    <Box width="100%" textTransform="initial">{chat.caption || session.uiText.noTitle}</Box>
+                                </Button>
+                                <Button
+                                    fullWidth={false}
+                                    color="inherit"
+                                    onClick={() => {
+                                        setNewTitle({
+                                            chatId: chat.id,
+                                            title: chat.caption,
+                                        });
+                                        setTitleModalOpen(true);
+                                    }}
+                                >
+                                    <Edit />
+                                </Button>
+                            </ButtonGroup>
+                        </Box>
+                    ))}
+                </Stack>
             </Stack>
         </>
     );
