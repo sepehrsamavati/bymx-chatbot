@@ -11,11 +11,13 @@ import fileService from "~/core/services/fileService";
 import type { PromptViewModel } from "bymx-core/types";
 import AttachFile from "@mui/icons-material/AttachFile";
 import UploadFile from "@mui/icons-material/UploadFile";
+import FreeModelIcon from "@mui/icons-material/MoneyOff";
+import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, Chip, CircularProgress, FormControl, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -531,7 +533,14 @@ export default function Chat() {
                         displayEmpty
                     >
                         {session.chatModels.map(model => (
-                            <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>{model.caption}</MenuItem>
+                            <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
+                                <Stack direction="row" alignItems="center">
+                                    <Icon fontSize="small">
+                                        {model.caption.toLowerCase().startsWith("chatgpt") ? <CostlyModelIcon color="warning" fontSize="small" /> : <FreeModelIcon color="success" fontSize="small" />}
+                                    </Icon>
+                                    {model.caption}
+                                </Stack>
+                            </MenuItem>
                         ))}
                     </Select>
 
