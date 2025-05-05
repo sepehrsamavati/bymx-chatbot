@@ -63,6 +63,9 @@ export default function Login() {
             navigate("/ui/");
     }, [session, navigate]);
 
+    const enterPhoneNumberFormIsValid = fullPhoneNumber?.isValid() === true;
+    const enterOtpFormIsValid = otp.length > 3;
+
     return (
         <CenteredContent>
             <Box
@@ -107,9 +110,15 @@ export default function Login() {
                 </Stack>
                 <CssBaseline />
                 <Box>
-                    <Grid container width="100%" gap={3} marginBlock={4} justifyContent="end">
-                        {formState === FormState.EnterPhoneNumber ? (
-                            <>
+                    {formState === FormState.EnterPhoneNumber ? (
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault();
+                                if (enterPhoneNumberFormIsValid)
+                                    requestTelegramOtp();
+                            }}
+                        >
+                            <Grid container width="100%" gap={3} marginBlock={4} justifyContent="end">
                                 <Grid size={{ xs: 12 }}>
                                     <Stack direction="row">
                                         <Box width="80px">
@@ -136,6 +145,7 @@ export default function Login() {
                                             <TextField
                                                 type="text"
                                                 fullWidth
+                                                autoFocus
                                                 label={session.uiText.phoneNumber}
                                                 value={phoneNumber}
                                                 slotProps={{
@@ -158,18 +168,25 @@ export default function Login() {
                                 <Grid>
                                     <Button
                                         size="small"
-                                        type="button"
+                                        type="submit"
                                         color="success"
                                         startIcon={<ChevronLeft />}
                                         isLoading={isLoading}
-                                        disabled={fullPhoneNumber?.isValid() !== true}
-                                        onClick={requestTelegramOtp}
+                                        disabled={!enterPhoneNumberFormIsValid}
                                     >{session.uiText.requestOtp}</Button>
                                 </Grid>
-                            </>
-                        ) : null}
-                        {formState === FormState.EnterOTP ? (
-                            <>
+                            </Grid>
+                        </form>
+                    ) : null}
+                    {formState === FormState.EnterOTP ? (
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault();
+                                if (enterOtpFormIsValid)
+                                    telegramOtpAuth();
+                            }}
+                        >
+                            <Grid container width="100%" gap={3} marginBlock={4} justifyContent="end">
                                 <Grid size={{ xs: 12 }}>
                                     <Alert color="success">{session.uiText.otpSentToTelegram}</Alert>
                                 </Grid>
@@ -177,6 +194,7 @@ export default function Login() {
                                     <TextField
                                         type="text"
                                         fullWidth
+                                        autoFocus
                                         label={session.uiText.otp}
                                         value={otp}
                                         slotProps={{
@@ -188,24 +206,25 @@ export default function Login() {
                                             }
                                         }}
                                         onChange={e => {
-                                            const value = e.target.value.toUpperCase();
-                                            setOtp(value);
+                                            const value = e.target.value.toUpperCase().trim();
+                                            if (value.length > 10)
+                                                setOtp(value);
                                         }}
                                     />
                                 </Grid>
                                 <Grid>
                                     <Button
                                         size="small"
-                                        type="button"
+                                        type="submit"
                                         color="success"
                                         startIcon={<ChevronLeft />}
                                         isLoading={isLoading}
-                                        onClick={telegramOtpAuth}
+                                        disabled={!enterOtpFormIsValid}
                                     >{session.uiText.login}</Button>
                                 </Grid>
-                            </>
-                        ) : null}
-                    </Grid>
+                            </Grid>
+                        </form>
+                    ) : null}
                 </Box>
             </Box>
         </CenteredContent>
