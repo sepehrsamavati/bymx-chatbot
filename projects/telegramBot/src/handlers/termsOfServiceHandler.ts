@@ -1,7 +1,6 @@
 import tgCall from "../helpers/call.js";
 import { UserStatus } from "bymx-core/shared";
 import emojiIcon from "../helpers/emojiIcon.js";
-import { setTimeout } from 'node:timers/promises';
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
 import { getGivePhoneNumberPanel, getPanel } from "../modules/messages.js";
@@ -77,7 +76,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
             }
 
             return { shouldContinue: false };
-        } else if (update.message?.contact && context.user.status === UserStatus.PhoneNumber) {
+        } else if (update.message?.contact && !context.user.telegram?.phoneNumber) {
             const message = update.message;
             if (message.contact) {
                 const contactIsValid = !message.forward_origin && message.contact.user_id === message.from.id;
@@ -99,7 +98,11 @@ export const termsOfServiceHandler: IUpdateHandler = {
                 const _panel = await getPanel(context);
 
                 if (!_panel)
-                    return null;
+                    return {
+                        call: {
+                            text: `❌ ${context.uiText.errorOccurred}`
+                        }
+                    };
 
                 const userUpdateResult = await context.services.userApplication.setUserPhoneNumber(context.user.id, message.contact.phone_number, true);
 
@@ -112,6 +115,7 @@ export const termsOfServiceHandler: IUpdateHandler = {
 
                 // update memory
                 context.user.status = UserStatus.OK;
+                context.user.telegram!.phoneNumber = message.contact.phone_number;
 
                 await Promise.allSettled([
                     (message.reply_to_message ? tgCall(
@@ -153,8 +157,6 @@ export const termsOfServiceHandler: IUpdateHandler = {
 
                 const message = update.message ?? update.callback_query?.message;
 
-                await setTimeout(500);
-
                 await tgCall(
                     TelegramMethods.SendMessage,
                     {
@@ -175,8 +177,6 @@ export const termsOfServiceHandler: IUpdateHandler = {
             case UserStatus.PhoneNumber: {
 
                 const message = update.message ?? update.callback_query?.message;
-
-                await setTimeout(500);
 
                 await tgCall(
                     TelegramMethods.SendMessage,

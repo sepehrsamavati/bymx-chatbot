@@ -119,12 +119,20 @@ export const getPanel = async (context: RequestContext) => {
 
     const inlineKeyboard = [
         [
-            { text: context.uiText.chats, callback_data: "chats" },
-            { text: context.uiText.models, callback_data: "modelsUsage" },
+            {
+                text: `${emojiIcon.phone} ${context.uiText.webApplication}`,
+                web_app: {
+                    url: config.apiServer.baseAddress + "ui/tgAuth"
+                }
+            }
         ],
         [
             { text: `${emojiIcon.gift} ${context.uiText.inviteFriends}`, callback_data: "myInviteLink" },
             { text: `${emojiIcon.extraPoint} ${context.uiText.pointPackages}`, callback_data: "mySubscriptions" },
+        ],
+        [
+            { text: context.uiText.chats, callback_data: "chats" },
+            { text: context.uiText.models, callback_data: "modelsUsage" },
         ],
         [
             (
@@ -134,8 +142,6 @@ export const getPanel = async (context: RequestContext) => {
         ],
         [
             { text: `${emojiIcon.speaking} ${context.uiText.voiceResponse}`, callback_data: "voiceResponsePanel" },
-        ],
-        [
             { text: `${emojiIcon.tools} ${context.uiText.tools}`, callback_data: "aiTools" },
         ]
     ];
@@ -449,7 +455,7 @@ export const getModelListPanel = async (context: RequestContext, changeChatModel
 export const getUserManagementText = (context: RequestContext, userInfo: UserEntity.UserInfoModel | null): string => {
     if (!userInfo)
         return context.uiText.userNotFound;
-    
+
     const lastUserActivityTimeString = stringHelper.digitLocalization(stringHelper.millisecondsToHumanReadable(Date.now() - userInfo.user.lastActivity, context.uiText), context.user.lang);
 
     return (
