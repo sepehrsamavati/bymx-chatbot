@@ -6,6 +6,7 @@ import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
 import type { FastifyInstance } from "fastify";
+import FastifySocketIo from "fastify-socket.io";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
@@ -31,6 +32,7 @@ import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
+    const postListenConfigQueue: Array<() => void> = [];
 
     fastifyInstance.register(FastifyStatic, {
         root: path.join(__dirname, '../../../ui/build/client'),
@@ -38,6 +40,23 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         decorateReply: true,
         // index: "index.html",
         // constraints: { host: 'example.com' } // optional: default {}
+    });
+
+    fastifyInstance.register((socketIoController, _, next) => {
+        socketIoController.register(FastifySocketIo.default, {
+            path: httpServerUrls.v1.baseAddress + "/ws"
+        });
+
+        postListenConfigQueue.push(() => {
+            /** @todo */
+            socketIoController.io.on("connection", socket => {
+                socket.emit("hello", { message: "Hello from Socket.IO server running in fastify" });
+            });
+        });
+
+        next();
+    }, {
+        prefix: httpServerUrls.v1.baseAddress + "/ws",
     });
 
     fastifyInstance.register((fileController, _, next) => {
@@ -120,4 +139,10 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
     fastifyInstance.setNotFoundHandler(function (_req, res) {
         void res.sendFile('index.html')
     });
+
+    return {
+        runPostConfigs: () => {
+            postListenConfigQueue.forEach(fn => fn());
+        }
+    };
 };

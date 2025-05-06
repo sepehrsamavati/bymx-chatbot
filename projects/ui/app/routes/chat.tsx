@@ -1,5 +1,6 @@
 import * as PrismJS from "prismjs";
 import Markdown from "react-markdown";
+import { io } from 'socket.io-client';
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
 import ClearAll from "@mui/icons-material/ClearAll";
@@ -488,6 +489,17 @@ export default function Chat() {
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
             });
+
+        /** @todo */
+        const socket = io({
+            path: "/api/v1/ws",
+            autoConnect: false,
+        });
+        socket.on("hello", data => {
+            console.log(data)
+        });
+        socket.connect();
+        setInterval(() => console.log(socket.connected), 1e3);
     }, [getMessages, chatId]);
 
     useEffect(() => {

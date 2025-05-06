@@ -31,13 +31,14 @@ export default class HttpServer {
             done();
         });
 
-        setRoutes(this.#fastify);
+        const { runPostConfigs } = setRoutes(this.#fastify);
 
         this.#fastify.listen({
             port: config.apiServer.port,
         })
             .then(() => {
                 logger.info("Server started");
+                runPostConfigs();
             });
     }
 }

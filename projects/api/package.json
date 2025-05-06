@@ -17,9 +17,11 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "fastify": "^5.2.1",
+    "fastify-socket.io": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^2.1.35",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9",
