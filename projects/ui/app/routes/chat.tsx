@@ -1,15 +1,14 @@
 import * as PrismJS from "prismjs";
 import Markdown from "react-markdown";
-import { io } from 'socket.io-client';
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
+import { io, type Socket } from 'socket.io-client';
 import ClearAll from "@mui/icons-material/ClearAll";
 import MoreVert from "@mui/icons-material/MoreVert";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
-import type { PromptViewModel } from "bymx-core/types";
 import AttachFile from "@mui/icons-material/AttachFile";
 import UploadFile from "@mui/icons-material/UploadFile";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
@@ -18,6 +17,7 @@ import DeleteForever from "@mui/icons-material/DeleteForever";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { IOperationResultWithData, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
@@ -254,6 +254,8 @@ export default function Chat() {
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
+    const streamSubmit = useRef(() => void null);
+    const socketInstance = useRef<Socket>(null);
 
     const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
         if (!chatSectionRef.current) return;
@@ -344,6 +346,23 @@ export default function Chat() {
                 }
             })
             .finally(() => setWaitingForCompletion(false));
+    }, [chatId, inputText, uploadingFile]);
+
+    useEffect(() => {
+        streamSubmit.current = () => {
+            setWaitingForCompletion(true);
+
+            const _inputText = inputText;
+            const _attachmentFile = uploadingFile;
+
+            setInputText("");
+            setUploadingFile(undefined);
+            socketInstance.current?.emit("submitPrompt", {
+                chatId,
+                promptText: _inputText,
+                attachmentFileId: _attachmentFile?.id,
+            });
+        };
     }, [chatId, inputText, uploadingFile]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
@@ -491,15 +510,37 @@ export default function Chat() {
             });
 
         /** @todo */
-        const socket = io({
+        const socket = socketInstance.current = io({
             path: "/api/v1/ws",
             autoConnect: false,
         });
-        socket.on("hello", data => {
-            console.log(data)
+        socket.on("hello", () => console.info("Socket connected."));
+        socket.on("submitPromptResult", (res: IOperationResultWithData<{ outputChunk?: string; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; }>) => {
+            console.log(res.ok ? res.data : res.message)
+
+            if (res.data?.finished && res.data.isComplete) {
+                setWaitingForCompletion(false);
+                scrollToBottom(cb => setTimeout(() => cb(), 10));
+                setMessages(_current => [..._current, (
+                    {
+                        id: "new",
+                        inputDate: Date.now(),
+                        outputDate: Date.now(),
+                        modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                        input: inputText,
+                        // attachmentFilename: _attachmentFile?.name,
+                        output: res?.data?.plainText ?? "ERR",
+                        points: res?.data?.pointUsage as number,
+                    }
+                )]);
+            } else {
+                if (!res.ok)
+                    session.snackbarProvider(res.message, { variant: "error" });
+                // setInputText(_inputText);
+                // setUploadingFile(_attachmentFile);
+            }
         });
         socket.connect();
-        setInterval(() => console.log(socket.connected), 1e3);
     }, [getMessages, chatId]);
 
     useEffect(() => {
@@ -632,7 +673,10 @@ export default function Chat() {
                 <form
                     onSubmit={e => {
                         e.preventDefault();
-                        submitPrompt();
+                        if (socketInstance.current)
+                            streamSubmit.current();
+                        else
+                            submitPrompt();
                     }}
                 >
                     <Box

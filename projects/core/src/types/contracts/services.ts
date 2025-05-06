@@ -4,6 +4,8 @@ import type { AIModel } from "../entities/aiModel.js";
 import type { UserTempFile } from "../entities/userTempFile.js";
 import type { OperationResult } from "../../common/dto/OperationResult.js";
 
+export type StreamingChatResponseReader = (chunk: string, finished: boolean) => void;
+
 export type IOpenAITextResult = {
     output: string;
     isComplete: boolean;
@@ -38,6 +40,7 @@ export type IOpenAITextResultWithFile = {
 
 export type IOpenAIRequest = {
     inputMessage: string;
+    streamReader?: StreamingChatResponseReader;
     systemMessages?: (string | null | undefined)[];
     imageUrl?: string;
     messages: Array<Pick<Prompt, 'input' | 'output'>>;

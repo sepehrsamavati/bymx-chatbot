@@ -16,14 +16,14 @@ import type { AIModel } from "../types/entities/aiModel.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
 import { fileStorageHelper } from "../helpers/storageHelper.js";
 import { AIChatBehavior } from "../types/enums/aiChatBehavior.js";
-import { IOpenAITextResult } from "../types/contracts/services.js";
 import { AIModelProvider } from "../types/enums/aiModelProvider.js";
 import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
+import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import { getFileContent } from "../helpers/fileContent/fileContent.runner.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
-import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
+import { IOpenAITextResult, StreamingChatResponseReader } from "../types/contracts/services.js";
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
 
@@ -57,6 +57,7 @@ type MultiModalInput = {
     inputMessage: MultiModalInputMessage[keyof MultiModalInputMessage];
     /** Should convert output text into audio; Default: Read from user preferences */
     voiceResponse?: boolean;
+    streamReader?: StreamingChatResponseReader;
 
     user: User;
 
@@ -728,6 +729,7 @@ export default class AIApplication {
         const res = await (model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
             inputMessage: preprocessResult.data.inputTextForModel,
             messages: historyMessages,
+            streamReader: multiModalInput.streamReader,
             model: model,
             systemMessages: [
                 systemMessageMapper(chat?.behavior),

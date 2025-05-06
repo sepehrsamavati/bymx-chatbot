@@ -5,7 +5,7 @@ import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import FastifySocketIo from "fastify-socket.io";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
@@ -15,11 +15,11 @@ import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
 import TelegramAuth from "../dto/user/TelegramAuth.js";
 import ChangeLanguage from '../dto/user/ChangeLanguage.js';
-import { dtoValidator } from "../middlewares/dtoValidator.js";
 import TelegramOtpLogin from '../dto/user/TelegramOtpLogin.js';
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
+import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -32,7 +32,6 @@ import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
-    const postListenConfigQueue: Array<() => void> = [];
 
     fastifyInstance.register(FastifyStatic, {
         root: path.join(__dirname, '../../../ui/build/client'),
@@ -42,17 +41,14 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         // constraints: { host: 'example.com' } // optional: default {}
     });
 
-    fastifyInstance.register((socketIoController, _, next) => {
-        socketIoController.register(FastifySocketIo.default, {
+    let socketIoController: Parameters<FastifyPluginCallback>['0'];
+
+    fastifyInstance.register((_socketIoController, _, next) => {
+        _socketIoController.register(FastifySocketIo.default, {
             path: httpServerUrls.v1.baseAddress + "/ws"
         });
 
-        postListenConfigQueue.push(() => {
-            /** @todo */
-            socketIoController.io.on("connection", socket => {
-                socket.emit("hello", { message: "Hello from Socket.IO server running in fastify" });
-            });
-        });
+        socketIoController = _socketIoController;
 
         next();
     }, {
@@ -67,16 +63,16 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         fileController.register(fileHandler);
 
         fileController.put("/upload", file.uploadAttachment);
-        fileController.delete("/attachment", { preValidation: dtoValidator(IdDto) }, file.deleteAttachment);
+        fileController.delete("/attachment", { preValidation: fastifyPayloadValidator(IdDto) }, file.deleteAttachment);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/file" });
 
     fastifyInstance.register((userControllerNoAuth, _, next) => {
 
-        userControllerNoAuth.post("/tgAuth", { preValidation: dtoValidator(TelegramAuth) }, user.telegramAuth);
-        userControllerNoAuth.post("/tgOtp", { preValidation: dtoValidator(TelegramOtpRequest) }, user.sendTelegramOtp);
-        userControllerNoAuth.post("/tgOtpAuth", { preValidation: dtoValidator(TelegramOtpLogin) }, user.telegramOtpAuth);
+        userControllerNoAuth.post("/tgAuth", { preValidation: fastifyPayloadValidator(TelegramAuth) }, user.telegramAuth);
+        userControllerNoAuth.post("/tgOtp", { preValidation: fastifyPayloadValidator(TelegramOtpRequest) }, user.sendTelegramOtp);
+        userControllerNoAuth.post("/tgOtpAuth", { preValidation: fastifyPayloadValidator(TelegramOtpLogin) }, user.telegramOtpAuth);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
@@ -88,7 +84,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         userController.get("/info", user.getInfo);
         userController.get("/me", user.getMe);
-        userController.patch("/language", { preValidation: dtoValidator(ChangeLanguage) }, user.changeLanguage);
+        userController.patch("/language", { preValidation: fastifyPayloadValidator(ChangeLanguage) }, user.changeLanguage);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
@@ -99,17 +95,17 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.addHook('onRequest', authGuard);
 
         chatController.get("/all", chat.getAllChats);
-        chatController.delete("/", { preValidation: dtoValidator(ChatID) }, chat.deleteChat);
-        chatController.get("/model", { preValidation: dtoValidator(ChatID) }, chat.getChatSelectedModel);
-        chatController.patch("/model", { preValidation: dtoValidator(SetChatModel) }, chat.setChatModel);
-        chatController.patch("/memory", { preValidation: dtoValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
-        chatController.patch("/title", { preValidation: dtoValidator(SetChatTitle) }, chat.setChatTitle);
-        chatController.get("/messages", { preValidation: dtoValidator(ChatMessagesQuery) }, chat.getChatMessages);
-        chatController.delete("/messages", { preValidation: dtoValidator(ChatID) }, chat.clearChatHistory);
-        chatController.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
+        chatController.delete("/", { preValidation: fastifyPayloadValidator(ChatID) }, chat.deleteChat);
+        chatController.get("/model", { preValidation: fastifyPayloadValidator(ChatID) }, chat.getChatSelectedModel);
+        chatController.patch("/model", { preValidation: fastifyPayloadValidator(SetChatModel) }, chat.setChatModel);
+        chatController.patch("/memory", { preValidation: fastifyPayloadValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
+        chatController.patch("/title", { preValidation: fastifyPayloadValidator(SetChatTitle) }, chat.setChatTitle);
+        chatController.get("/messages", { preValidation: fastifyPayloadValidator(ChatMessagesQuery) }, chat.getChatMessages);
+        chatController.delete("/messages", { preValidation: fastifyPayloadValidator(ChatID) }, chat.clearChatHistory);
+        chatController.post("/prompt", { preValidation: fastifyPayloadValidator(ChatPrompt) }, chat.submitPrompt);
         chatController.get("/canICreateANewChat", chat.canCreateNewChat);
         chatController.post("/new", chat.createNewChat);
-        chatController.post("/generateTitle", { preValidation: dtoValidator(ChatID) }, chat.generateAndSetTitle);
+        chatController.post("/generateTitle", { preValidation: fastifyPayloadValidator(ChatID) }, chat.generateAndSetTitle);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });
@@ -129,7 +125,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         baseController.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
 
-        baseController.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: dtoValidator(FalAiResult) }, falAiSetResult);
+        baseController.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: fastifyPayloadValidator(FalAiResult) }, falAiSetResult);
 
         baseController.get("/uiText/:langCode", getLanguageData);
 
@@ -141,8 +137,6 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
     });
 
     return {
-        runPostConfigs: () => {
-            postListenConfigQueue.forEach(fn => fn());
-        }
+        getIoInstance: () => socketIoController
     };
 };

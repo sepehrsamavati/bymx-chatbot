@@ -2,6 +2,7 @@ import "reflect-metadata";
 import Fastify from 'fastify';
 import { setRoutes } from "./routes/router.js";
 import { config, IServices, logger } from "bymx-core/server";
+import { setSocketIoHandlers } from "./socketIo/v1/setSocketIoHandlers.js";
 
 export default class HttpServer {
     constructor(private services: IServices) {
@@ -31,14 +32,17 @@ export default class HttpServer {
             done();
         });
 
-        const { runPostConfigs } = setRoutes(this.#fastify);
+        const { getIoInstance } = setRoutes(this.#fastify);
 
         this.#fastify.listen({
             port: config.apiServer.port,
         })
             .then(() => {
                 logger.info("Server started");
-                runPostConfigs();
+                setSocketIoHandlers(
+                    getIoInstance().io,
+                    coreServices,
+                );
             });
     }
 }

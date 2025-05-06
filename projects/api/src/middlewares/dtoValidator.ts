@@ -2,14 +2,14 @@ import { validateSync } from "class-validator";
 import { plainToInstance } from "class-transformer";
 import type { preValidationHookHandler } from "fastify";
 
-export const dtoValidator = <T extends object>(Model: new () => T) => {
+export const fastifyPayloadValidator = <T extends object>(Model: new () => T): preValidationHookHandler => {
     const createInstance = (rawData: unknown): T => plainToInstance(Model, rawData,
         {
             excludeExtraneousValues: true,
             exposeDefaultValues: true
         }) ?? new Model();
 
-    return (async (request, reply, done) => {
+    return async (request, reply, done) => {
         const instance = createInstance(['GET', 'DELETE'].includes(request.method) ? request.query : request.body);
         const errors = validateSync(instance);
         if (errors.length)
@@ -18,5 +18,19 @@ export const dtoValidator = <T extends object>(Model: new () => T) => {
             request.locals.dto = instance;
             return done;
         }
-    }) satisfies preValidationHookHandler;
+    };
+};
+
+export const dtoValidator = <T extends object>(Model: new () => T, dto: unknown, onValid: (dto: T) => unknown) => {
+    const createInstance = (rawData: unknown): T => plainToInstance(Model, rawData,
+        {
+            excludeExtraneousValues: true,
+            exposeDefaultValues: true
+        }) ?? new Model();
+
+    const instance = createInstance(dto);
+    const errors = validateSync(instance);
+
+    if (errors.length === 0)
+        onValid(instance);
 };

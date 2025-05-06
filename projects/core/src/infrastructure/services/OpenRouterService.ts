@@ -4,10 +4,9 @@ import { logger } from "../../helpers/logger.js";
 import type { Stream } from "openai/streaming.js";
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import type { IOpenAIRequest, IOpenAITextResult, IOpenRouterService } from "../../types/contracts/services.js";
+import type { IOpenAIRequest, IOpenAITextResult, IOpenRouterService, StreamingChatResponseReader } from "../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
-type StreamingChatResponseReader = (chunk: string, finished: boolean) => void;
 
 function isStream(
     response: unknown
@@ -40,20 +39,21 @@ export default class OpenRouterService implements IOpenRouterService {
         for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content;
 
+            latestFinishReason = chunk.choices.at(0)?.finish_reason || latestFinishReason;
+
             if (chunk.usage) {
                 if (latestUsage)
                     logger.warn("Multiple chunks having usage?!");
                 latestUsage = chunk.usage;
-                latestFinishReason = chunk.choices.at(0)?.finish_reason ?? "";
             }
 
             if (content) {
-                streamReader?.(content, false);
+                streamReader(content, false);
                 fullOutput += content;
             }
         }
 
-        streamReader?.("", true);
+        streamReader("", true);
 
         return {
             fullOutput,
@@ -167,6 +167,6 @@ export default class OpenRouterService implements IOpenRouterService {
             model: model.name,
             user: userId,
             messages: _messages
-        });
+        }, opts.streamReader);
     }
 }
