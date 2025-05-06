@@ -11,6 +11,25 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, ButtonGroup, Modal, Stack, TextField, Typography } from "@mui/material";
 
+const generateChatsTitle = (
+    chatIds: string[],
+    onSuccess: (chatId: string, title: string) => void,
+    onComplete: () => void,
+) => {
+    (async () => {
+        for (const chatId of chatIds) {
+            try {
+                const res = await chatService.generateTitle(chatId);
+                if (res.result?.data)
+                    onSuccess(chatId, res.result.data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        onComplete();
+    })();
+};
+
 export default function Chats() {
     const navigate = useNavigate();
     const session = useSession();
@@ -21,6 +40,7 @@ export default function Chats() {
     const [settingNewTitle, setSettingNewTitle] = useState(false);
     const [newTitle, setNewTitle] = useState({ chatId: "", title: "", });
     const [chats, setChats] = useState<CaptionOnly[]>([]);
+    const isGeneratingChatTitle = useRef(false);
 
     const createNewChat = useCallback(() => {
         if (!canCreateNewChat || creatingNewChat) return;
@@ -80,8 +100,28 @@ export default function Chats() {
         chatService
             .getAll()
             .then(res => {
-                if (res.result?.data)
+                if (res.result?.data) {
                     setChats(res.result.data);
+                    if (!isGeneratingChatTitle.current) {
+                        isGeneratingChatTitle.current = true;
+                        generateChatsTitle(
+                            res.result.data.filter(chat => chat.caption === "").map(chat => chat.id),
+                            (chatId, title) => {
+                                setChats(current => {
+                                    const chatIndex = current.findIndex(chat => chat.id === chatId);
+                                    if (chatIndex === -1) return current;
+
+                                    current[chatIndex].caption = title;
+
+                                    return [...current];
+                                });
+                            },
+                            () => {
+                                isGeneratingChatTitle.current = false;
+                            },
+                        );
+                    }
+                }
             });
     }, []);
 

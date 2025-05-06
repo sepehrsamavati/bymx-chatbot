@@ -90,6 +90,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.post("/prompt", { preValidation: dtoValidator(ChatPrompt) }, chat.submitPrompt);
         chatController.get("/canICreateANewChat", chat.canCreateNewChat);
         chatController.post("/new", chat.createNewChat);
+        chatController.post("/generateTitle", { preValidation: dtoValidator(ChatID) }, chat.generateAndSetTitle);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });

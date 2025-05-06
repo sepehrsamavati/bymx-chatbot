@@ -92,6 +92,13 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.POST,
         });
     },
+    generateTitle(chatId: string) {
+        return HttpClient.send<OperationResultWithData<string>>({
+            path: "/api/v1/chat/generateTitle",
+            method: HttpClient.Methods.POST,
+            body: { chatId }
+        });
+    },
 });
 
 export default chatService;

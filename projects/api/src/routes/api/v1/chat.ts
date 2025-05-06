@@ -33,7 +33,7 @@ export const getChatMessages: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<PromptViewModel[]>();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatMessagesQuery;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -59,7 +59,7 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<{ plainText?: string; isComplete: boolean; pointUsage: number; }>();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatPrompt;
     const user = await request.locals.applications.userApplication.getUserById(userId);
 
@@ -116,7 +116,7 @@ export const getChatSelectedModel: RouteHandlerMethod = async (request, reply) =
 
     const result = new OperationResultWithData<string>();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatID;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -135,7 +135,7 @@ export const setChatModel: RouteHandlerMethod = async (request, reply) => {
 
     let result = new OperationResult();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as SetChatModel;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -158,7 +158,7 @@ export const setChatMemoryAmount: RouteHandlerMethod = async (request, reply) =>
 
     let result = new OperationResult();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as SetChatMemoryAmount;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -173,7 +173,7 @@ export const setChatMemoryAmount: RouteHandlerMethod = async (request, reply) =>
 };
 
 export const canCreateNewChat: RouteHandlerMethod = async (request, reply) => {
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const result = await request.locals.applications.aiChatApplication.canCreateNewChat(userId);
 
     if (result.ok)
@@ -188,7 +188,7 @@ export const createNewChat: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<string>();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
 
     const user = await request.locals.applications.userApplication.getUserById(userId);
 
@@ -223,7 +223,7 @@ export const clearChatHistory: RouteHandlerMethod = async (request, reply) => {
 
     let result = new OperationResult();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatID;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -241,7 +241,7 @@ export const setChatTitle: RouteHandlerMethod = async (request, reply) => {
 
     let result = new OperationResult();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as SetChatTitle;
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
@@ -259,7 +259,7 @@ export const deleteChat: RouteHandlerMethod = async (request, reply) => {
 
     let result = new OperationResult();
 
-    const userId = request.locals.user?.id as string;
+    const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatID;
 
     const user = await request.locals.applications.userApplication.getUserById(userId);
@@ -273,6 +273,29 @@ export const deleteChat: RouteHandlerMethod = async (request, reply) => {
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.aiChatApplication.deleteByUser(user, chat.id);
+
+    return reply.status(200).send(result);
+
+};
+
+export const generateAndSetTitle: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResultWithData<string>();
+
+    const userId = request.locals.user?.id!;
+    const query = request.locals.dto as ChatID;
+
+    const user = await request.locals.applications.userApplication.getUserById(userId);
+
+    if (!user)
+        return reply.status(200).send(result.failed("userNotFound"));
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiApplication.generateAndSetChatTitle(chat.id);
 
     return reply.status(200).send(result);
 

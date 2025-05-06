@@ -884,8 +884,8 @@ export default class AIApplication {
         return result;
     }
 
-    async #generateAndSetChatTitle(chatId: string, message: string) {
-        const result = new OperationResult();
+    async generateAndSetChatTitle(chatId: string, message?: string) {
+        const result = new OperationResultWithData<string>();
 
         const freeModel = await this.#aiModelCache.getFreeModel();
         if (!freeModel)
@@ -899,17 +899,31 @@ export default class AIApplication {
         if (!chat)
             return result.failed("itemNotFound");
 
+        if (!message) {
+            const _historyMessages = await this.#promptRepository.getRecentHistory(chatId, 5);
+            if (_historyMessages)
+                message = _historyMessages.map(msg => `UserA: ${msg.input}\n\nUserB: ${msg.output}`).join("-----\n\n");
+            else
+                return result.failed("errorWhileFetchingData");
+        }
+
+        if (message.length < 10)
+            return result.failed("invalidInput");
+
         const generatedTitleResult = await (freeModel.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
             messages: [],
             model: freeModel,
             tokenLimit: 30,
             inputMessage: (
-                `The message below is from a chat, suggest ONLY AND ONLY A SHORT TITLE for that chat in the message language;`
+                `The messages below is from a chat, suggest ONLY AND ONLY A SHORT TITLE for that chat in the message language;`
                 + ` If no title can be extracted ONLY return a dash '-':\n\n'((${message.slice(0, 1500)}))'`
             ),
         });
 
         if (!generatedTitleResult?.output)
+            return result.failed("errorOccurred");
+
+        if (generatedTitleResult.output.includes('\n'))
             return result.failed("errorOccurred");
 
         const output = generatedTitleResult.output.replace(/'|"/g, '');
@@ -923,7 +937,7 @@ export default class AIApplication {
         });
 
         if (setTitleResult === true)
-            result.succeeded();
+            result.succeeded().setData(output);
 
         return result;
     }
