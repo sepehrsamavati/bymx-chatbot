@@ -1,10 +1,19 @@
 import OpenAI from "openai";
 import config from "../../config.js";
 import { logger } from "../../helpers/logger.js";
+import type { Stream } from "openai/streaming.js";
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import type { IOpenAIRequest, IOpenAITextResult, IOpenRouterService } from "../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
+type StreamingChatResponseReader = (chunk: string, finished: boolean) => void;
+
+function isStream(
+    response: unknown
+): response is Stream<ChatCompletionChunk> {
+    return typeof response === "object" && response !== null && Symbol.asyncIterator in response;
+}
 
 export default class OpenRouterService implements IOpenRouterService {
     #client = new OpenAI({
@@ -15,40 +24,92 @@ export default class OpenRouterService implements IOpenRouterService {
         httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
     });
 
-    async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming): Promise<IOpenAITextResult | null> {
+    async #streamChatCompletion(opts: OpenAI.Chat.ChatCompletionCreateParams, streamReader: StreamingChatResponseReader) {
+        opts.stream = true;
+
+        const stream = await this.#client.chat.completions.create(opts);
+
+        if (!isStream(stream)) {
+            throw new Error("Expected a stream, but received a full completion.");
+        }
+
+        let fullOutput = "",
+            latestFinishReason = "",
+            latestUsage: OpenAI.Completions.CompletionUsage | null = null;
+
+        for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content;
+
+            if (chunk.usage) {
+                if (latestUsage)
+                    logger.warn("Multiple chunks having usage?!");
+                latestUsage = chunk.usage;
+                latestFinishReason = chunk.choices.at(0)?.finish_reason ?? "";
+            }
+
+            if (content) {
+                streamReader?.(content, false);
+                fullOutput += content;
+            }
+        }
+
+        streamReader?.("", true);
+
+        return {
+            fullOutput,
+            usage: latestUsage,
+            latestFinishReason,
+        };
+    }
+
+    async #chatCompletion(opts: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming, streamReader?: StreamingChatResponseReader): Promise<IOpenAITextResult | null> {
         try {
-            const chatCompletion = await this.#client.chat.completions.create(opts);
+            const defaultInputTokens = opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0);
 
-            if (!Array.isArray(chatCompletion.choices)) {
-                debugger
-                return null;
-            }
-
-            const lastMessage = opts.messages[opts.messages.length - 1]?.content;
-
-            if (chatCompletion.choices.length !== 1) {
-                logger.warn(`Multiple choices retorted for input: ${lastMessage}`);
-                return null;
-            }
-
-            const choice = chatCompletion.choices.at(0);
-            const result = choice?.message;
-
-            if (result?.content?.length && result?.role === "assistant") {
-                const output = result.content;
-
-                if (!chatCompletion.usage)
-                    logger.warn("OpenRouter chat completion usage not available!");
-
+            if (streamReader) {
+                const streamResult = await this.#streamChatCompletion(opts, streamReader);
+                const output = streamResult.fullOutput;
                 return {
                     output,
-                    isComplete: choice?.finish_reason === "stop",
-                    inputTokens: chatCompletion.usage?.prompt_tokens ?? opts.messages.map(msg => (msg.content as string)?.split(' ').length).reduce((a, b) => a + b, 0),
-                    outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
+                    isComplete: streamResult.latestFinishReason === "stop",
+                    inputTokens: streamResult.usage?.prompt_tokens ?? defaultInputTokens,
+                    outputTokens: streamResult.usage?.completion_tokens ?? output.split(' ').length,
                 };
-            }
+            } else {
 
-            logger.warn(`Invalid response for input: ${lastMessage}`);
+                const chatCompletion = await this.#client.chat.completions.create(opts);
+
+                if (!Array.isArray(chatCompletion.choices)) {
+                    debugger
+                    return null;
+                }
+
+                const lastMessage = opts.messages[opts.messages.length - 1]?.content;
+
+                if (chatCompletion.choices.length !== 1) {
+                    logger.warn(`Multiple choices generated for input: ${lastMessage}`);
+                    return null;
+                }
+
+                const choice = chatCompletion.choices.at(0);
+                const result = choice?.message;
+
+                if (result?.content?.length && result?.role === "assistant") {
+                    const output = result.content;
+
+                    if (!chatCompletion.usage)
+                        logger.warn("OpenRouter chat completion usage not available!");
+
+                    return {
+                        output,
+                        isComplete: choice?.finish_reason === "stop",
+                        inputTokens: chatCompletion.usage?.prompt_tokens ?? defaultInputTokens,
+                        outputTokens: chatCompletion.usage?.completion_tokens ?? output.split(' ').length,
+                    };
+                }
+
+                logger.warn(`Invalid response for input: ${lastMessage}`);
+            }
 
             return null;
         } catch (err) {
