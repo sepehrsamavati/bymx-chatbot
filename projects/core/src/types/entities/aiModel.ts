@@ -22,6 +22,7 @@ export type AIModel = {
         contextWindow: number;
         /** Output tokens limit */
         maxOutputTokens: number;
+        canStream: boolean;
     };
 }
 

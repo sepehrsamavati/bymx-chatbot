@@ -1,18 +1,11 @@
 import OpenAI from "openai";
 import config from "../../config.js";
 import { logger } from "../../helpers/logger.js";
-import type { Stream } from "openai/streaming.js";
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import type { ChatCompletionChunk } from "openai/resources/chat/completions";
+import { isChatCompletionStream } from "../../helpers/isStream.js";
 import type { IOpenAIRequest, IOpenAITextResult, IOpenRouterService, StreamingChatResponseReader } from "../../types/contracts/services.js";
 
 type IChatCompletionConfig = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
-
-function isStream(
-    response: unknown
-): response is Stream<ChatCompletionChunk> {
-    return typeof response === "object" && response !== null && Symbol.asyncIterator in response;
-}
 
 export default class OpenRouterService implements IOpenRouterService {
     #client = new OpenAI({
@@ -28,7 +21,7 @@ export default class OpenRouterService implements IOpenRouterService {
 
         const stream = await this.#client.chat.completions.create(opts);
 
-        if (!isStream(stream)) {
+        if (!isChatCompletionStream(stream)) {
             throw new Error("Expected a stream, but received a full completion.");
         }
 
@@ -167,6 +160,6 @@ export default class OpenRouterService implements IOpenRouterService {
             model: model.name,
             user: userId,
             messages: _messages
-        }, opts.streamReader);
+        }, opts.model.llmInfo.canStream ? opts.streamReader : undefined);
     }
 }

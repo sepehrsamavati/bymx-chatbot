@@ -65,5 +65,10 @@ const schema = new mongoose.Schema<MongoStored<AIModelDBModel>>({
             required: true,
             min: 0,
         },
+        canStream: {
+            type: Boolean,
+            required: true,
+            default: false,
+        },
     },
 }, { versionKey: false, collection: aiModelModelDefinition.collection });
