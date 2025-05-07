@@ -35,7 +35,7 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
         socket.on("submitPrompt", data => dtoValidator(ChatPrompt, data, async chatPrompt => {
             const reply = (data: unknown) => socket.emit("submitPromptResult", data);
 
-            const result = new OperationResultWithData<{ outputChunk?: string; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; }>();
+            const result = new OperationResultWithData<{ outputChunk?: { index: number; value: string; }; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; }>();
 
             const userId = userViewModel.id;
             const query = chatPrompt;
@@ -60,6 +60,7 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
                 attachmentFile = file.data as UserTempFileEntity.UserTempFile;
             }
 
+            let chunkIndexCounter = 0;
             const chatCompletionResult = await applications.aiApplication.multiModalChatCompletion({
                 user,
                 streamReader: (chunk, _finished) => {
@@ -69,7 +70,10 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
                             .setData({
                                 pointUsage: 0,
                                 isComplete: false,
-                                outputChunk: chunk,
+                                outputChunk: {
+                                    index: ++chunkIndexCounter,
+                                    value: chunk,
+                                },
                             })
                     );
                 },

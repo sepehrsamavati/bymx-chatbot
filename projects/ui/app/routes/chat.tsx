@@ -1,24 +1,20 @@
-import * as PrismJS from "prismjs";
-import Markdown from "react-markdown";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
 import { io, type Socket } from 'socket.io-client';
-import ClearAll from "@mui/icons-material/ClearAll";
-import MoreVert from "@mui/icons-material/MoreVert";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
-import AttachFile from "@mui/icons-material/AttachFile";
 import UploadFile from "@mui/icons-material/UploadFile";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
+import MessageBubble from "~/components/chat/messageBubble";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
-import DeleteForever from "@mui/icons-material/DeleteForever";
+import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IOperationResultWithData, PromptViewModel } from "bymx-core/types";
-import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, ListItemIcon, Menu, MenuItem, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -36,212 +32,43 @@ type SelectedAttachmentFile = {
     name: AttachmentFile['name'];
 };
 
-const loadLanguage = (language: string, callback: Function) => {
-    if (PrismJS.languages[language]) { // Already loaded
-        callback();
-    } else { // Load the language if it's not already loaded
+type SubmitPrompt = { chatId: string; promptText: string; attachmentFileId?: string; };
 
-        // Load the language script from a CDN
-        const script = document.createElement('script');
-        script.src = `https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-${language}.min.js`;
-        script.onload = () => {
-            callback();
-            // console.log(`${language} language loaded from CDN.`);
+type PromptStreamResult = { outputChunk?: { index: number; value: string; }; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; };
+
+const socketManager = () => {
+    const socket = ('sInstance' in window && window.sInstance as Socket) || io({
+        path: "/api/v1/ws",
+        autoConnect: false,
+    });
+
+    // @ts-ignore
+    window.sInstance = socket;
+
+    socket.on("hello", () => console.info("Socket connected."));
+    socket.connect();
+
+    const submitPromptWithStream = (dto: SubmitPrompt, reader: (result: IOperationResultWithData<PromptStreamResult>) => void | { closeListener?: true }) => {
+        const handler = (res: IOperationResultWithData<PromptStreamResult>) => {
+            const shouldCloseListener = reader(res);
+            if (shouldCloseListener)
+                socket.off("submitPromptResult", handler);
         };
-        script.onerror = () => {
-            console.error(`Failed to load ${language} language from CDN.`);
-        };
-        document.head.appendChild(script);
-    }
+        socket.on("submitPromptResult", handler);
+        socket.emit("submitPrompt", dto);
+    };
+
+    return {
+        submitPromptWithStream
+    };
 };
-
-function ChatMoreActions(props: {
-    chatId: string;
-    onClearMessage: () => void;
-}) {
-    const session = useSession();
-    const navigate = useNavigate();
-    const [deletingChat, setDeletingChat] = useState(false);
-    const [clearingHistory, setClearingHistory] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    const clearHistory = useCallback(() => {
-        handleClose();
-        setClearingHistory(true);
-        chatService
-            .clearMessages(props?.chatId as string)
-            .then(res => {
-                if (res.result?.ok)
-                    props?.onClearMessage?.();
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => setClearingHistory(false));
-    }, [props]);
-
-    const deleteChat = useCallback(() => {
-        setDeletingChat(true);
-        chatService
-            .delete(props?.chatId as string)
-            .then(res => {
-                if (res.result?.ok)
-                    navigate("/ui/chats");
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => setDeletingChat(false));
-    }, [props, navigate]);
-
-    if (!props?.chatId)
-        return null;
-
-    return (
-        <div>
-            <IconButton
-                aria-label="more"
-                id="chat-actions-button"
-                aria-controls={open ? 'chat-actions-menu' : undefined}
-                aria-expanded={open ? 'true' : undefined}
-                aria-haspopup="true"
-                onClick={handleClick}
-            >
-                <MoreVert />
-            </IconButton>
-            <Menu
-                id="chat-actions-menu"
-                //   MenuListProps={{
-                //     'aria-labelledby': 'chat-actions-button',
-                //   }}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-            //   slotProps={{
-            //     paper: {
-            //       style: {
-            //         maxHeight: ITEM_HEIGHT * 4.5,
-            //         width: '20ch',
-            //       },
-            //     },
-            //   }}
-            >
-                <MenuItem disabled={clearingHistory} onClick={clearHistory}>
-                    <ListItemIcon>
-                        <ClearAll fontSize="small" />
-                    </ListItemIcon>
-                    {session.uiText.clearCurrentChatHistory}
-                </MenuItem>
-                <MenuItem disabled={deletingChat} onClick={deleteChat}>
-                    <ListItemIcon color="red">
-                        <DeleteForever fontSize="small" />
-                    </ListItemIcon>
-                    {session.uiText.delete}
-                </MenuItem>
-            </Menu>
-        </div>
-    );
-}
-
-function MessageBubble(props?: {
-    text?: string;
-    date?: Date;
-    attachmentFilename?: string;
-    pointUsage?: number;
-    modelTitle?: string;
-}) {
-    const divRef = useRef<HTMLDivElement>(null);
-    const date = useMemo(() => {
-        if (!props?.date) return null;
-
-        const now = new Date();
-
-        if (now.toLocaleDateString() !== props.date.toLocaleDateString())
-            return <i>{props.date.toLocaleString()}</i>;
-
-        return <i>{props.date.toLocaleTimeString()}</i>;
-    }, [props]);
-
-    useEffect(() => {
-        if (!divRef.current) return;
-
-        divRef.current
-            .querySelectorAll('p')
-            .forEach(paragraphElement => {
-                if (stringHelper.isRtl(paragraphElement.innerText.trimStart()))
-                    paragraphElement.dir = "rtl";
-                else
-                    paragraphElement.dir = "ltr";
-            });
-
-        divRef.current
-            .querySelectorAll("code[class^=language-]")
-            .forEach(codeElement => {
-                const language = codeElement.className.split('-')[1]; // Extract language name
-                loadLanguage(language, () => {
-                    PrismJS.highlightElement(codeElement);
-                }); // Load the language dynamically
-            });
-    }, [props]);
-
-    return (
-        <Box
-            padding={1}
-            component="div"
-            fontSize="inherit"
-            whiteSpace="pre-line"
-            sx={{
-                position: "relative",
-                ' p': {
-                    margin: 0
-                },
-                ' pre': {
-                    overflow: "auto",
-                    direction: "rtl",
-                    borderRadius: 2,
-                },
-            }}
-        >
-            <div ref={divRef}>
-                <Markdown>{props?.text}</Markdown>
-
-                {props?.attachmentFilename ? (
-                    <Chip
-                        disabled
-                        size="small"
-                        icon={<AttachFile />}
-                        label={props.attachmentFilename}
-                    />
-                ) : null}
-            </div>
-            <Typography
-                component="span"
-                sx={{
-                    bottom: 0,
-                    insetInlineStart: 0,
-                    position: "absolute",
-                    marginBottom: -1.6,
-                    fontSize: "0.6em",
-                    fontFamily: "monospace",
-                    color: "GrayText",
-                    direction: "rtl",
-                }}
-            >{props?.modelTitle} {date}{typeof props?.pointUsage === "number" ? ` ⚡${props.pointUsage}` : ''}</Typography>
-        </Box>
-    );
-}
 
 export default function Chat() {
     const session = useSession();
     const navigate = useNavigate();
     const { chatId } = useParams();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; output: string; }>();
     const initialized = useRef(false);
     const didFirstScrollToBottom = useRef(false);
     const [inputText, setInputText] = useState("");
@@ -254,8 +81,7 @@ export default function Chat() {
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
-    const streamSubmit = useRef(() => void null);
-    const socketInstance = useRef<Socket>(null);
+    const socket = useMemo(() => socketManager(), []);
 
     const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
         if (!chatSectionRef.current) return;
@@ -309,7 +135,7 @@ export default function Chat() {
             });
     }, [chatId, messages]);
 
-    const submitPrompt = useCallback(() => {
+    const submitPrompt = useCallback((stream = false) => {
         if (!chatId) return;
         setWaitingForCompletion(true);
 
@@ -319,51 +145,88 @@ export default function Chat() {
         setInputText("");
         setUploadingFile(undefined);
         const inputDate = Date.now();
-        chatService
-            .submitPrompt({
-                chatId,
-                promptText: _inputText,
-                attachmentFileId: _attachmentFile?.id,
-            })
-            .then(res => {
-                if (res.result?.data) {
-                    scrollToBottom(cb => setTimeout(() => cb(), 10));
-                    setMessages(_current => [..._current, (
-                        {
-                            id: "new",
-                            inputDate,
-                            outputDate: Date.now(),
-                            modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
-                            input: inputText,
-                            attachmentFilename: _attachmentFile?.name,
-                            output: res.result?.data?.plainText ?? "ERR", points: res.result?.data?.pointUsage as number
-                        }
-                    )]);
-                } else {
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-                    setInputText(_inputText);
-                    setUploadingFile(_attachmentFile);
-                }
-            })
-            .finally(() => setWaitingForCompletion(false));
-    }, [chatId, inputText, uploadingFile]);
-
-    useEffect(() => {
-        streamSubmit.current = () => {
-            setWaitingForCompletion(true);
-
-            const _inputText = inputText;
-            const _attachmentFile = uploadingFile;
-
-            setInputText("");
-            setUploadingFile(undefined);
-            socketInstance.current?.emit("submitPrompt", {
-                chatId,
-                promptText: _inputText,
-                attachmentFileId: _attachmentFile?.id,
-            });
+        const dto = {
+            chatId,
+            promptText: _inputText,
+            attachmentFileId: _attachmentFile?.id,
         };
-    }, [chatId, inputText, uploadingFile]);
+
+        const tempId = window.crypto.randomUUID();
+
+        scrollToBottom(cb => setTimeout(() => cb(), 10), true);
+        setCurrentlyGeneratingMessage({ input: _inputText, output: "", });
+        const rollback = () => {
+            setInputText(_inputText);
+            setUploadingFile(_attachmentFile);
+        };
+        const _finally = () => {
+            setCurrentlyGeneratingMessage(undefined);
+            setWaitingForCompletion(false);
+        };
+
+        if (stream) {
+            socket
+                .submitPromptWithStream(
+                    dto,
+                    result => {
+                        console.log(result.ok ? result.data?.outputChunk?.index : result.message)
+
+                        if (result.data?.finished && result.data.isComplete) {
+                            setWaitingForCompletion(false);
+                            scrollToBottom(cb => setTimeout(() => cb(), 10));
+                            setMessages(_current => [..._current, (
+                                {
+                                    id: tempId,
+                                    inputDate,
+                                    outputDate: Date.now(),
+                                    modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                                    input: _inputText,
+                                    attachmentFilename: _attachmentFile?.name,
+                                    output: result?.data?.plainText ?? "ERR",
+                                    points: result?.data?.pointUsage as number,
+                                }
+                            )]);
+                            setCurrentlyGeneratingMessage(undefined);
+                            return { closeListener: true };
+                        } else {
+                            if (!result.ok) {
+                                session.snackbarProvider(result.message, { variant: "error" });
+                                rollback();
+                            } else if (result.data?.outputChunk) {
+                                scrollToBottom(cb => setTimeout(() => cb(), 10));
+                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: (_current?.output || "") + result.data!.outputChunk!.value }));
+                            }
+                        }
+
+                        return;
+                    },
+                );
+        } else {
+            chatService
+                .submitPrompt(dto)
+                .then(response => {
+                    const result = response.result;
+                    if (result?.data) {
+                        scrollToBottom(cb => setTimeout(() => cb(), 10));
+                        setMessages(_current => [..._current, (
+                            {
+                                id: tempId,
+                                inputDate,
+                                outputDate: Date.now(),
+                                modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                                input: _inputText,
+                                attachmentFilename: _attachmentFile?.name,
+                                output: result?.data?.plainText ?? "ERR", points: result?.data?.pointUsage as number
+                            }
+                        )]);
+                    } else {
+                        session.snackbarProvider(result?.message, { variant: "error" });
+                        rollback();
+                    }
+                })
+                .finally(_finally);
+        }
+    }, [chatId, inputText, uploadingFile, socket]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
@@ -508,39 +371,6 @@ export default function Chat() {
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
             });
-
-        /** @todo */
-        const socket = socketInstance.current = io({
-            path: "/api/v1/ws",
-            autoConnect: false,
-        });
-        socket.on("hello", () => console.info("Socket connected."));
-        socket.on("submitPromptResult", (res: IOperationResultWithData<{ outputChunk?: string; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; }>) => {
-            console.log(res.ok ? res.data : res.message)
-
-            if (res.data?.finished && res.data.isComplete) {
-                setWaitingForCompletion(false);
-                scrollToBottom(cb => setTimeout(() => cb(), 10));
-                setMessages(_current => [..._current, (
-                    {
-                        id: "new",
-                        inputDate: Date.now(),
-                        outputDate: Date.now(),
-                        modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
-                        input: inputText,
-                        // attachmentFilename: _attachmentFile?.name,
-                        output: res?.data?.plainText ?? "ERR",
-                        points: res?.data?.pointUsage as number,
-                    }
-                )]);
-            } else {
-                if (!res.ok)
-                    session.snackbarProvider(res.message, { variant: "error" });
-                // setInputText(_inputText);
-                // setUploadingFile(_attachmentFile);
-            }
-        });
-        socket.connect();
     }, [getMessages, chatId]);
 
     useEffect(() => {
@@ -554,9 +384,7 @@ export default function Chat() {
             import('prismjs/themes/prism.min.css');
         else
             import('prismjs/themes/prism-okaidia.min.css');
-    }, [
-        session.themeManager.name
-    ]);
+    }, [session.themeManager.name]);
 
     return (
         <Stack direction="column" height="100%">
@@ -667,16 +495,27 @@ export default function Chat() {
                         </Box>
                     </Box>
                 ))}
+                {currentlyGeneratingMessage ? (
+                    <Box fontSize="0.8em">
+                        <Box marginInline={1} marginBlock={2}>
+                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
+                                <MessageBubble text={currentlyGeneratingMessage.input} />
+                            </Card>
+                        </Box>
+                        <Box marginInline={1} marginBottom={8}>
+                            <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
+                                <MessageBubble text={currentlyGeneratingMessage.output} />
+                            </Box>
+                        </Box>
+                    </Box>
+                ) : null}
             </Stack>
 
             <Card sx={{ padding: 1, borderRadius: 0, overflow: "initial" }}>
                 <form
                     onSubmit={e => {
                         e.preventDefault();
-                        if (socketInstance.current)
-                            streamSubmit.current();
-                        else
-                            submitPrompt();
+                        submitPrompt(true);
                     }}
                 >
                     <Box
@@ -699,7 +538,6 @@ export default function Chat() {
                             <label htmlFor="prompt-attachment">
                                 <IconButton size="small" disabled={waitingForCompletion} onClick={() => document.getElementById('prompt-attachment')?.click()}>
                                     <UploadFile />
-                                    {/* <AttachFile /> */}
                                 </IconButton>
                                 <input
                                     id="prompt-attachment"
