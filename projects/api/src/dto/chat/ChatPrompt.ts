@@ -1,8 +1,9 @@
 import ChatID from "./ChatID.js";
+import type { Api } from "bymx-core/types";
 import { Expose, Type } from "class-transformer";
 import { IsDefined, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
-export default class ChatPrompt extends ChatID {
+export default class ChatPrompt extends ChatID implements Api.ChatDto.ILlmPromptRequest {
     @Expose()
     @Type(() => String)
     @IsDefined()

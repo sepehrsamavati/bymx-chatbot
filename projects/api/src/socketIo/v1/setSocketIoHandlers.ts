@@ -5,7 +5,7 @@ import { validateToken } from '../../helpers/jwtHelper.js';
 import { config, type CoreServices } from 'bymx-core/server';
 import { extractCookies } from '../../helpers/cookieHelper.js';
 import { dtoValidator } from '../../middlewares/dtoValidator.js';
-import type { UserEntity, UserTempFileEntity } from 'bymx-core/types';
+import type { Api, UserEntity, UserTempFileEntity } from 'bymx-core/types';
 
 export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServices) => {
     io.on("connection", async socket => {
@@ -35,7 +35,7 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
         socket.on("submitPrompt", data => dtoValidator(ChatPrompt, data, async chatPrompt => {
             const reply = (data: unknown) => socket.emit("submitPromptResult", data);
 
-            const result = new OperationResultWithData<{ outputChunk?: { index: number; value: string; }; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; }>();
+            const result = new OperationResultWithData<Api.SocketIo.SubmitPromptResult>();
 
             const userId = userViewModel.id;
             const query = chatPrompt;

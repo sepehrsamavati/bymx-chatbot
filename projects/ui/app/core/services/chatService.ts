@@ -1,5 +1,5 @@
 import HttpClient from "../helper/HttpClient";
-import type { CaptionOnly, PromptViewModel } from "bymx-core/types";
+import type { Api, CaptionOnly, PromptViewModel } from "bymx-core/types";
 import type { AIChatHistoryMemory, OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const chatService = Object.freeze({
@@ -52,8 +52,8 @@ const chatService = Object.freeze({
             method: HttpClient.Methods.GET,
         });
     },
-    submitPrompt(dto: { chatId: string; promptText: string; attachmentFileId?: string; }) {
-        return HttpClient.send<OperationResultWithData<{ plainText?: string; isComplete: boolean; pointUsage: number; }>>({
+    submitPrompt(dto: Api.ChatDto.ILlmPromptRequest) {
+        return HttpClient.send<OperationResultWithData<Api.ChatDto.ILlmPromptResponse>>({
             path: "/api/v1/chat/prompt",
             method: HttpClient.Methods.POST,
             body: dto,
