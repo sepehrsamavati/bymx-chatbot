@@ -1,11 +1,21 @@
+import { randomUUID } from "node:crypto";
 import ChatPrompt from '../../dto/chat/ChatPrompt.js';
-import type { Server as SocketIOServer } from 'socket.io';
 import { OperationResultWithData } from 'bymx-core/shared';
 import { validateToken } from '../../helpers/jwtHelper.js';
 import { config, type CoreServices } from 'bymx-core/server';
 import { extractCookies } from '../../helpers/cookieHelper.js';
 import { dtoValidator } from '../../middlewares/dtoValidator.js';
-import type { Api, UserEntity, UserTempFileEntity } from 'bymx-core/types';
+import type { Socket, Server as SocketIOServer } from 'socket.io';
+import { Api, UserEntity, UserTempFileEntity } from 'bymx-core/types';
+
+type SocketConnectionContext = {
+    id: string;
+    socket: Socket;
+    user: UserEntity.UserViewModel;
+}
+
+const socketStorage = new Map<string, SocketConnectionContext>();
+const generateSocketId = () => randomUUID();
 
 export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServices) => {
     io.on("connection", async socket => {
@@ -23,14 +33,26 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
         const scope = coreServices.createApplicationScope();
         const applications = scope.applications;
 
-        // const context = {
-        //     scope,
-        //     userViewModel,
-        // };
+        const socketId = generateSocketId();
 
-        socket.once("disconnect", () => scope.dispose());
+        const context: SocketConnectionContext = {
+            socket,
+            id: socketId,
+            user: userViewModel,
+        };
+        
+        socketStorage.set(socketId, context);
 
-        socket.emit("hello");
+        socket.once("disconnect", () => {
+            socketStorage.delete(socketId);
+            scope.dispose();
+        });
+
+        socket.emit("hello", (
+            {
+                connectionId: socketId,
+            } satisfies Api.SocketIo.HelloResponse
+        ));
 
         socket.on("submitPrompt", data => dtoValidator(ChatPrompt, data, async chatPrompt => {
             const reply = (data: unknown) => socket.emit("submitPromptResult", data);
