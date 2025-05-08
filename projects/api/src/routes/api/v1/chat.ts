@@ -3,10 +3,11 @@ import type ChatID from "../../../dto/chat/ChatID.js";
 import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
-import type { CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
+import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
 import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
+import { getSocketById } from "../../../socketIo/v1/setSocketIoHandlers.js";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -68,7 +69,6 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
 
     const chat = await request.locals.applications.aiChatApplication.getUserChatById(user.id, query.chatId);
 
-
     if (!chat)
         return reply.status(200).send(result.failed("itemNotFound"));
 
@@ -83,8 +83,31 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
         attachmentFile = file.data as UserTempFileEntity.UserTempFile;
     }
 
+    let streamReader = (chunk: string) => void null;
+
+    if (query.streamSocketId) {
+        const socketCtx = getSocketById(query.streamSocketId);
+        if (socketCtx?.user.id === user.id) {
+            let chunkIndexCounter = 0;
+            streamReader = chunk => {
+                console.log(chunk)
+                socketCtx.socket.emit("submitPromptResult", (
+                    {
+                        pointUsage: 0,
+                        isComplete: false,
+                        outputChunk: {
+                            index: ++chunkIndexCounter,
+                            value: chunk,
+                        },
+                    } satisfies Api.SocketIo.SubmitPromptResult
+                ))
+            };
+        }
+    }
+
     const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion({
         user,
+        streamReader,
         voiceResponse: false,
         attachment: {
             file: attachmentFile,

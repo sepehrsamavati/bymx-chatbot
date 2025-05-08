@@ -1,12 +1,9 @@
 import { randomUUID } from "node:crypto";
-import ChatPrompt from '../../dto/chat/ChatPrompt.js';
-import { OperationResultWithData } from 'bymx-core/shared';
+import { Api, UserEntity } from 'bymx-core/types';
 import { validateToken } from '../../helpers/jwtHelper.js';
 import { config, type CoreServices } from 'bymx-core/server';
 import { extractCookies } from '../../helpers/cookieHelper.js';
-import { dtoValidator } from '../../middlewares/dtoValidator.js';
 import type { Socket, Server as SocketIOServer } from 'socket.io';
-import { Api, UserEntity, UserTempFileEntity } from 'bymx-core/types';
 
 type SocketConnectionContext = {
     id: string;
@@ -17,7 +14,9 @@ type SocketConnectionContext = {
 const socketStorage = new Map<string, SocketConnectionContext>();
 const generateSocketId = () => randomUUID();
 
-export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServices) => {
+export const getSocketById = (id: string) => socketStorage.get(id);
+
+export const setSocketIoHandlers = (io: SocketIOServer, _coreServices: CoreServices) => {
     io.on("connection", async socket => {
         const authToken = extractCookies(socket.request.headers.cookie)?.find(c => c.key === config.apiServer.cookieKey)?.value;
 
@@ -30,8 +29,8 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
             return socket.disconnect(true);
 
         const userViewModel = payload as UserEntity.UserViewModel;
-        const scope = coreServices.createApplicationScope();
-        const applications = scope.applications;
+        // const scope = coreServices.createApplicationScope();
+        // const applications = scope.applications;
 
         const socketId = generateSocketId();
 
@@ -45,7 +44,7 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
 
         socket.once("disconnect", () => {
             socketStorage.delete(socketId);
-            scope.dispose();
+            // scope.dispose();
         });
 
         socket.emit("hello", (
@@ -53,77 +52,5 @@ export const setSocketIoHandlers = (io: SocketIOServer, coreServices: CoreServic
                 connectionId: socketId,
             } satisfies Api.SocketIo.HelloResponse
         ));
-
-        socket.on("submitPrompt", data => dtoValidator(ChatPrompt, data, async chatPrompt => {
-            const reply = (data: unknown) => socket.emit("submitPromptResult", data);
-
-            const result = new OperationResultWithData<Api.SocketIo.SubmitPromptResult>();
-
-            const userId = userViewModel.id;
-            const query = chatPrompt;
-            const user = await applications.userApplication.getUserById(userId);
-
-            if (!user)
-                return reply(result.failed("userNotFound"));
-
-            const chat = await applications.aiChatApplication.getUserChatById(user.id, query.chatId);
-
-            if (!chat)
-                return reply(result.failed("itemNotFound"));
-
-            let attachmentFile: UserTempFileEntity.UserTempFile | null = null;
-
-            if (query.attachmentFileId) {
-                const file = await applications.userTempFileApplication.getByFsId(query.attachmentFileId);
-
-                if (file.data?.user !== user.id)
-                    return reply(result.failed("itemNotFound"));
-
-                attachmentFile = file.data as UserTempFileEntity.UserTempFile;
-            }
-
-            let chunkIndexCounter = 0;
-            const chatCompletionResult = await applications.aiApplication.multiModalChatCompletion({
-                user,
-                streamReader: (chunk, _finished) => {
-                    reply(
-                        result
-                            .succeeded()
-                            .setData({
-                                pointUsage: 0,
-                                isComplete: false,
-                                outputChunk: {
-                                    index: ++chunkIndexCounter,
-                                    value: chunk,
-                                },
-                            })
-                    );
-                },
-                voiceResponse: false,
-                attachment: {
-                    file: attachmentFile,
-                },
-                inputMessage: {
-                    text: query.promptText
-                },
-                history: {
-                    chat: chat
-                },
-            });
-
-            if (chatCompletionResult.ok && chatCompletionResult.data)
-                result
-                    .succeeded()
-                    .setData({
-                        isComplete: chatCompletionResult.data.isComplete,
-                        plainText: chatCompletionResult.data.plainText,
-                        pointUsage: chatCompletionResult.data.pointUsage,
-                        finished: true,
-                    });
-            else
-                result.failed(chatCompletionResult.message);
-
-            return reply(result);
-        }));
     });
 };

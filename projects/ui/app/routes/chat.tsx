@@ -13,7 +13,7 @@ import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IOperationResultWithData, PromptViewModel } from "bymx-core/types";
+import type { Api, IOperationResultWithData, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
@@ -34,32 +34,33 @@ type SelectedAttachmentFile = {
 
 type SubmitPrompt = { chatId: string; promptText: string; attachmentFileId?: string; };
 
-type PromptStreamResult = { outputChunk?: { index: number; value: string; }; plainText?: string; isComplete: boolean; pointUsage: number; finished?: true; };
-
 const socketManager = () => {
     const socket = ('sInstance' in window && window.sInstance as Socket) || io({
         path: "/api/v1/ws",
         autoConnect: false,
     });
+    let socketConnectionId = "";
 
     // @ts-ignore
     window.sInstance = socket;
 
-    socket.on("hello", () => console.info("Socket connected."));
+    socket.on("hello", (res: Api.SocketIo.HelloResponse) => socketConnectionId = res.connectionId);
     socket.connect();
 
-    const submitPromptWithStream = (dto: SubmitPrompt, reader: (result: IOperationResultWithData<PromptStreamResult>) => void | { closeListener?: true }) => {
-        const handler = (res: IOperationResultWithData<PromptStreamResult>) => {
-            const shouldCloseListener = reader(res);
-            if (shouldCloseListener)
-                socket.off("submitPromptResult", handler);
+    const registerPromptResultHandler = (requestId: string, reader: (result: Api.SocketIo.SubmitPromptResult) => void | { closeListener?: true }) => {
+        const handler = (res: Api.SocketIo.SubmitPromptResult) => {
+            if (requestId && requestId === res.clientRequestId) {
+                const shouldCloseListener = reader(res);
+                if (shouldCloseListener)
+                    socket.off("submitPromptResult", handler);
+            }
         };
         socket.on("submitPromptResult", handler);
-        socket.emit("submitPrompt", dto);
     };
 
     return {
-        submitPromptWithStream
+        getConnectionId: () => socketConnectionId,
+        registerPromptResultHandler
     };
 };
 
@@ -145,13 +146,14 @@ export default function Chat() {
         setInputText("");
         setUploadingFile(undefined);
         const inputDate = Date.now();
+        const requestId = window.crypto.randomUUID();
         const dto = {
             chatId,
             promptText: _inputText,
             attachmentFileId: _attachmentFile?.id,
-        };
-
-        const tempId = window.crypto.randomUUID();
+            streamSocketId: socket.getConnectionId(),
+            clientRequestId: requestId,
+        } satisfies Api.ChatDto.ILlmPromptRequest;
 
         scrollToBottom(cb => setTimeout(() => cb(), 10), true);
         setCurrentlyGeneratingMessage({ input: _inputText, output: "", });
@@ -165,67 +167,65 @@ export default function Chat() {
         };
 
         if (stream) {
+            /** @todo Should remove if request failed - increases memory usage */
             socket
-                .submitPromptWithStream(
-                    dto,
+                .registerPromptResultHandler(
+                    requestId,
                     result => {
-                        console.log(result.ok ? result.data?.outputChunk?.index : result.message)
-
-                        if (result.data?.finished && result.data.isComplete) {
+                        if (result.finished && result.isComplete) {
                             setWaitingForCompletion(false);
                             scrollToBottom(cb => setTimeout(() => cb(), 10));
                             setMessages(_current => [..._current, (
                                 {
-                                    id: tempId,
+                                    id: requestId,
                                     inputDate,
                                     outputDate: Date.now(),
                                     modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
                                     input: _inputText,
                                     attachmentFilename: _attachmentFile?.name,
-                                    output: result?.data?.plainText ?? "ERR",
-                                    points: result?.data?.pointUsage as number,
+                                    output: result?.plainText ?? "ERR",
+                                    points: result?.pointUsage as number,
                                 }
                             )]);
                             setCurrentlyGeneratingMessage(undefined);
                             return { closeListener: true };
                         } else {
-                            if (!result.ok) {
-                                session.snackbarProvider(result.message, { variant: "error" });
+                            if (!result) {
                                 rollback();
-                            } else if (result.data?.outputChunk) {
+                            } else if (result?.outputChunk) {
                                 scrollToBottom(cb => setTimeout(() => cb(), 10));
-                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: (_current?.output || "") + result.data!.outputChunk!.value }));
+                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: (_current?.output || "") + result!.outputChunk!.value }));
                             }
                         }
 
                         return;
                     },
                 );
-        } else {
-            chatService
-                .submitPrompt(dto)
-                .then(response => {
-                    const result = response.result;
-                    if (result?.data) {
-                        scrollToBottom(cb => setTimeout(() => cb(), 10));
-                        setMessages(_current => [..._current, (
-                            {
-                                id: tempId,
-                                inputDate,
-                                outputDate: Date.now(),
-                                modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
-                                input: _inputText,
-                                attachmentFilename: _attachmentFile?.name,
-                                output: result?.data?.plainText ?? "ERR", points: result?.data?.pointUsage as number
-                            }
-                        )]);
-                    } else {
-                        session.snackbarProvider(result?.message, { variant: "error" });
-                        rollback();
-                    }
-                })
-                .finally(_finally);
         }
+
+        chatService
+            .submitPrompt(dto)
+            .then(response => {
+                const result = response.result;
+                if (result?.data) {
+                    scrollToBottom(cb => setTimeout(() => cb(), 10));
+                    setMessages(_current => [..._current, (
+                        {
+                            id: requestId,
+                            inputDate,
+                            outputDate: Date.now(),
+                            modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                            input: _inputText,
+                            attachmentFilename: _attachmentFile?.name,
+                            output: result?.data?.plainText ?? "ERR", points: result?.data?.pointUsage as number
+                        }
+                    )]);
+                } else {
+                    session.snackbarProvider(result?.message, { variant: "error" });
+                    rollback();
+                }
+            })
+            .finally(_finally);
     }, [chatId, inputText, uploadingFile, socket]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {

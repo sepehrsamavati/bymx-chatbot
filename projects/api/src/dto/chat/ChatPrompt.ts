@@ -1,7 +1,7 @@
 import ChatID from "./ChatID.js";
 import type { Api } from "bymx-core/types";
 import { Expose, Type } from "class-transformer";
-import { IsDefined, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDefined, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
 
 export default class ChatPrompt extends ChatID implements Api.ChatDto.ILlmPromptRequest {
     @Expose()
@@ -19,4 +19,18 @@ export default class ChatPrompt extends ChatID implements Api.ChatDto.ILlmPrompt
     @MinLength(15)
     @MaxLength(55)
     attachmentFileId?: string;
+
+    @Expose()
+    @Type(() => String)
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    streamSocketId?: string;
+
+    @Expose()
+    @Type(() => String)
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    clientRequestId?: string;
 }
