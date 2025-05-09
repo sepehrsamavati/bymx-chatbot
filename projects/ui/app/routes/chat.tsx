@@ -165,7 +165,6 @@ export default function Chat() {
         const _finally = () => {
             responseReturned = true;
             setCurrentlyGeneratingMessage(undefined);
-            setCurrentlyGeneratingMessage(undefined);
             setWaitingForCompletion(false);
         };
 
