@@ -32,17 +32,12 @@ type SelectedAttachmentFile = {
     name: AttachmentFile['name'];
 };
 
-type SubmitPrompt = { chatId: string; promptText: string; attachmentFileId?: string; };
-
 const socketManager = () => {
-    const socket = ('sInstance' in window && window.sInstance as Socket) || io({
+    const socket = io({
         path: "/api/v1/ws",
         autoConnect: false,
     });
     let socketConnectionId = "";
-
-    // @ts-ignore
-    window.sInstance = socket;
 
     socket.on("hello", (res: Api.SocketIo.HelloResponse) => socketConnectionId = res.connectionId);
     socket.connect();
@@ -142,18 +137,23 @@ export default function Chat() {
 
         const _inputText = inputText;
         const _attachmentFile = uploadingFile;
+        const inputDate = Date.now();
+        const socketConnectionId = socket.getConnectionId();
+        const requestId = window.crypto.randomUUID();
 
         setInputText("");
         setUploadingFile(undefined);
         let responseReturned = false;
-        const inputDate = Date.now();
-        const requestId = window.crypto.randomUUID();
         const dto = {
             chatId,
             promptText: _inputText,
             attachmentFileId: _attachmentFile?.id,
-            streamSocketId: socket.getConnectionId(),
-            clientRequestId: requestId,
+            ...(
+                socketConnectionId ? {
+                    streamSocketId: socketConnectionId,
+                    clientRequestId: requestId,
+                } : undefined
+            ),
         } satisfies Api.ChatDto.ILlmPromptRequest;
 
         scrollToBottom(cb => setTimeout(() => cb(), 10), true);
