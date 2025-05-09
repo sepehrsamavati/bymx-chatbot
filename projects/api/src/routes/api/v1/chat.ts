@@ -83,18 +83,18 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
         attachmentFile = file.data as UserTempFileEntity.UserTempFile;
     }
 
-    let streamReader = (chunk: string) => void null;
+    let streamReader = (_chunk: string) => void null;
 
     if (query.streamSocketId) {
         const socketCtx = getSocketById(query.streamSocketId);
         if (socketCtx?.user.id === user.id) {
             let chunkIndexCounter = 0;
             streamReader = chunk => {
-                console.log(chunk)
                 socketCtx.socket.emit("submitPromptResult", (
                     {
                         pointUsage: 0,
                         isComplete: false,
+                        clientRequestId: query.clientRequestId,
                         outputChunk: {
                             index: ++chunkIndexCounter,
                             value: chunk,

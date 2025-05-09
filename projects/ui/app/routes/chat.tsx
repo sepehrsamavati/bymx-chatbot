@@ -145,6 +145,7 @@ export default function Chat() {
 
         setInputText("");
         setUploadingFile(undefined);
+        let responseReturned = false;
         const inputDate = Date.now();
         const requestId = window.crypto.randomUUID();
         const dto = {
@@ -162,9 +163,12 @@ export default function Chat() {
             setUploadingFile(_attachmentFile);
         };
         const _finally = () => {
+            responseReturned = true;
+            setCurrentlyGeneratingMessage(undefined);
             setCurrentlyGeneratingMessage(undefined);
             setWaitingForCompletion(false);
         };
+
 
         if (stream) {
             /** @todo Should remove if request failed - increases memory usage */
@@ -172,6 +176,10 @@ export default function Chat() {
                 .registerPromptResultHandler(
                     requestId,
                     result => {
+
+                        if (responseReturned)
+                            return { closeListener: true };
+
                         if (result.finished && result.isComplete) {
                             setWaitingForCompletion(false);
                             scrollToBottom(cb => setTimeout(() => cb(), 10));
