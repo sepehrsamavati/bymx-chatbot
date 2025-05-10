@@ -42,7 +42,7 @@ export const socketManager = () => {
     shouldConnect = true;
     connect();
 
-    const registerPromptResultHandler = (requestId: string, reader: (result: Api.WebSocket.SubmitPromptResult['value']) => void | { closeListener?: true }) => {
+    const registerPromptResultHandler = (requestId: string, reader: (result: Api.WebSocket.SubmitPromptResult['value']) => undefined | { closeListener?: true }) => {
         workingListeners++;
         const handler = (event: MessageEvent) => {
             const data = JSON.parse(event.data) as Api.WebSocket.SubmitPromptResult;
@@ -50,7 +50,7 @@ export const socketManager = () => {
             if (data.name === "promptResult") {
                 if (requestId && requestId === data.value.clientRequestId) {
                     const shouldCloseListener = reader(data.value);
-                    if (shouldCloseListener) {
+                    if (shouldCloseListener?.closeListener) {
                         workingListeners--;
                         socket.removeEventListener("message", handler);
                     }
