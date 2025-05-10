@@ -24,7 +24,7 @@ if ('window' in globalThis)
 const connect = () => {
     if ('window' in globalThis) {
 
-        socket = new WebSocket(`ws://${window.location.host}/api/v1/ws`);
+        socket = new WebSocket(`${window.location.hostname === "localhost" ? "ws" : "wss"}://${window.location.host}/api/v1/ws`);
 
         window.document.addEventListener("visibilitychange", handleConnection);
 
