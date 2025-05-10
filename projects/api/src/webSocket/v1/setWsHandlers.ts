@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { config, logger } from 'bymx-core/server';
 import { Api, UserEntity } from 'bymx-core/types';
-import type { WebSocket } from "@fastify/websocket";
 import type { FastifyPluginCallback } from "fastify";
 import { validateToken } from '../../helpers/jwtHelper.js';
 import { extractCookies } from '../../helpers/cookieHelper.js';
+import type { WebSocket, WebsocketHandler } from "@fastify/websocket";
 
 type SocketConnectionContext = {
     id: string;
@@ -14,6 +14,7 @@ type SocketConnectionContext = {
 
 const socketStorage = new Map<string, SocketConnectionContext>();
 const generateSocketId = () => randomUUID();
+const MAX_CONNECTIONS_PER_USER = 5;
 
 export const getSocketById = (id: string) => socketStorage.get(id);
 
@@ -24,7 +25,7 @@ export const setWsHandlers = (controller: Parameters<FastifyPluginCallback>['0']
 
     controller
         .websocketServer
-        .on("connection", async (socket, request) => {
+        .on("connection", async (socket: Parameters<WebsocketHandler>[0], request: Parameters<WebsocketHandler>[1]) => {
             const authToken = extractCookies(request.headers.cookie)?.find(c => c.key === config.apiServer.cookieKey)?.value;
 
             if (!authToken)
@@ -36,6 +37,12 @@ export const setWsHandlers = (controller: Parameters<FastifyPluginCallback>['0']
                 return socket.close();
 
             const userViewModel = payload as UserEntity.UserViewModel;
+
+            const userCurrentConnections = [...socketStorage.values()].filter(connection => connection.user.id === userViewModel.id).length;
+
+            if (userCurrentConnections + 1 > MAX_CONNECTIONS_PER_USER)
+                return socket.close();
+
             // const scope = coreServices.createApplicationScope();
             // const applications = scope.applications;
 

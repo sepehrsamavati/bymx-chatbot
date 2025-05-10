@@ -1,7 +1,6 @@
 import type { FastifyRequest } from "fastify";
 import type { UserEntity } from "bymx-core/types";
 import type { CoreServices } from "bymx-core/server";
-import type { Server as SocketIOServer } from 'socket.io';
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -11,8 +10,5 @@ declare module 'fastify' {
             dto: unknown;
             applications: CoreServices['applications'];
         };
-    }
-    interface FastifyInstance {
-        io: SocketIOServer;
     }
 }
