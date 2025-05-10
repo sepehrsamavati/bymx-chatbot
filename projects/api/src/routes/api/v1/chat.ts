@@ -7,7 +7,7 @@ import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx
 import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
-import { getSocketById } from "../../../socketIo/v1/setSocketIoHandlers.js";
+import { getSocketById } from "../../../webSocket/v1/setWsHandlers.js";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -90,17 +90,20 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
         if (socketCtx?.user.id === user.id) {
             let chunkIndexCounter = 0;
             streamReader = chunk => {
-                socketCtx.socket.emit("submitPromptResult", (
-                    {
-                        pointUsage: 0,
-                        isComplete: false,
-                        clientRequestId: query.clientRequestId,
-                        outputChunk: {
-                            index: ++chunkIndexCounter,
-                            value: chunk,
-                        },
-                    } satisfies Api.SocketIo.SubmitPromptResult
-                ))
+                socketCtx.socket.readyState === socketCtx.socket.OPEN
+                    && socketCtx.socket.send(JSON.stringify(
+                        {
+                            name: "promptResult",
+                            value: {
+                                isComplete: false,
+                                clientRequestId: query.clientRequestId,
+                                outputChunk: {
+                                    index: ++chunkIndexCounter,
+                                    value: chunk,
+                                },
+                            }
+                        } satisfies Api.WebSocket.SubmitPromptResult
+                    ))
             };
         }
     }

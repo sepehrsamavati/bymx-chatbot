@@ -5,8 +5,6 @@ import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
-import type { FastifyInstance, FastifyPluginCallback } from "fastify";
-import FastifySocketIo from "fastify-socket.io";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
@@ -19,7 +17,10 @@ import TelegramOtpLogin from '../dto/user/TelegramOtpLogin.js';
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
+import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
+
+import websocket from '@fastify/websocket';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -30,6 +31,7 @@ import * as model from "./api/v1/model.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
+import { setWsHandlers } from '../webSocket/v1/setWsHandlers.js';
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
@@ -41,14 +43,13 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         // constraints: { host: 'example.com' } // optional: default {}
     });
 
-    let socketIoController: Parameters<FastifyPluginCallback>['0'];
-
-    fastifyInstance.register((_socketIoController, _, next) => {
-        _socketIoController.register(FastifySocketIo.default, {
-            path: httpServerUrls.v1.baseAddress + "/ws"
-        });
-
-        socketIoController = _socketIoController;
+    fastifyInstance.register((wsController, _, next) => {
+        wsController.register(websocket, {
+            prefix: httpServerUrls.v1.baseAddress + "/ws"
+        })
+            .after(() => {
+                setWsHandlers(wsController);
+            });
 
         next();
     }, {
@@ -132,11 +133,14 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
 
-    fastifyInstance.setNotFoundHandler(function (_req, res) {
-        void res.sendFile('index.html')
-    });
+    fastifyInstance.setNotFoundHandler(function (req, res) {
 
-    return {
-        getIoInstance: () => socketIoController
-    };
+        if (req.url === "" || req.url === "/" || req.url.toLowerCase().startsWith('/ui'))
+            return res.sendFile('index.html');
+
+        void res.status(404).send({
+            ok: false,
+            message: "Not found"
+        });
+    });
 };

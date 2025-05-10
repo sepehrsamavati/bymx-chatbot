@@ -1,19 +1,19 @@
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
-import { io, type Socket } from 'socket.io-client';
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
+import { socketManager } from "~/core/services/socket";
 import UploadFile from "@mui/icons-material/UploadFile";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
+import type { Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Api, IOperationResultWithData, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
@@ -32,38 +32,12 @@ type SelectedAttachmentFile = {
     name: AttachmentFile['name'];
 };
 
-const socketManager = () => {
-    const socket = io({
-        path: "/api/v1/ws",
-        autoConnect: false,
-    });
-    let socketConnectionId = "";
-
-    socket.on("hello", (res: Api.SocketIo.HelloResponse) => socketConnectionId = res.connectionId);
-    socket.connect();
-
-    const registerPromptResultHandler = (requestId: string, reader: (result: Api.SocketIo.SubmitPromptResult) => void | { closeListener?: true }) => {
-        const handler = (res: Api.SocketIo.SubmitPromptResult) => {
-            if (requestId && requestId === res.clientRequestId) {
-                const shouldCloseListener = reader(res);
-                if (shouldCloseListener)
-                    socket.off("submitPromptResult", handler);
-            }
-        };
-        socket.on("submitPromptResult", handler);
-    };
-
-    return {
-        getConnectionId: () => socketConnectionId,
-        registerPromptResultHandler
-    };
-};
-
 export default function Chat() {
     const session = useSession();
     const navigate = useNavigate();
     const { chatId } = useParams();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const streamingMessageChunks = useRef<(string | undefined)[]>([]);
     const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; output: string; }>();
     const initialized = useRef(false);
     const didFirstScrollToBottom = useRef(false);
@@ -164,6 +138,7 @@ export default function Chat() {
         };
         const _finally = () => {
             responseReturned = true;
+            streamingMessageChunks.current = [];
             setCurrentlyGeneratingMessage(undefined);
             setWaitingForCompletion(false);
         };
@@ -180,20 +155,7 @@ export default function Chat() {
                             return { closeListener: true };
 
                         if (result.finished && result.isComplete) {
-                            setWaitingForCompletion(false);
-                            scrollToBottom(cb => setTimeout(() => cb(), 10));
-                            setMessages(_current => [..._current, (
-                                {
-                                    id: requestId,
-                                    inputDate,
-                                    outputDate: Date.now(),
-                                    modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
-                                    input: _inputText,
-                                    attachmentFilename: _attachmentFile?.name,
-                                    output: result?.plainText ?? "ERR",
-                                    points: result?.pointUsage as number,
-                                }
-                            )]);
+                            streamingMessageChunks.current = [];
                             setCurrentlyGeneratingMessage(undefined);
                             return { closeListener: true };
                         } else {
@@ -201,7 +163,8 @@ export default function Chat() {
                                 rollback();
                             } else if (result?.outputChunk) {
                                 scrollToBottom(cb => setTimeout(() => cb(), 10));
-                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: (_current?.output || "") + result!.outputChunk!.value }));
+                                streamingMessageChunks.current[result.outputChunk.index] = result.outputChunk.value;
+                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: streamingMessageChunks.current.filter(v => typeof v === "string").join('') }));
                             }
                         }
 
@@ -264,7 +227,6 @@ export default function Chat() {
         chatService
             .setMemoryAmount({ chatId, amount: memoryAmount })
             .then(res => {
-                console.log(session)
                 if (res.result?.ok && session.user) {
                     session.user.memoryAmount = memoryAmount;
                     session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
