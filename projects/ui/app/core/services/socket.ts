@@ -33,7 +33,6 @@ const connect = () => {
 
             if (data.name === "helloResponse") {
                 socketConnectionId = data.value.connectionId;
-                console.log(socketConnectionId)
             }
         });
     }
