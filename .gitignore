@@ -131,3 +131,6 @@ dist
 
 /data
 /projects/*/data
+
+# Publish helper script output
+/projects/*.tar.gz
