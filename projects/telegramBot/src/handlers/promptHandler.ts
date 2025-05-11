@@ -168,17 +168,17 @@ export const promptHandler: IUpdateHandler = {
                 };
             }
 
-            const pleaseWaitMessage = await tgCall(
-                TelegramMethods.SendMessage,
-                {
-                    chat_id: update.message?.chat.id,
-                    reply_to_message_id: update.message?.message_id,
-                    text: '⏳'
-                }
-            );
+            // const pleaseWaitMessage = await tgCall(
+            //     TelegramMethods.SendMessage,
+            //     {
+            //         chat_id: update.message?.chat.id,
+            //         reply_to_message_id: update.message?.message_id,
+            //         text: '⏳'
+            //     }
+            // );
 
-            if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
-                pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
+            // if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
+            //     pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(attachmentTgDocument.file_unique_id);
 
@@ -270,14 +270,14 @@ export const promptHandler: IUpdateHandler = {
             attachmentFile = tempFile;
         }
 
-        if (!pleaseWaitMessageId)
-            await tgCall(
-                TelegramMethods.SendChatAction,
-                {
-                    chat_id: update.message?.chat.id,
-                    action: context.user.voiceResponse.on ? "record_voice" : "typing"
-                }
-            );
+        // if (!pleaseWaitMessageId)
+        //     await tgCall(
+        //         TelegramMethods.SendChatAction,
+        //         {
+        //             chat_id: update.message?.chat.id,
+        //             action: context.user.voiceResponse.on ? "record_voice" : "typing"
+        //         }
+        //     );
 
         let imageFile: UserTempFileEntity.UserTempFile | undefined = undefined;
 
@@ -366,7 +366,58 @@ export const promptHandler: IUpdateHandler = {
             context.services.fileProcessingLockCache.unlock(context.user.id);
         }
 
+        const modelTitle = context.user.telegram?.selectedChat?.model.title ?? '-';
+
+        const sentMessageResponse = await tgCall(
+            TelegramMethods.SendMessage,
+            {
+                chat_id: update.message?.chat.id,
+                reply_to_message_id: update.message?.message_id,
+                text: '⏳',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: `${emojiIcon.point} ?`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${modelTitle}`, callback_data: "modelProcessedThisMessage" }]
+                    ]
+                }
+            }
+        );
+
+        if (!sentMessageResponse?.ok) {
+            unlockFileProcessing();
+            return null;
+        }
+
+        const sentMessage = sentMessageResponse.result;
+
+        let lastStreamResultEdit = Date.now(), pendingEdit = false, streamedString = "";
+        const streamReader = (chunk: string, finished: boolean) => {
+            streamedString += chunk;
+
+            if (finished || pendingEdit || Date.now() - lastStreamResultEdit < 1500)
+                return;
+
+            pendingEdit = true;
+
+            tgCall(
+                TelegramMethods.EditMessageText,
+                {
+                    chat_id: sentMessage.chat.id,
+                    message_id: sentMessage.message_id,
+                    text: streamedString,
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: `${emojiIcon.point} ?`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${modelTitle}`, callback_data: "modelProcessedThisMessage" }]
+                        ]
+                    }
+                }
+            )
+                .finally(() => pendingEdit = false);
+
+            lastStreamResultEdit = Date.now();
+        };
+
         const res = await context.services.aiApplication.multiModalChatCompletion({
+            streamReader,
             user: context.user,
             createDefaultChat: true,
             inputMessage: multiModalInput,
@@ -410,16 +461,26 @@ export const promptHandler: IUpdateHandler = {
                         form.append("parse_mode", "Markdown");
                 }
 
-                await tgCall(
+                const sendVoiceRes = await tgCall(
                     TelegramMethods.SendVoice,
                     form
                 );
+
+                if (sendVoiceRes?.ok) {
+                    tgCall(
+                        TelegramMethods.DeleteMessage,
+                        {
+                            chat_id: sentMessage.chat.id,
+                            message_id: sentMessage.message_id,
+                        }
+                    );
+                }
             } else {
                 await tgCall(
-                    TelegramMethods.SendMessage,
+                    TelegramMethods.EditMessageText,
                     {
-                        chat_id: update.message?.chat.id,
-                        reply_to_message_id: update.message?.message_id,
+                        chat_id: sentMessage.chat.id,
+                        message_id: sentMessage.message_id,
                         text: convertToTelegramMarkdown(result.plainText),
                         parse_mode: result.isComplete ? "Markdown" : undefined,
                         reply_markup: {
@@ -429,6 +490,20 @@ export const promptHandler: IUpdateHandler = {
                         }
                     }
                 );
+                // await tgCall(
+                //     TelegramMethods.SendMessage,
+                //     {
+                //         chat_id: update.message?.chat.id,
+                //         reply_to_message_id: update.message?.message_id,
+                //         text: convertToTelegramMarkdown(result.plainText),
+                //         parse_mode: result.isComplete ? "Markdown" : undefined,
+                //         reply_markup: {
+                //             inline_keyboard: [
+                //                 [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.telegram?.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
+                //             ]
+                //         }
+                //     }
+                // );
             }
         }
         else

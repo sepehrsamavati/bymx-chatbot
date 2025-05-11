@@ -224,6 +224,7 @@ type TelegramResponseMap = {
     [TelegramMethods.SendText]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.SendMessage]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.SendPhoto]: TelegramResponseBase<TelegramMessage>;
+    [TelegramMethods.SendVoice]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.EditMessageText]: TelegramResponseBase<TelegramMessage>;
     [TelegramMethods.GetMe]: TelegramResponseBase<TelegramUser>;
     [TelegramMethods.GetUpdates]: TelegramResponseBase<TelegramUpdateObject[]>;
