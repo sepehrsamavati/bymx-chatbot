@@ -40,7 +40,7 @@ export const muiThemeOptions = (themeManager: ThemeManager, languageDirection: D
             },
             background: {
                 default: theme === 'light' ? _colors.backgroundLightMode : _colors.backgroundDarkMode,
-                paper: theme === 'light' ? _colors.antiFlashWhite : _colors.brand
+                paper: theme === 'light' ? _colors.antiFlashWhite : _colors.backgroundDarkMode
             }
         },
         typography: {

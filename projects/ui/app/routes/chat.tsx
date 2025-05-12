@@ -480,7 +480,30 @@ export default function Chat() {
                 ) : null}
             </Stack>
 
-            <Card sx={{ padding: 1, borderRadius: 0, overflow: "initial" }}>
+            <Card
+                sx={{
+                    padding: 1,
+                    marginInline: "auto !important",
+                    width: {
+                        xs: "100%",
+                        sm: "90%",
+                        lg: "100%",
+                    },
+                    overflow: "initial",
+                    margin: {
+                        xs: 0,
+                        sm: 4,
+                    },
+                    borderRadius: {
+                        xs: 0,
+                        sm: 3,
+                    },
+                    maxWidth: {
+                        xs: 'initial',
+                        sm: '800px',
+                    }
+                }}
+            >
                 <form
                     onSubmit={e => {
                         e.preventDefault();
@@ -533,9 +556,9 @@ export default function Chat() {
                             },
                             input: {
                                 disableUnderline: true,
-                                startAdornment: (
+                                endAdornment: (
                                     <IconButton type="submit" size="small" disabled={inputText.trim().length === 0 || waitingForCompletion}>
-                                        {waitingForCompletion ? <CircularProgress size="1em" color="inherit" /> : <Send />}
+                                        {waitingForCompletion ? <CircularProgress size="1em" color="inherit" /> : <Send sx={{ rotate: document.documentElement.dir === "rtl" ? "180deg" : "0deg" }} />}
                                     </IconButton>
                                 )
                             },
