@@ -128,7 +128,6 @@ export const promptHandler: IUpdateHandler = {
             };
 
         let attachmentFile: UserTempFileEntity.UserTempFile | undefined;
-        let pleaseWaitMessageId = 0;
 
         let attachmentTgDocument = update.message?.reply_to_message?.document;
         if (update.message?.document) // read caption as prompt
@@ -167,18 +166,6 @@ export const promptHandler: IUpdateHandler = {
                     }
                 };
             }
-
-            // const pleaseWaitMessage = await tgCall(
-            //     TelegramMethods.SendMessage,
-            //     {
-            //         chat_id: update.message?.chat.id,
-            //         reply_to_message_id: update.message?.message_id,
-            //         text: '⏳'
-            //     }
-            // );
-
-            // if (pleaseWaitMessage?.ok && pleaseWaitMessage.result.message_id)
-            //     pleaseWaitMessageId = pleaseWaitMessage.result.message_id;
 
             const cachedFile = await context.services.userTempFileApplication.getByTgUniqueId(attachmentTgDocument.file_unique_id);
 
@@ -269,15 +256,6 @@ export const promptHandler: IUpdateHandler = {
 
             attachmentFile = tempFile;
         }
-
-        // if (!pleaseWaitMessageId)
-        //     await tgCall(
-        //         TelegramMethods.SendChatAction,
-        //         {
-        //             chat_id: update.message?.chat.id,
-        //             action: context.user.voiceResponse.on ? "record_voice" : "typing"
-        //         }
-        //     );
 
         let imageFile: UserTempFileEntity.UserTempFile | undefined = undefined;
 
@@ -389,11 +367,24 @@ export const promptHandler: IUpdateHandler = {
 
         const sentMessage = sentMessageResponse.result;
 
-        let lastStreamResultEdit = Date.now(), pendingEdit = false, streamedString = "";
+        let lastStreamResultEdit = Date.now(),
+            pendingEdit = false,
+            streamedString = "",
+            receivedResult = false,
+            sentAnyChunkToClient = false;
+        const deleteOutputTextMessage = () => (
+            tgCall(
+                TelegramMethods.DeleteMessage,
+                {
+                    chat_id: sentMessage.chat.id,
+                    message_id: sentMessage.message_id,
+                }
+            )
+        );
         const streamReader = (chunk: string, finished: boolean) => {
             streamedString += chunk;
 
-            if (finished || pendingEdit || Date.now() - lastStreamResultEdit < 1500)
+            if (finished || receivedResult || pendingEdit || Date.now() - lastStreamResultEdit < 1500)
                 return;
 
             pendingEdit = true;
@@ -411,6 +402,10 @@ export const promptHandler: IUpdateHandler = {
                     }
                 }
             )
+                .then(res => {
+                    if (res?.ok)
+                        sentAnyChunkToClient = true;
+                })
                 .finally(() => pendingEdit = false);
 
             lastStreamResultEdit = Date.now();
@@ -427,17 +422,10 @@ export const promptHandler: IUpdateHandler = {
             },
         });
 
+        receivedResult = true;
+
         if (attachmentFile)
             unlockFileProcessing();
-
-        if (pleaseWaitMessageId)
-            tgCall(
-                TelegramMethods.DeleteMessage,
-                {
-                    chat_id: update.message?.chat.id,
-                    message_id: pleaseWaitMessageId,
-                }
-            );
 
         const result = res.ok && res.data ? res.data : null;
 
@@ -466,15 +454,8 @@ export const promptHandler: IUpdateHandler = {
                     form
                 );
 
-                if (sendVoiceRes?.ok) {
-                    tgCall(
-                        TelegramMethods.DeleteMessage,
-                        {
-                            chat_id: sentMessage.chat.id,
-                            message_id: sentMessage.message_id,
-                        }
-                    );
-                }
+                if (sendVoiceRes?.ok)
+                    deleteOutputTextMessage();
             } else {
                 await tgCall(
                     TelegramMethods.EditMessageText,
@@ -490,23 +471,13 @@ export const promptHandler: IUpdateHandler = {
                         }
                     }
                 );
-                // await tgCall(
-                //     TelegramMethods.SendMessage,
-                //     {
-                //         chat_id: update.message?.chat.id,
-                //         reply_to_message_id: update.message?.message_id,
-                //         text: convertToTelegramMarkdown(result.plainText),
-                //         parse_mode: result.isComplete ? "Markdown" : undefined,
-                //         reply_markup: {
-                //             inline_keyboard: [
-                //                 [{ text: `${emojiIcon.point} ${result.pointUsage}`, callback_data: "usedPointsForMessage" }, { text: `${emojiIcon.model} ${context.user.telegram?.selectedChat?.model.title ?? '-'}`, callback_data: "modelProcessedThisMessage" }]
-                //             ]
-                //         }
-                //     }
-                // );
             }
         }
-        else
+        else {
+
+            if (!sentAnyChunkToClient)
+                deleteOutputTextMessage();
+
             switch (res.message) {
                 case "modelNotAvailable":
                     await tgCall(
@@ -555,6 +526,7 @@ export const promptHandler: IUpdateHandler = {
                         }
                     );
             }
+        }
 
         return { shouldContinue: false };
     }
