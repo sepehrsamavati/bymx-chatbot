@@ -5,6 +5,7 @@ export * from "../types/enums/userTypes.js";
 export * from "../types/enums/aiChatBehavior.js";
 export * from "../types/enums/generationTaskType.js";
 export * from "../types/enums/aiChatHistoryMemory.js";
+export * from "../types/enums/generationTaskStatus.js";
 export * as UIText from "../i18n/UIText.js";
 export * from "../types/enums/userStatus.js";
 export * from "../common/dto/OperationResult.js";

@@ -37,6 +37,7 @@ export default class EventHandlerApplication {
                                         url: generatedMusic.url,
                                         pointUsage: task.promptInfo?.points ?? 0,
                                         modelName: task.model.title,
+                                        taskInternalId: task.internalId,
                                     });
 
                                 if (task.promptInfo)
@@ -73,6 +74,7 @@ export default class EventHandlerApplication {
                                         url: generated3D.url,
                                         pointUsage: task.promptInfo?.points ?? 0,
                                         modelName: task.model.title,
+                                        taskInternalId: task.internalId,
                                     });
 
                                 if (task.promptInfo)

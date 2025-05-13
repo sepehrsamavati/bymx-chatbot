@@ -17,7 +17,7 @@ export default class GenerationTaskApplication {
     }
 
     /** Get internal id from `newId` function */
-    async create(task: { userId: string; modelId: string; usages: string[]; } & Partial<Pick<GenerationTask, 'status'>> & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'promptInfo'>) {
+    async create(task: { userId: string; modelId: string; usages: string[]; } & Partial<Pick<GenerationTask, 'status' | 'result'>> & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'promptInfo'>) {
         const result = new OperationResultWithData<string>();
 
         const created = await this.#generationTaskRepository.create({
@@ -28,7 +28,7 @@ export default class GenerationTaskApplication {
             internalId: task.internalId,
             externalId: task.externalId,
             expiry: task.expiry,
-            result: null,
+            result: task.result ?? null,
             status: task.status ?? GenerationTaskStatus.InProgress,
             type: task.type,
             usages: task.usages,
@@ -146,5 +146,16 @@ export default class GenerationTaskApplication {
             _result.succeeded();
 
         return _result;
+    }
+
+    async getByInternalId(internalId: string) {
+        const result = new OperationResultWithData<GenerationTask>();
+
+        const task = await this.#generationTaskRepository.getOne({ isDeleted: false, internalId });
+
+        if (task)
+            result.succeeded().setData(task);
+
+        return result;
     }
 }

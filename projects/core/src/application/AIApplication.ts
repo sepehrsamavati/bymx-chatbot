@@ -26,6 +26,7 @@ import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js"
 import { IOpenAITextResult, StreamingChatResponseReader } from "../types/contracts/services.js";
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
+import { GenerationTaskStatus } from "../types/enums/generationTaskStatus.js";
 
 type MultiModalInputMessage = {
     text: { text: string; };
@@ -389,7 +390,8 @@ export default class AIApplication {
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
                 const taskCreationResult = await this.#generationTaskApplication.create({
-                    expiry: new Date(startDate.getTime() + (1000 * 60 * 5)),
+                    expiry: startDate,
+                    result: falResponse.data,
                     promptInfo: {
                         cost: costUsdCent / 100,
                         points: userPointCost,
@@ -402,6 +404,7 @@ export default class AIApplication {
                     endDate: new Date(),
                     modelId: model.id,
                     type: GenerationTaskType.FalAiFluxImageGeneration,
+                    status: GenerationTaskStatus.OK,
                     userId: user.id,
                     usages: savedUsageIds ?? [],
                 });
@@ -587,7 +590,8 @@ export default class AIApplication {
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
 
                 const taskCreationResult = await this.#generationTaskApplication.create({
-                    expiry: new Date(startDate.getTime() + (1000 * 60 * 5)),
+                    expiry: startDate,
+                    result: falResponse.data,
                     promptInfo: {
                         cost: costUsdCent / 100,
                         points: userPointCost,
@@ -600,6 +604,7 @@ export default class AIApplication {
                     endDate: new Date(),
                     modelId: model.id,
                     type: GenerationTaskType.FalAiAuraSrImageUpscale,
+                    status: GenerationTaskStatus.OK,
                     userId: user.id,
                     usages: savedUsageIds ?? [],
                 });

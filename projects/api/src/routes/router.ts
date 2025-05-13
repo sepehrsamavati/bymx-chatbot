@@ -63,6 +63,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         fileController.register(fileHandler);
 
+        fileController.get("/task", { preValidation: fastifyPayloadValidator(IdDto) }, file.getTaskFile);
         fileController.put("/upload", file.uploadAttachment);
         fileController.delete("/attachment", { preValidation: fastifyPayloadValidator(IdDto) }, file.deleteAttachment);
 

@@ -1,9 +1,10 @@
 import fs from 'node:fs';
+import { Readable } from "node:stream";
 import type IdDto from "../../../dto/IdDto.js";
 import { pipeline } from 'node:stream/promises';
 import type { RouteHandlerMethod } from "fastify";
 import { errorLogger, fileHelper, storageHelper } from "bymx-core/server";
-import { OperationResult, OperationResultWithData } from "bymx-core/shared";
+import { GenerationTaskStatus, OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
@@ -77,4 +78,43 @@ export const deleteAttachment: RouteHandlerMethod = async (request, reply) => {
         result.failed();
 
     return reply.status(200).send(result);
+};
+
+export const getTaskFile: RouteHandlerMethod = async (request, reply) => {
+
+    const taskInternalId = (request.locals.dto as IdDto).id;
+
+    if (!request.locals.user)
+        return reply.status(401).send({});
+
+    const { data: task } = await request.locals.applications.generationTaskApplication.getByInternalId(taskInternalId);
+
+    if (!task)
+        return reply.status(404).send({});
+
+    if (task.user.id !== request.locals.user.id)
+        return reply.status(403).send({});
+
+    if (task.status !== GenerationTaskStatus.OK)
+        return reply.status(412).send({});
+
+    const urlToFetch = typeof task.result === "object" && task.result
+        && 'payload' in task.result && typeof task.result.payload === "object" && task.result.payload
+        && 'images' in task.result.payload && Array.isArray(task.result.payload.images)
+        && task.result.payload?.images[0]?.url;
+
+    if (typeof urlToFetch !== "string" || !URL.canParse(urlToFetch))
+        return reply.status(400).send({});
+
+    try {
+        const response = await fetch(urlToFetch, { method: "GET" });
+        if (response.body)
+            // @ts-ignore
+            return reply.status(200).send(Readable.fromWeb(response.body));
+
+    } catch (err) {
+        return reply.status(503).send({});
+    }
+
+    return reply.status(400).send({});
 };
