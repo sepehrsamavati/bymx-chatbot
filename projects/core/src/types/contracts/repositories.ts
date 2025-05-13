@@ -122,7 +122,7 @@ export type ITelegramJoinRequiredChatRepository = {
 }
 
 export type IGenerationTaskRepository = {
-    create(task: FlattenToIDs<GenerationTaskDBModel, 'user' | 'model' | 'usages'>): Promise<boolean | null>;
+    create(task: FlattenToIDs<GenerationTaskDBModel, 'user' | 'model' | 'usages'>): Promise<string | null>;
     count(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<number | null>;
     getOne(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<GenerationTask | null>;
     getMany(filter: FlattenToIDs<SearchGenerationTaskModel, 'user' | 'model'>): Promise<GenerationTask[] | null>;

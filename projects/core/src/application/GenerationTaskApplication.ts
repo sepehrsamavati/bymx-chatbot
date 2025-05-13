@@ -17,8 +17,8 @@ export default class GenerationTaskApplication {
     }
 
     /** Get internal id from `newId` function */
-    async create(task: { userId: string; modelId: string; usages: string[]; } & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'promptInfo'>) {
-        const result = new OperationResult();
+    async create(task: { userId: string; modelId: string; usages: string[]; } & Partial<Pick<GenerationTask, 'status'>> & Pick<GenerationTask, 'startDate' | 'endDate' | 'expiry' | 'internalId' | 'externalId' | 'type' | 'promptInfo'>) {
+        const result = new OperationResultWithData<string>();
 
         const created = await this.#generationTaskRepository.create({
             insertDate: new Date(),
@@ -29,7 +29,7 @@ export default class GenerationTaskApplication {
             externalId: task.externalId,
             expiry: task.expiry,
             result: null,
-            status: GenerationTaskStatus.InProgress,
+            status: task.status ?? GenerationTaskStatus.InProgress,
             type: task.type,
             usages: task.usages,
             user: task.userId,
@@ -37,8 +37,8 @@ export default class GenerationTaskApplication {
             promptInfo: task.promptInfo,
         });
 
-        if (created === true)
-            result.succeeded();
+        if (created)
+            result.succeeded().setData(created);
 
         return result;
     }
@@ -52,7 +52,7 @@ export default class GenerationTaskApplication {
             status: GenerationTaskStatus.InProgress,
         });
 
-        if(Number.isInteger(count))
+        if (Number.isInteger(count))
             result.succeeded().setData(count);
 
         return result;

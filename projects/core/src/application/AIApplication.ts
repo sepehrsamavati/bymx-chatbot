@@ -347,6 +347,8 @@ export default class AIApplication {
 
         this.#messageLock.lock(user.id);
 
+        const internalTaskId = this.#generationTaskApplication.newId();
+        const startDate = new Date();
         const startTime = performance.now();
 
         let prompt = message;
@@ -384,15 +386,25 @@ export default class AIApplication {
                 result.failed("promptContentNotAllowed");
             }
             else {
-                result
-                    .succeeded()
-                    .setData({
-                        url: generatedImage.url,
-                        pointUsage: userPointCost,
-                        modelName: model.title,
-                    });
-
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+                const taskCreationResult = await this.#generationTaskApplication.create({
+                    expiry: new Date(startDate.getTime() + (1000 * 60 * 5)),
+                    promptInfo: {
+                        cost: costUsdCent / 100,
+                        points: userPointCost,
+                        input: prompt,
+                        saved: false,
+                    },
+                    internalId: internalTaskId,
+                    externalId: falResponse.requestId,
+                    startDate: startDate,
+                    endDate: new Date(),
+                    modelId: model.id,
+                    type: GenerationTaskType.FalAiFluxImageGeneration,
+                    userId: user.id,
+                    usages: savedUsageIds ?? [],
+                });
 
                 await this.#promptRepository.create({
                     cost: costUsdCent / 100,
@@ -407,6 +419,15 @@ export default class AIApplication {
                     promptUser: user,
                     responseTime: responseTime,
                 });
+
+                result
+                    .succeeded()
+                    .setData({
+                        url: generatedImage.url,
+                        pointUsage: userPointCost,
+                        modelName: model.title,
+                        taskInternalId: taskCreationResult.data!,
+                    });
             }
         }
 
@@ -538,6 +559,8 @@ export default class AIApplication {
 
         this.#messageLock.lock(user.id);
 
+        const internalTaskId = this.#generationTaskApplication.newId();
+        const startDate = new Date();
         const startTime = performance.now();
 
         const falResponse = await fal.subscribe(model.name, {
@@ -561,15 +584,25 @@ export default class AIApplication {
                 result.failed("promptContentNotAllowed");
             }
             else {
-                result
-                    .succeeded()
-                    .setData({
-                        url: generatedImage.url,
-                        pointUsage: userPointCost,
-                        modelName: model.title,
-                    });
-
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+
+                const taskCreationResult = await this.#generationTaskApplication.create({
+                    expiry: new Date(startDate.getTime() + (1000 * 60 * 5)),
+                    promptInfo: {
+                        cost: costUsdCent / 100,
+                        points: userPointCost,
+                        input: `[file:${image.fsId}]`,
+                        saved: false,
+                    },
+                    internalId: internalTaskId,
+                    externalId: falResponse.requestId,
+                    startDate: startDate,
+                    endDate: new Date(),
+                    modelId: model.id,
+                    type: GenerationTaskType.FalAiAuraSrImageUpscale,
+                    userId: user.id,
+                    usages: savedUsageIds ?? [],
+                });
 
                 await this.#promptRepository.create({
                     cost: costUsdCent / 100,
@@ -585,6 +618,15 @@ export default class AIApplication {
                     responseTime: responseTime,
                     fileId: image.fsId,
                 });
+
+                result
+                    .succeeded()
+                    .setData({
+                        url: generatedImage.url,
+                        pointUsage: userPointCost,
+                        modelName: model.title,
+                        taskInternalId: taskCreationResult.data!,
+                    });
             }
         }
 

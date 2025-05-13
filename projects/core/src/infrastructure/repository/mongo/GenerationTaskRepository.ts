@@ -15,9 +15,9 @@ export class GenerationTaskRepository implements IGenerationTaskRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(chat: CreateModel): Promise<boolean | null> {
+    async create(chat: CreateModel): Promise<string | null> {
         const res = await this.#databaseConnection.models.generationTask.create(chat);
-        return Boolean(typeof res?._id !== "string");
+        return res?._id.toString() || null;
     }
 
     #getFilter(filter: SearchModel) {

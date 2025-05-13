@@ -1,9 +1,11 @@
 import * as ApiChatDto from "../types/contracts/api/dto/chat.js";
 import * as ApiWebSocket from "../types/contracts/api/webSocket.js";
+import * as ApiGenerativeAiDto from "../types/contracts/api/dto/generativeAi.js";
 
 export namespace Api {
     export import ChatDto = ApiChatDto;
     export import WebSocket = ApiWebSocket;
+    export import GenerativeAi = ApiGenerativeAiDto;
 }
 
 export type * as UserEntity from "../types/entities/user.js";
