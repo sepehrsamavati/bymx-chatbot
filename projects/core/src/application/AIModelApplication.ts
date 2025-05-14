@@ -1,11 +1,33 @@
+import config from "../config.js";
 import type { ServicesType } from "../Container.js";
 import { OperationResult } from "../export/shared.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
-import type { AIModelViewModel } from "../types/entities/aiModel.js";
+import { calculatePointUsage } from "../helpers/costCalculator.js";
+import type { AIModel, AIModelViewModel } from "../types/entities/aiModel.js";
 
 export default class AIModelApplication {
     #aiModelCache;
     #aiModelRepository;
+
+    /** Image generate */
+    get fluxModelName() {
+        return "fal-ai/flux/schnell";
+    }
+
+    /** 3D model generate */
+    get trellisModelName() {
+        return "fal-ai/trellis";
+    }
+
+    /** Image upscale */
+    get auraSrUpscaleModelName() {
+        return "fal-ai/aura-sr";
+    }
+
+    /** Music generate */
+    get minimaxModelName() {
+        return "fal-ai/minimax-music";
+    }
 
     constructor(container: ServicesType) {
         this.#aiModelCache = container.aiModelCache;
@@ -19,7 +41,7 @@ export default class AIModelApplication {
     async getFreeModel() {
         return await this.#aiModelCache.getFreeModel();
     }
-    
+
     async getDefaultModel() {
         return await this.#aiModelCache.getDefault();
     }
@@ -38,6 +60,28 @@ export default class AIModelApplication {
                 id: model.id,
                 title: model.title,
             }));
+    }
+
+    generativeModelCostCalculator(model: AIModel, multiplier = 1) {
+        const costUsdCent = multiplier * (model.pricePmu.output / (1_000_000 * 100));
+        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+
+        return {
+            costUsdCent,
+            userPointCost,
+        };
+    }
+
+    getModelInfoByName(name: string) {
+        const model = this.#aiModelCache.getModelByName(name);
+
+        if (!model)
+            return;
+
+        return {
+            model,
+            ...this.generativeModelCostCalculator(model),
+        };
     }
 
     async renewCache() {

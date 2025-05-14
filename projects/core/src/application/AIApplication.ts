@@ -8,7 +8,6 @@ import { User } from "../types/entities/user.js";
 import { errorLogger } from "../helpers/logger.js";
 import { AIChat } from "../types/entities/aiChat.js";
 import translate from "@iamtraction/google-translate";
-import { PlanType } from "../types/enums/planTypes.js";
 import { UserStatus } from "../types/enums/userStatus.js";
 import { countTokens } from "../helpers/lmTokenHelper.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
@@ -22,11 +21,11 @@ import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
 import { getFileContent } from "../helpers/fileContent/fileContent.runner.js";
+import { GenerationTaskStatus } from "../types/enums/generationTaskStatus.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
 import { IOpenAITextResult, StreamingChatResponseReader } from "../types/contracts/services.js";
 import { falAiSupportedFileExtensions, extractableFileContentExtensions } from "../helpers/fileHelper.js";
 import { calculatePointUsage, modelCostCalculator, modelCostPredication } from "../helpers/costCalculator.js";
-import { GenerationTaskStatus } from "../types/enums/generationTaskStatus.js";
 
 type MultiModalInputMessage = {
     text: { text: string; };
@@ -102,6 +101,7 @@ export default class AIApplication {
     #messageLock;
     #promptRepository;
     #aiModelCache;
+    #aiModelApplication;
     #userSubscriptionApplication;
     #openAI;
     #openRouter;
@@ -110,13 +110,14 @@ export default class AIApplication {
     #userTempFileApplication;
     #generationTaskApplication;
 
-    #fluxModelName = "fal-ai/flux/schnell";
-    #trellisModelName = "fal-ai/trellis";
-    #auraSrUpscaleModelName = "fal-ai/aura-sr";
-    #minimaxModelName = "fal-ai/minimax-music";
+    #fluxModelName;
+    #trellisModelName;
+    #auraSrUpscaleModelName;
+    #minimaxModelName;
 
     constructor(container: ServicesType) {
         this.#aiModelCache = container.aiModelCache;
+        this.#aiModelApplication = container.aiModelApplication;
         this.#messageLock = container.aiMessageLockCache;
         this.#promptRepository = container.promptRepository;
         this.#userSubscriptionApplication = container.userSubscriptionApplication;
@@ -126,6 +127,11 @@ export default class AIApplication {
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
+
+        this.#fluxModelName = this.#aiModelApplication.fluxModelName;
+        this.#trellisModelName = this.#aiModelApplication.trellisModelName;
+        this.#auraSrUpscaleModelName = this.#aiModelApplication.auraSrUpscaleModelName;
+        this.#minimaxModelName = this.#aiModelApplication.minimaxModelName;
     }
 
     /**
@@ -324,12 +330,12 @@ export default class AIApplication {
     async fluxImageGenerate(user: User, message: string): Promise<OperationResultWithData<AIGeneratedMediaResponse>> {
         const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("errorOccurred");
 
-        const model = this.#aiModelCache.getModelByName(this.#fluxModelName);
-        if (!model)
+        const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#fluxModelName);
+        if (!modelInfo)
             return result.failed();
 
-        const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
-        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+        // const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
+        // const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
@@ -339,7 +345,7 @@ export default class AIApplication {
         if (totalRemainingPoints <= 0)
             return result.failed("noPointAvailable");
 
-        if (totalRemainingPoints < userPointCost)
+        if (totalRemainingPoints < modelInfo.userPointCost)
             return result.failed("pointNotEnough");
 
         if (this.#messageLock.isLocked(user.id))
@@ -365,7 +371,7 @@ export default class AIApplication {
             }
         }
 
-        const falResponse = await fal.subscribe(model.name, {
+        const falResponse = await fal.subscribe(modelInfo.model.name, {
             input: {
                 prompt,
                 enable_safety_checker: true,
@@ -387,14 +393,14 @@ export default class AIApplication {
                 result.failed("promptContentNotAllowed");
             }
             else {
-                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(userPointCost, subscriptions);
+                const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(modelInfo.userPointCost, subscriptions);
 
                 const taskCreationResult = await this.#generationTaskApplication.create({
                     expiry: startDate,
                     result: falResponse.data,
                     promptInfo: {
-                        cost: costUsdCent / 100,
-                        points: userPointCost,
+                        cost: modelInfo.costUsdCent / 100,
+                        points: modelInfo.userPointCost,
                         input: prompt,
                         saved: false,
                     },
@@ -402,7 +408,7 @@ export default class AIApplication {
                     externalId: falResponse.requestId,
                     startDate: startDate,
                     endDate: new Date(),
-                    modelId: model.id,
+                    modelId: modelInfo.model.id,
                     type: GenerationTaskType.FalAiFluxImageGeneration,
                     status: GenerationTaskStatus.OK,
                     userId: user.id,
@@ -410,13 +416,13 @@ export default class AIApplication {
                 });
 
                 await this.#promptRepository.create({
-                    cost: costUsdCent / 100,
+                    cost: modelInfo.costUsdCent / 100,
                     insertDate: new Date(),
                     isDeleted: false,
                     input: message,
                     output: generatedImage.url,
-                    points: userPointCost,
-                    model: model.name,
+                    points: modelInfo.userPointCost,
+                    model: modelInfo.model.name,
                     saved: false,
                     usages: savedUsageIds ?? [],
                     promptUser: user,
@@ -427,8 +433,8 @@ export default class AIApplication {
                     .succeeded()
                     .setData({
                         url: generatedImage.url,
-                        pointUsage: userPointCost,
-                        modelName: model.title,
+                        pointUsage: modelInfo.userPointCost,
+                        modelName: modelInfo.model.title,
                         taskInternalId: taskCreationResult.data!,
                     });
             }
@@ -442,14 +448,13 @@ export default class AIApplication {
     async trellis3dModelGenerate(user: User, image: UserTempFile): Promise<OperationResultWithData<string>> {
         const result = new OperationResultWithData<string>().failed("errorOccurred");
 
-        const model = this.#aiModelCache.getModelByName(this.#trellisModelName);
-        if (!model)
+        const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#trellisModelName);
+        if (!modelInfo)
             return result.failed();
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
 
-        const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
-        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+        const { costUsdCent, userPointCost } = modelInfo;
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
@@ -508,7 +513,7 @@ export default class AIApplication {
                 externalId: externalTaskId,
                 startDate: startTime,
                 endDate: startTime,
-                modelId: model.id,
+                modelId: modelInfo.model.id,
                 type: GenerationTaskType.FalAiTrellis3dModelGeneration,
                 userId: user.id,
                 usages: savedUsageIds ?? [],
@@ -530,8 +535,8 @@ export default class AIApplication {
     async auraSrImageUpscaler(user: User, image: UserTempFile): Promise<OperationResultWithData<AIGeneratedMediaResponse>> {
         const result = new OperationResultWithData<AIGeneratedMediaResponse>().failed("errorOccurred");
 
-        const model = this.#aiModelCache.getModelByName(this.#auraSrUpscaleModelName);
-        if (!model)
+        const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#auraSrUpscaleModelName);
+        if (!modelInfo)
             return result.failed();
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
@@ -540,8 +545,9 @@ export default class AIApplication {
         let userPointCost = 0;
 
         const recalculateCost = (inferenceTime = 4) => {
-            costUsdCent = inferenceTime * (model.pricePmu.output / (1_000_000 * 100));
-            userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+            const calculatedCosts = this.#aiModelApplication.generativeModelCostCalculator(modelInfo.model, inferenceTime);
+            costUsdCent = calculatedCosts.costUsdCent;
+            userPointCost = calculatedCosts.userPointCost;
         };
 
         recalculateCost();
@@ -566,7 +572,7 @@ export default class AIApplication {
         const startDate = new Date();
         const startTime = performance.now();
 
-        const falResponse = await fal.subscribe(model.name, {
+        const falResponse = await fal.subscribe(modelInfo.model.name, {
             input: {
                 enable_safety_checker: true,
                 image_url: hostedFileUrl.toString(),
@@ -602,7 +608,7 @@ export default class AIApplication {
                     externalId: falResponse.requestId,
                     startDate: startDate,
                     endDate: new Date(),
-                    modelId: model.id,
+                    modelId: modelInfo.model.id,
                     type: GenerationTaskType.FalAiAuraSrImageUpscale,
                     status: GenerationTaskStatus.OK,
                     userId: user.id,
@@ -616,7 +622,7 @@ export default class AIApplication {
                     input: `[file:${image.fsId}]`,
                     output: generatedImage.url,
                     points: userPointCost,
-                    model: model.name,
+                    model: modelInfo.model.name,
                     saved: false,
                     usages: savedUsageIds ?? [],
                     promptUser: user,
@@ -629,7 +635,7 @@ export default class AIApplication {
                     .setData({
                         url: generatedImage.url,
                         pointUsage: userPointCost,
-                        modelName: model.title,
+                        modelName: modelInfo.model.title,
                         taskInternalId: taskCreationResult.data!,
                     });
             }
@@ -661,15 +667,13 @@ export default class AIApplication {
         if (!audioLength || audioLength <= 15 || audioLength >= 360)
             return result.failed("invalidInput");
 
-        const model = this.#aiModelCache.getModelByName(this.#minimaxModelName);
-        if (!model)
+        const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#minimaxModelName);
+        if (!modelInfo)
             return result.failed();
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(opts.audioFile.fsId);
 
-        const costUsdCent = model.pricePmu.output / (1_000_000 * 100);
-        // const costUsdCent = 3.5;
-        const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
+        const { model, costUsdCent, userPointCost } = modelInfo;
 
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
