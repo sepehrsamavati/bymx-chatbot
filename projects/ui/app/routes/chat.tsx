@@ -52,6 +52,8 @@ export default function Chat() {
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
     const socket = useMemo(() => socketManager(), []);
+    const cantSubmit = inputText.trim().length === 0 || waitingForCompletion;
+    const formRef = useRef<HTMLFormElement>(null);
 
     const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
         if (!chatSectionRef.current) return;
@@ -77,7 +79,7 @@ export default function Chat() {
         if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
         isLoadingMessages.current = true;
         setWaitingForPreviousMessagesToLoad(true);
-        const lastMessageId = messages?.at(-1)?.id;
+        const lastMessageId = messages?.at(0)?.id;
         chatService
             .getMessages({
                 chatId,
@@ -505,6 +507,7 @@ export default function Chat() {
                 }}
             >
                 <form
+                    ref={formRef}
                     onSubmit={e => {
                         e.preventDefault();
                         submitPrompt(true);
@@ -550,6 +553,14 @@ export default function Chat() {
                         placeholder={session.uiText.writeYourText}
                         value={inputText}
                         onChange={e => e.target.value.length < 2048 && setInputText(e.target.value)}
+                        // onKeyDown={e => {
+                        //     if (e.key === "Enter" && !e.shiftKey) {
+                        //         e.preventDefault();
+                        //         if (cantSubmit)
+                        //             return;
+                        //         formRef.current?.submit();
+                        //     }
+                        // }}
                         slotProps={{
                             htmlInput: {
                                 dir: inputText ? (stringHelper.isRtl(inputText) ? "rtl" : "ltr") : undefined
@@ -557,7 +568,7 @@ export default function Chat() {
                             input: {
                                 disableUnderline: true,
                                 endAdornment: (
-                                    <IconButton type="submit" size="small" disabled={inputText.trim().length === 0 || waitingForCompletion}>
+                                    <IconButton type="submit" size="small" disabled={cantSubmit}>
                                         {waitingForCompletion ? <CircularProgress size="1em" color="inherit" /> : <Send sx={{ rotate: document.documentElement.dir === "rtl" ? "180deg" : "0deg" }} />}
                                     </IconButton>
                                 )
