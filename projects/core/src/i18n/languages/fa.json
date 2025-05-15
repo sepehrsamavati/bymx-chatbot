@@ -102,6 +102,7 @@
     "newUsers": "کاربران جدید",
     "todayJoinedUsersCount": "تعداد کاربران اضافه شده امروز",
     "createPicture": "ساخت تصویر",
+    "describeDesiredPicture": "تصویر مورد نظر را شرح دهید",
     "describePictureInText": "برای ساخت تصویر، به صورت متن تصویر مورد نظر را شرح دهید:",
     "cancelImageGeneration": "لغو ساخت تصویر",
     "cancelMusicGeneration": "لغو ساخت آهنگ",

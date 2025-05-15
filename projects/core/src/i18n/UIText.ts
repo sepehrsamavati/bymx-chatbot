@@ -114,6 +114,7 @@ const keys = [
     "newUsers",
     "todayJoinedUsersCount",
     "createPicture",
+    "describeDesiredPicture",
     "describePictureInText",
     "cancelImageGeneration",
     "cancelMusicGeneration",

@@ -22,6 +22,7 @@ if ('window' in globalThis)
     window.setInterval(handleConnection, 30e3);
 
 const connect = () => {
+    return;
     if ('window' in globalThis) {
 
         socket = new WebSocket(`${window.location.hostname === "localhost" ? "ws" : "wss"}://${window.location.host}/api/v1/ws`);

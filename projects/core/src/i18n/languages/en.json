@@ -102,6 +102,7 @@
     "newUsers": "New users",
     "todayJoinedUsersCount": "Today's new user count",
     "createPicture": "Create image",
+    "describeDesiredPicture": "Describe image",
     "describePictureInText": "To create an image, describe it in text:",
     "cancelImageGeneration": "Cancel image generation",
     "cancelMusicGeneration": "Cancel music generation",

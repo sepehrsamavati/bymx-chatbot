@@ -19,6 +19,7 @@ export default [
                 // index("./routes/home.tsx", { id: "ui-home" }),
                 index("./routes/chats.tsx", { id: "ui-index-chats" }),
                 route("/chats", "./routes/chats.tsx"),
+                route("/imageGenerate", "./routes/imageGenerate.tsx"),
                 route("/chat/:chatId", "./routes/chat.tsx"),
                 route("*", "./routes/notFound.tsx"),
             ]),

@@ -8,8 +8,9 @@ import Close from "@mui/icons-material/Close";
 import type { CaptionOnly } from "bymx-core/types";
 import chatService from "~/core/services/chatService";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import fluxSampleImage from "../assets/images/flux-sample.png";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, ButtonGroup, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Box, ButtonGroup, Card, CardActions, CardMedia, Chip, Divider, Grid, Modal, Stack, TextField, Typography } from "@mui/material";
 
 const generateChatsTitle = (
     chatIds: string[],
@@ -217,6 +218,22 @@ export default function Chats() {
                             </ButtonGroup>
                         </Box>
                     ))}
+
+                    <Divider sx={{ marginBlock: 6 }} />
+
+                    <Grid container paddingInline={8} justifyContent="center">
+                        <Grid size={{ xs: 12, md: 8 }}>
+                            <Card onClick={() => navigate("/ui/imageGenerate")} sx={{ cursor: "pointer" }}>
+                                <CardMedia component="img" src={fluxSampleImage} />
+                                <CardActions>
+                                    <Stack sx={{ width: "100%" }} direction="row" flexWrap="wrap" alignItems="center" justifyContent="space-between">
+                                        <Button onClick={() => navigate("/ui/imageGenerate")} size="small" variant="text" color="warning">{session.uiText.createPicture}</Button>
+                                        <Chip size="small" label={<>{5} ⚡</>}></Chip>
+                                    </Stack>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    </Grid>
                 </Stack>
             </Stack>
         </>
