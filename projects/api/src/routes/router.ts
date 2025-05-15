@@ -15,6 +15,7 @@ import TelegramAuth from "../dto/user/TelegramAuth.js";
 import ChangeLanguage from '../dto/user/ChangeLanguage.js';
 import TelegramOtpLogin from '../dto/user/TelegramOtpLogin.js';
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
+import ImageGenerate from '../dto/generativeAi/ImageGenerate.js';
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
@@ -31,6 +32,7 @@ import * as model from "./api/v1/model.js";
 import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
+import * as generativeAi from "./api/v1/generativeAi.js";
 import { setWsHandlers } from '../webSocket/v1/setWsHandlers.js';
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
@@ -121,6 +123,17 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/model" });
+
+    fastifyInstance.register((generativeAiController, _, next) => {
+
+        generativeAiController.addHook('onRequest', jwt);
+        generativeAiController.addHook('onRequest', authGuard);
+
+        generativeAiController.get("/fluxPointCost", generativeAi.fluxImageGenerateCost);
+        generativeAiController.post("/flux", { preValidation: fastifyPayloadValidator(ImageGenerate) }, generativeAi.fluxImageGenerate);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress + "/generativeAi" });
 
 
     fastifyInstance.register((baseController, _, next) => {

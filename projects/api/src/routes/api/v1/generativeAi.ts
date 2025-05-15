@@ -3,7 +3,7 @@ import type { RouteHandlerMethod } from "fastify";
 import { OperationResultWithData } from "bymx-core/shared";
 import type ImageGenerate from "../../../dto/generativeAi/ImageGenerate.js";
 
-export const generateImage: RouteHandlerMethod = async (request, reply) => {
+export const fluxImageGenerate: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<Api.GenerativeAi.IImageGenerateResult>();
 
@@ -30,4 +30,15 @@ export const generateImage: RouteHandlerMethod = async (request, reply) => {
 
     return reply.status(200).send(result);
 
+};
+
+export const fluxImageGenerateCost: RouteHandlerMethod = async (request, reply) => {
+    const result = new OperationResultWithData<number>();
+
+    const modelInfo = request.locals.applications.aiModelApplication.getModelInfoByName(request.locals.applications.aiModelApplication.fluxModelName);
+
+    if (modelInfo)
+        result.succeeded().setData(modelInfo.userPointCost);
+
+    return reply.status(200).send(result);
 };
