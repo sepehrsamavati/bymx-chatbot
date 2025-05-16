@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import generativeAiService from "~/core/services/generativeAiService";
 import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography } from "@mui/material";
+import colors from "~/core/config/colors";
 
 export default function ImageGenerate() {
     const session = useSession();
@@ -48,7 +49,7 @@ export default function ImageGenerate() {
                             <Card>
                                 <CardMedia component="img" src={fluxSampleImage} />
                                 <CardActions sx={{ width: "100%", justifyContent: "center", position: "absolute", bottom: 0, direction: session.fixDirection("ltr") }}>
-                                    <Chip size="small" color="success" label="panda eating stake in restaurant" />
+                                    <Chip size="small" sx={{ backdropFilter: "blur(10px)", boxShadow: "0 0 1em black", color: colors.antiFlashWhite }} label="panda eating stake in restaurant" />
                                 </CardActions>
                             </Card>
                         </ImageListItem>
