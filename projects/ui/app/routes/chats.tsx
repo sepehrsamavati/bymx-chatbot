@@ -10,7 +10,8 @@ import chatService from "~/core/services/chatService";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, ButtonGroup, Card, CardActions, CardMedia, Chip, Divider, Grid, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Box, ButtonGroup, Card, CardActions, CardMedia, Chip, Divider, Grid, Modal, Skeleton, Stack, TextField, Typography } from "@mui/material";
+import generativeAiService from "~/core/services/generativeAiService";
 
 const generateChatsTitle = (
     chatIds: string[],
@@ -39,6 +40,7 @@ export default function Chats() {
     const [creatingNewChat, setCreatingNewChat] = useState(false);
     const [titleModalOpen, setTitleModalOpen] = useState(false);
     const [settingNewTitle, setSettingNewTitle] = useState(false);
+    const [imageGenerateCost, setImageGenerateCost] = useState<number>();
     const [newTitle, setNewTitle] = useState({ chatId: "", title: "", });
     const [chats, setChats] = useState<CaptionOnly[]>([]);
     const isGeneratingChatTitle = useRef(false);
@@ -98,11 +100,23 @@ export default function Chats() {
                     setCanCreateNewChat(res.result.ok);
             });
 
+        generativeAiService
+            .getImageGeneratePointUsage()
+            .then(res => {
+                if (typeof res.result?.data === "number")
+                    setImageGenerateCost(res.result.data);
+            });
+
         chatService
             .getAll()
             .then(res => {
                 if (res.result?.data) {
+
                     setChats(res.result.data);
+
+                    session.localStorage.data.chatCount = res.result.data.length;
+                    session.localStorage.rewrite();
+
                     if (!isGeneratingChatTitle.current) {
                         isGeneratingChatTitle.current = true;
                         generateChatsTitle(
@@ -124,7 +138,7 @@ export default function Chats() {
                     }
                 }
             });
-    }, []);
+    }, [session]);
 
     return (
         <>
@@ -172,19 +186,28 @@ export default function Chats() {
                     <Stack direction="column" alignItems="center" justifyContent="center">
                         <Button size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}</Button>
                     </Stack>
-                    {canCreateNewChat ? (
+                    {chats.length === 0 || canCreateNewChat ? (
                         <Button
                             color="success"
                             variant="outlined"
                             onClick={createNewChat}
                             isLoading={creatingNewChat}
                             startIcon={<Add />}
+                            disabled={!canCreateNewChat}
                             sx={{
                                 margin: 2,
                                 borderRadius: 10,
                             }}
                         >{session.uiText.newChat}</Button>
                     ) : null}
+
+
+                    {chats.length === 0 ? new Array(session.localStorage.data.chatCount).fill(null).map((_, index) => (
+                        <Box key={index} marginInline={2}>
+                            <Skeleton animation="wave" variant="rectangular" width="100%" sx={{ padding: 2.5, borderRadius: "10em" }} />
+                        </Box>
+                    )) : null}
+
                     {chats.map(chat => (
                         <Box key={chat.id} marginInline={2}>
                             <ButtonGroup
@@ -221,14 +244,14 @@ export default function Chats() {
 
                     <Divider sx={{ marginBlock: 6 }} />
 
-                    <Grid container paddingInline={8} justifyContent="center">
+                    <Grid container paddingInline={8} marginBottom={4} justifyContent="center">
                         <Grid size={{ xs: 12, md: 8 }}>
                             <Card onClick={() => navigate("/ui/imageGenerate")} sx={{ cursor: "pointer" }}>
                                 <CardMedia component="img" src={fluxSampleImage} />
                                 <CardActions>
                                     <Stack sx={{ width: "100%" }} direction="row" flexWrap="wrap" alignItems="center" justifyContent="space-between">
                                         <Button onClick={() => navigate("/ui/imageGenerate")} size="small" variant="text" color="warning">{session.uiText.createPicture}</Button>
-                                        <Chip size="small" label={<>{5} ⚡</>}></Chip>
+                                        {typeof imageGenerateCost === "number" ? <Chip size="small" label={<>{imageGenerateCost} ⚡</>} /> : null}
                                     </Stack>
                                 </CardActions>
                             </Card>

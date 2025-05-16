@@ -13,3 +13,7 @@ export type LocalStorage_v1 = IUpgradeable & {
 export type LocalStorage_v2 = LocalStorage_v1 & {
     syncedWithTg: boolean;
 }
+
+export type LocalStorage_v3 = LocalStorage_v2 & {
+    chatCount: number;
+}

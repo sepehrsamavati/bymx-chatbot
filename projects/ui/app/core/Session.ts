@@ -1,16 +1,16 @@
 import { UIText } from "./i18n/i18n";
 import colors from "./config/colors";
+import { stringHelper } from "bymx-core/shared";
 import ThemeManager from "./helper/ThemeManager";
 import userService from "./services/userService";
 import { createContext, useContext } from "react";
 import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { Direction, PaletteMode } from "@mui/material";
-import type { LocalStorage_v2 } from "../types/localStorage";
+import type { LocalStorage_v3 } from "../types/localStorage";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
-import { stringHelper } from "bymx-core/shared";
 
 type CacheStorageItem<T> = {
     data: T;
@@ -115,12 +115,13 @@ export default class Session {
 
     public readonly storage = new SessionStorageHelper();
 
-    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v2>({
-        _dataVersion: 2,
+    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v3>({
+        _dataVersion: 3,
         syncedWithTg: false,
         themeName: "light",
         isLoggedIn: false,
         language: "en",
+        chatCount: 0,
     });
 
     public fixDirection(targetDirection: Direction) {
