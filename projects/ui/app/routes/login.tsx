@@ -123,7 +123,7 @@ export default function Login() {
                                     <Stack direction="row">
                                         <Box width="80px">
                                             <TextField
-                                                type="text"
+                                                type="tel"
                                                 label={session.uiText.countryCode}
                                                 value={countryCode}
                                                 slotProps={{
@@ -143,7 +143,7 @@ export default function Login() {
                                         </Box>
                                         <Box flexGrow={1}>
                                             <TextField
-                                                type="text"
+                                                type="tel"
                                                 fullWidth
                                                 autoFocus
                                                 label={session.uiText.phoneNumber}
