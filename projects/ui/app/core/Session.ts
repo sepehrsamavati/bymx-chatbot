@@ -56,9 +56,11 @@ export default class Session {
 
     postLoginEvents() {
         this.refreshUI();
-        this.syncChatModels();
+
         this.localStorage.data.isLoggedIn = true;
         this.localStorage.rewrite();
+
+        this.syncChatModels();
     }
 
     syncUiWithTelegramApp() {
@@ -111,6 +113,7 @@ export default class Session {
     ) {
         if (this.localStorage.data.isLoggedIn)
             this.postLoginEvents();
+        this.themeManager = new ThemeManager(this); // theme manager requires setTheme
     }
 
     public readonly storage = new SessionStorageHelper();
@@ -180,7 +183,7 @@ export default class Session {
         // return res.data?.isSucceeded;
     }
 
-    public readonly themeManager = new ThemeManager(this);
+    public readonly themeManager;
     public readonly snackbarProvider = (...args: Parameters<typeof snackbarProvider>) => {
         return snackbarProvider(args[0], {
             ...args[1],
