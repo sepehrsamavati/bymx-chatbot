@@ -5,13 +5,14 @@ import { useSession } from "~/core/Session";
 import Save from "@mui/icons-material/Save";
 import Edit from "@mui/icons-material/Edit";
 import Close from "@mui/icons-material/Close";
+import { stringHelper } from "bymx-core/shared";
 import type { CaptionOnly } from "bymx-core/types";
 import chatService from "~/core/services/chatService";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, ButtonGroup, Card, CardActions, CardMedia, Chip, Divider, Grid, Modal, Skeleton, Stack, TextField, Typography } from "@mui/material";
 import generativeAiService from "~/core/services/generativeAiService";
+import { Box, ButtonGroup, Card, CardActions, CardMedia, Chip, Divider, Grid, Modal, Skeleton, Stack, TextField, Typography } from "@mui/material";
 
 const generateChatsTitle = (
     chatIds: string[],
@@ -251,7 +252,7 @@ export default function Chats() {
                                 <CardActions>
                                     <Stack sx={{ width: "100%" }} direction="row" flexWrap="wrap" alignItems="center" justifyContent="space-between">
                                         <Button onClick={() => navigate("/ui/imageGenerate")} size="small" variant="text" color="warning">{session.uiText.createPicture}</Button>
-                                        {typeof imageGenerateCost === "number" ? <Chip size="small" label={<>{imageGenerateCost} ⚡</>} /> : null}
+                                        {typeof imageGenerateCost === "number" ? <Chip size="small" label={<>{stringHelper.digitLocalization(imageGenerateCost, session.uiText._langCode)} ⚡</>} /> : null}
                                     </Stack>
                                 </CardActions>
                             </Card>

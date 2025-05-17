@@ -258,5 +258,7 @@
     "login": "ورود",
     "loginToAccount": "ورود به حساب",
     "phoneNumber": "شماره تلفن",
-    "countryCode": "کد کشور"
+    "countryCode": "کد کشور",
+    "pointUsage": "مصرف امتیاز",
+    "generate": "تولید"
 }

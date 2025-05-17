@@ -3,8 +3,9 @@ import { prefixer } from 'stylis';
 import createCache from '@emotion/cache';
 import rtlPlugin from 'stylis-plugin-rtl';
 import { faIR } from '@mui/material/locale';
-import { createTheme, type Direction } from '@mui/material/styles';
+import { colors as muiColors } from "@mui/material";
 import type ThemeManager from '../helper/ThemeManager';
+import { createTheme, type Direction } from '@mui/material/styles';
 
 const ThemeNames = ['light', 'dark'] as const;
 
@@ -40,7 +41,7 @@ export const muiThemeOptions = (themeManager: ThemeManager, languageDirection: D
             },
             background: {
                 default: theme === 'light' ? _colors.backgroundLightMode : _colors.backgroundDarkMode,
-                paper: theme === 'light' ? _colors.antiFlashWhite : _colors.backgroundDarkMode
+                paper: theme === 'light' ? muiColors.grey[300] : muiColors.grey[900]
             }
         },
         typography: {

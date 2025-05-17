@@ -1,10 +1,10 @@
 import { franc } from "franc-min";
 import config from "../config.js";
 import fs from "node:fs/promises";
-import { fal } from "@fal-ai/client";
 import { ServicesType } from "../Container.js";
 import urls from "../helpers/httpServerUrls.js";
 import { User } from "../types/entities/user.js";
+import { fal, type Result } from "@fal-ai/client";
 import { errorLogger } from "../helpers/logger.js";
 import { AIChat } from "../types/entities/aiChat.js";
 import translate from "@iamtraction/google-translate";
@@ -349,7 +349,6 @@ export default class AIApplication {
             return result.failed("pointNotEnough");
 
         if (this.#messageLock.isLocked(user.id))
-
             return result.failed("youHavePendingPrompts");
 
         this.#messageLock.lock(user.id);
@@ -371,18 +370,23 @@ export default class AIApplication {
             }
         }
 
-        const falResponse = await fal.subscribe(modelInfo.model.name, {
-            input: {
-                prompt,
-                enable_safety_checker: true,
-            },
-            // logs: true,
-            // onQueueUpdate: (update) => {
-            //     if (update.status === "IN_PROGRESS") {
-            //         update.logs.map((log) => log.message).forEach(console.log);
-            //     }
-            // },
-        });
+        let falResponse: Result<any> | null = null;
+
+        try {
+            falResponse = await fal.subscribe(modelInfo.model.name, {
+                input: {
+                    prompt,
+                    enable_safety_checker: true,
+                },
+            });
+        } catch (err) {
+            errorLogger("Fal flux image generate", err);
+        }
+
+        if (!falResponse) {
+            this.#messageLock.unlock(user.id);
+            return result.failed("errorWhileFetchingData");
+        }
 
         const responseTime = performance.now() - startTime;
 

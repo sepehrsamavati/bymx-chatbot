@@ -270,6 +270,8 @@ const keys = [
     "loginToAccount",
     "phoneNumber",
     "countryCode",
+    "pointUsage",
+    "generate",
 ] as const;
 
 export type UITextKey = typeof keys[number];

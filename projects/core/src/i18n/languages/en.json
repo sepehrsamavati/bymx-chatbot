@@ -258,5 +258,7 @@
     "login": "Login",
     "loginToAccount": "Login to account",
     "phoneNumber": "Phone number",
-    "countryCode": "Country code"
+    "countryCode": "Country code",
+    "pointUsage": "Point usage",
+    "generate": "Generate"
 }

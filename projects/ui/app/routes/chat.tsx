@@ -553,14 +553,21 @@ export default function Chat() {
                         placeholder={session.uiText.writeYourText}
                         value={inputText}
                         onChange={e => e.target.value.length < 2048 && setInputText(e.target.value)}
-                        // onKeyDown={e => {
-                        //     if (e.key === "Enter" && !e.shiftKey) {
-                        //         e.preventDefault();
-                        //         if (cantSubmit)
-                        //             return;
-                        //         formRef.current?.submit();
-                        //     }
-                        // }}
+                        onKeyDown={e => {
+                            if (!session.isMobile && e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+
+                                if (cantSubmit)
+                                    return;
+
+                                formRef.current?.dispatchEvent(
+                                    new Event("submit", {
+                                        'bubbles': true,
+                                        'cancelable': true,
+                                    })
+                                );
+                            }
+                        }}
                         slotProps={{
                             htmlInput: {
                                 dir: inputText ? (stringHelper.isRtl(inputText) ? "rtl" : "ltr") : undefined

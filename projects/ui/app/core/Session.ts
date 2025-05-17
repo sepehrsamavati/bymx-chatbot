@@ -191,6 +191,7 @@ export default class Session {
         });
     };
     public readonly closeSnackbar = closeSnackbar;
+    readonly isMobile = ('window' in globalThis) && window.matchMedia("(pointer:coarse)").matches;
 }
 
 export const SessionContext = createContext({} as Session);

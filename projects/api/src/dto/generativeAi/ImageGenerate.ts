@@ -1,6 +1,6 @@
 import { Api } from "bymx-core/types";
 import { Expose, Type } from "class-transformer";
-import { IsDefined, IsNumber, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDefined, IsNumber, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export default class ImageGenerate implements Api.GenerativeAi.IImageGenerateRequest {
     @Expose()
@@ -15,7 +15,7 @@ export default class ImageGenerate implements Api.GenerativeAi.IImageGenerateReq
     @Type(() => Number)
     @IsDefined()
     @IsNumber()
-    @MinLength(1)
-    @MaxLength(1)
+    @Min(1)
+    @Max(1)
     type: 1 = 1;
 }
