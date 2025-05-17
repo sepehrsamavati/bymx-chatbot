@@ -332,7 +332,7 @@ export default class AIApplication {
 
         const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#fluxModelName);
         if (!modelInfo)
-            return result.failed();
+            return result.failed("modelNotAvailable");
 
         // const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
         // const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
@@ -454,7 +454,7 @@ export default class AIApplication {
 
         const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#trellisModelName);
         if (!modelInfo)
-            return result.failed();
+            return result.failed("modelNotAvailable");
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
 
@@ -541,7 +541,7 @@ export default class AIApplication {
 
         const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#auraSrUpscaleModelName);
         if (!modelInfo)
-            return result.failed();
+            return result.failed("modelNotAvailable");
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(image.fsId);
 
@@ -673,7 +673,7 @@ export default class AIApplication {
 
         const modelInfo = this.#aiModelApplication.getModelInfoByName(this.#minimaxModelName);
         if (!modelInfo)
-            return result.failed();
+            return result.failed("modelNotAvailable");
 
         const hostedFileUrl = urls.v1.tempFile.createUrl(opts.audioFile.fsId);
 
