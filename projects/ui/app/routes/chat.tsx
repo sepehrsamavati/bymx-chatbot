@@ -15,6 +15,7 @@ import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
+import colors from "~/core/config/colors";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -437,7 +438,6 @@ export default function Chat() {
 
             <Stack
                 flexGrow={1}
-                marginTop={1}
                 paddingBottom={1}
                 overflow="auto"
                 direction="column"
@@ -480,11 +480,31 @@ export default function Chat() {
                         </Box>
                     </Box>
                 ) : null}
+
+                <Box
+                    width="100%"
+                    sx={{
+                        position: "relative",
+                        display: { xs: "none", sm: "block" },
+                        height: { xs: 0, sm: "200px", flexShrink: 0, },
+                        "::after": {
+                            content: '""',
+                            display: "block",
+                            position: "fixed",
+                            bottom: 0,
+                            width: "100%",
+                            height: "150px",
+                            pointerEvents: "none",
+                            backgroundImage: `linear-gradient(to bottom, transparent, ${colors.backgroundDarkMode})`
+                        }
+                    }}
+                />
             </Stack>
 
             <Card
                 sx={{
                     padding: 1,
+                    bottom: 0,
                     marginInline: "auto !important",
                     width: {
                         xs: "100%",
@@ -503,7 +523,17 @@ export default function Chat() {
                     maxWidth: {
                         xs: 'initial',
                         sm: '800px',
-                    }
+                    },
+
+                    position: {
+                        sm: "absolute",
+                    },
+                    transform: {
+                        sm: "translateX(-50%)"
+                    },
+                    insetInlineStart: {
+                        sm: "50%"
+                    },
                 }}
             >
                 <form

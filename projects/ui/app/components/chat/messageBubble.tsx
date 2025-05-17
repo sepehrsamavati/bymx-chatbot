@@ -2,9 +2,11 @@ import * as PrismJS from "prismjs";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Markdown from "react-markdown";
+import colors from "~/core/config/colors";
 import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
 import { useEffect, useMemo, useRef } from "react";
+import { colors as muiColors } from "@mui/material";
 import AttachFile from "@mui/icons-material/AttachFile";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
 
@@ -65,6 +67,26 @@ export default function MessageBubble(props?: {
                     direction: "rtl",
                     borderRadius: 2,
                 },
+                ' ol': {
+                    margin: 0,
+                    whiteSpace: "initial"
+                },
+                ' ul': {
+                    margin: 0,
+                    whiteSpace: "initial"
+                },
+                ' li': {
+                    margin: 1,
+                    marginTop: 2,
+                },
+                ' li > code': {
+                    color: colors.antiFlashWhite,
+                    backgroundColor: muiColors.grey[900],
+                    padding: 0.4,
+                    borderRadius: "10em",
+                    display: "inline-block",
+                    marginBottom: "1px",
+                }
             }}
         >
             <div ref={divRef}>
