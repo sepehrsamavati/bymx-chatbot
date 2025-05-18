@@ -4,7 +4,7 @@ import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
 import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
-import SetChatMemoryAmount from "../../../dto/chat/SetChatMemoryAmount.js";
+import SetChatMemoryAmount from "../../../dto/user/SetMemoryAmount.js";
 import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 import { getSocketById } from "../../../webSocket/v1/setWsHandlers.js";
@@ -176,24 +176,6 @@ export const setChatModel: RouteHandlerMethod = async (request, reply) => {
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.aiChatApplication.setModel({ user, ...chat }, query.modelId);
-
-    return reply.status(200).send(result);
-
-};
-
-export const setChatMemoryAmount: RouteHandlerMethod = async (request, reply) => {
-
-    let result = new OperationResult();
-
-    const userId = request.locals.user?.id!;
-    const query = request.locals.dto as SetChatMemoryAmount;
-
-    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
-
-    if (!chat)
-        result.failed("itemNotFound");
-    else
-        result = await request.locals.applications.userApplication.setMemoryAmount(userId, query.amount, true);
 
     return reply.status(200).send(result);
 

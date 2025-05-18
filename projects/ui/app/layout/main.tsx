@@ -11,12 +11,13 @@ import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import userService from "~/core/services/userService";
-import { stringHelper, UIText } from "bymx-core/shared";
+import { AIChatHistoryMemory, stringHelper, UIText } from "bymx-core/shared";
 import CreditCard from "@mui/icons-material/CreditCard";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
 import { Box, Button, Chip, Divider, Drawer, FormControl, InputLabel, MenuItem, Select, Skeleton, Typography, type SelectChangeEvent } from "@mui/material";
 import { getLanguageList } from "~/core/i18n/i18n";
+import chatService from "~/core/services/chatService";
 
 function DrawerItem(props?: {
     title?: React.ReactNode;
@@ -25,7 +26,7 @@ function DrawerItem(props?: {
     return (
         <Stack marginBlock={1} direction="row" flexWrap="wrap" justifyContent="space-between" alignItems="center">
             <Typography>{props?.title}</Typography>
-            <Box>{props?.children}</Box>
+            <Box flexGrow={props?.title === null ? 1 : undefined}>{props?.children}</Box>
         </Stack>
     );
 }
@@ -33,7 +34,27 @@ function DrawerItem(props?: {
 function ProfileInfo() {
     const session = useSession();
     const [data, setData] = useState<UserEntity.UserInfoViewModel | undefined>(session.cacheStorage.profileInfo?.data);
+    const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const initialized = useRef(false);
+
+    const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
+        if (memoryAmountChangeLock) return;
+        const memoryAmount = event.target.value as AIChatHistoryMemory;
+        setMemoryAmountChangeLock(true);
+        userService
+            .setMemoryAmount({ amount: memoryAmount })
+            .then(res => {
+                if (res.result?.ok && session.user) {
+                    session.user.memoryAmount = memoryAmount;
+                    session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
+                }
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
+            })
+            .finally(() => {
+                setMemoryAmountChangeLock(false);
+            });
+    }, [memoryAmountChangeLock, session]);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -111,6 +132,34 @@ function ProfileInfo() {
                     )
                 ) : <Skeleton width={80} />}
             </DrawerItem>
+            <Divider variant="middle" flexItem />
+
+            <DrawerItem title={null}>
+                <FormControl
+                    fullWidth
+                    margin="dense"
+                    component="div"
+                    size="small"
+                >
+                    <InputLabel size="small">{session.uiText.memory}</InputLabel>
+                    <Select
+                        disabled={memoryAmountChangeLock}
+                        size="small"
+                        sx={{
+                            borderRadius: 50,
+                        }}
+                        onChange={handleMemoryAmountChange}
+                        value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
+                        label={session.uiText.memory}
+                    >
+                        <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
+                        <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
+                        <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
+                        <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
+                    </Select>
+                </FormControl>
+            </DrawerItem>
+
             <Divider variant="middle" flexItem />
         </Box>
     );

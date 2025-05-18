@@ -5,6 +5,7 @@ import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
+import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
@@ -13,12 +14,11 @@ import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
 import TelegramAuth from "../dto/user/TelegramAuth.js";
 import ChangeLanguage from '../dto/user/ChangeLanguage.js';
+import SetMemoryAmount from "../dto/user/SetMemoryAmount.js";
 import TelegramOtpLogin from '../dto/user/TelegramOtpLogin.js';
 import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import ImageGenerate from '../dto/generativeAi/ImageGenerate.js';
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
-import SetChatMemoryAmount from "../dto/chat/SetChatMemoryAmount.js";
-import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
 
 import websocket from '@fastify/websocket';
@@ -88,6 +88,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
         userController.get("/info", user.getInfo);
         userController.get("/me", user.getMe);
+        userController.patch("/memory", { preValidation: fastifyPayloadValidator(SetMemoryAmount) }, user.setMemoryAmount);
         userController.patch("/language", { preValidation: fastifyPayloadValidator(ChangeLanguage) }, user.changeLanguage);
 
         next();
@@ -102,7 +103,6 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.delete("/", { preValidation: fastifyPayloadValidator(ChatID) }, chat.deleteChat);
         chatController.get("/model", { preValidation: fastifyPayloadValidator(ChatID) }, chat.getChatSelectedModel);
         chatController.patch("/model", { preValidation: fastifyPayloadValidator(SetChatModel) }, chat.setChatModel);
-        chatController.patch("/memory", { preValidation: fastifyPayloadValidator(SetChatMemoryAmount) }, chat.setChatMemoryAmount);
         chatController.patch("/title", { preValidation: fastifyPayloadValidator(SetChatTitle) }, chat.setChatTitle);
         chatController.get("/messages", { preValidation: fastifyPayloadValidator(ChatMessagesQuery) }, chat.getChatMessages);
         chatController.delete("/messages", { preValidation: fastifyPayloadValidator(ChatID) }, chat.clearChatHistory);

@@ -1,4 +1,5 @@
 import HttpClient from "../helper/HttpClient";
+import type { AIChatHistoryMemory, OperationResult } from "bymx-core/shared";
 import type { IOperationResult, IOperationResultWithData, UserEntity } from "bymx-core/types";
 
 const userService = Object.freeze({
@@ -40,6 +41,13 @@ const userService = Object.freeze({
             path: "/api/v1/user/tgOtpAuth",
             method: HttpClient.Methods.POST,
             body: { phoneNumber, otp }
+        });
+    },
+    setMemoryAmount(dto: { amount: AIChatHistoryMemory; }) {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/user/memory",
+            method: HttpClient.Methods.PATCH,
+            body: dto,
         });
     },
     /** @todo */

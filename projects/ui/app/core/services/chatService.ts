@@ -73,13 +73,6 @@ const chatService = Object.freeze({
             body: dto,
         });
     },
-    setMemoryAmount(dto: { chatId: string; amount: AIChatHistoryMemory; }) {
-        return HttpClient.send<OperationResult>({
-            path: "/api/v1/chat/memory",
-            method: HttpClient.Methods.PATCH,
-            body: dto,
-        });
-    },
     canCreateNewChat() {
         return HttpClient.send<OperationResult>({
             path: "/api/v1/chat/canICreateANewChat",

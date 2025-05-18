@@ -1,9 +1,8 @@
-import ChatID from "./ChatID.js";
 import { Expose, Type } from "class-transformer";
 import { AIChatHistoryMemory } from "bymx-core/shared";
 import { IsDefined, IsEnum, IsNumber } from "class-validator";
 
-export default class SetChatMemoryAmount extends ChatID {
+export default class SetMemoryAmount {
     @Expose()
     @Type(() => Number)
     @IsDefined()

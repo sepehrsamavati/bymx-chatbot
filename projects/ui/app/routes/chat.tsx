@@ -1,5 +1,7 @@
+import colors from "~/core/config/colors";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
+import { stringHelper } from "bymx-core/shared";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
@@ -11,11 +13,9 @@ import type { Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
-import { AIChatHistoryMemory, stringHelper } from "bymx-core/shared";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, Chip, CircularProgress, FormControl, Icon, IconButton, InputLabel, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
-import colors from "~/core/config/colors";
+import { Box, Card, Chip, CircularProgress, Icon, IconButton, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -48,7 +48,6 @@ export default function Chat() {
     const chatSectionRef = useRef<HTMLDivElement>(null);
     const [uploadingFile, setUploadingFile] = useState<SelectedAttachmentFile>();
     const [modelChangeLock, setModelChangeLock] = useState(true);
-    const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
@@ -223,25 +222,6 @@ export default function Chat() {
             });
     }, [modelChangeLock, chatId, session]);
 
-    const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
-        if (memoryAmountChangeLock || !chatId) return;
-        const memoryAmount = event.target.value as AIChatHistoryMemory;
-        setMemoryAmountChangeLock(true);
-        chatService
-            .setMemoryAmount({ chatId, amount: memoryAmount })
-            .then(res => {
-                if (res.result?.ok && session.user) {
-                    session.user.memoryAmount = memoryAmount;
-                    session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
-                }
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => {
-                setMemoryAmountChangeLock(false);
-            });
-    }, [memoryAmountChangeLock, chatId, session]);
-
     const uploadFile = useCallback((file: File) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -396,34 +376,6 @@ export default function Chat() {
                             </MenuItem>
                         ))}
                     </Select>
-
-                    <FormControl
-                        component="div"
-                        size="small"
-                    // sx={{
-                    //     "> .MuiFormLabel-root": {
-                    //         left: "unset",
-                    //         right: "19px",
-                    //     }
-                    // }}
-                    >
-                        <InputLabel size="small">{session.uiText.memory}</InputLabel>
-                        <Select
-                            disabled={memoryAmountChangeLock}
-                            size="small"
-                            sx={{
-                                borderRadius: 50,
-                            }}
-                            onChange={handleMemoryAmountChange}
-                            value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
-                            label={session.uiText.memory}
-                        >
-                            <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
-                        </Select>
-                    </FormControl>
 
                     <IconButton
                         sx={{

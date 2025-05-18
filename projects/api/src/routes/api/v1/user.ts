@@ -5,6 +5,7 @@ import { signToken } from "../../../helpers/jwtHelper.js";
 import ChangeLanguage from "../../../dto/user/ChangeLanguage.js";
 import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
 import sendMessageToUser from "bymx-tg-endpoint/sendMessageToUser";
+import SetMemoryAmount from "../../../dto/user/SetMemoryAmount.js";
 import TelegramOtpLogin from "../../../dto/user/TelegramOtpLogin.js";
 import { createSetCookieString } from "../../../helpers/cookieHelper.js";
 import TelegramOtpRequest from "../../../dto/user/TelegramOtpRequest.js";
@@ -229,4 +230,13 @@ export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
 
     return reply.status(200).send(result);
 
+};
+
+export const setMemoryAmount: RouteHandlerMethod = async (request, reply) => {
+    const userId = request.locals.user?.id!;
+    const query = request.locals.dto as SetMemoryAmount;
+
+    const result = await request.locals.applications.userApplication.setMemoryAmount(userId, query.amount, true);
+
+    return reply.status(200).send(result);
 };
