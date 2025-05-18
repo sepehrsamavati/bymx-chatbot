@@ -43,6 +43,7 @@ export const socketManager = () => {
     connect();
 
     const registerPromptResultHandler = (requestId: string, reader: (result: Api.WebSocket.SubmitPromptResult['value']) => undefined | { closeListener?: true }) => {
+        if (!socket) return;
         workingListeners++;
         const handler = (event: MessageEvent) => {
             const data = JSON.parse(event.data) as Api.WebSocket.SubmitPromptResult;

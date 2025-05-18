@@ -8,6 +8,7 @@ export type ILlmPromptRequest = {
 
 export type ILlmPromptResponse = {
     plainText?: string;
+    memoryUpdated?: true;
     isComplete: boolean;
     pointUsage: number;
 }

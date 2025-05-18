@@ -5,11 +5,11 @@ import { ServicesType } from "../Container.js";
 import urls from "../helpers/httpServerUrls.js";
 import { User } from "../types/entities/user.js";
 import { fal, type Result } from "@fal-ai/client";
-import { errorLogger } from "../helpers/logger.js";
 import { AIChat } from "../types/entities/aiChat.js";
 import translate from "@iamtraction/google-translate";
 import { UserStatus } from "../types/enums/userStatus.js";
 import { countTokens } from "../helpers/lmTokenHelper.js";
+import { errorLogger, logger } from "../helpers/logger.js";
 import { getAudioDuration } from "../helpers/audioUtils.js";
 import type { AIModel } from "../types/entities/aiModel.js";
 import { PromptBasicInfo } from "../types/entities/prompt.js";
@@ -46,6 +46,7 @@ type MultiModalOutput = {
     plainText: string;
     pointUsage: number;
     isComplete: boolean;
+    memoryUpdated?: true;
     audio?: {
         data: Buffer;
         /** Seconds */
@@ -109,6 +110,7 @@ export default class AIApplication {
     #userRepository;
     #userTempFileApplication;
     #generationTaskApplication;
+    #memoryCandidateCache;
 
     #fluxModelName;
     #trellisModelName;
@@ -127,6 +129,7 @@ export default class AIApplication {
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
+        this.#memoryCandidateCache = container.memoryCandidateCache;
 
         this.#fluxModelName = this.#aiModelApplication.fluxModelName;
         this.#trellisModelName = this.#aiModelApplication.trellisModelName;
@@ -770,9 +773,37 @@ export default class AIApplication {
         const { user } = multiModalInput;
         const userWantsVoiceResponse = multiModalInput.voiceResponse ?? multiModalInput.user.voiceResponse.on;
 
-        let resultData: IOpenAITextResult;
+        let resultData: IOpenAITextResult, memoryUpdated = false;
         const sendLangToGpt = inputTokens < 3 && historyMessages.length === 0;
 
+        if (multiModalInput.user.memory?.on) {
+            const currentCandidate = this.#memoryCandidateCache.get(multiModalInput.user.id) ?? [];
+
+            const memoryExtract = await this.#extractMemoryFootprints(preprocessResult.data.inputTextForModel, {
+                candidate: currentCandidate,
+                certain: multiModalInput.user.memory.footprints ?? [],
+            });
+
+            if (memoryExtract.data) {
+                if (memoryExtract.data.candidate?.length)
+                    this.#memoryCandidateCache.set(multiModalInput.user.id, memoryExtract.data.candidate);
+                else
+                    this.#memoryCandidateCache.unset(multiModalInput.user.id);
+
+                if (memoryExtract.data.certain) {
+                    const memoryUpdateResult = await this.#userRepository.update(
+                        multiModalInput.user.id,
+                        {
+                            memoryFootprints: (multiModalInput.user.memory.footprints.concat(memoryExtract.data.certain))
+                        }
+                    );
+                    if (memoryUpdateResult?.ok) {
+                        multiModalInput.user.memory.footprints = memoryExtract.data.certain;
+                        memoryUpdated = true;
+                    }
+                }
+            }
+        }
 
         /* --START-- */
         let imageUrl: string | undefined = undefined;
@@ -788,7 +819,8 @@ export default class AIApplication {
             model: model,
             systemMessages: [
                 systemMessageMapper(chat?.behavior),
-                userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null
+                userWantsVoiceResponse ? systemMessageMapper(AIChatBehavior.HasAudioOutput) : null,
+                multiModalInput.user.memory ? `Memory:\n- ${multiModalInput.user.memory.footprints.join('\n- ')}` : null
             ],
             userId: user.id,
             tokenLimit: maxOutputTokens,
@@ -856,6 +888,7 @@ export default class AIApplication {
                         pointUsage: totalUserPointUsage,
                         plainText: outputText,
                         isComplete: resultData.isComplete,
+                        memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
                         audio: {
                             data: modelAudioOutput.output,
                             duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
@@ -867,6 +900,7 @@ export default class AIApplication {
                     plainText: outputText,
                     pointUsage: totalUserPointUsage,
                     isComplete: resultData.isComplete,
+                    memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
                 });
             }
         }
@@ -875,6 +909,7 @@ export default class AIApplication {
             pointUsage: totalUserPointUsage,
             plainText: resultData.output,
             isComplete: resultData.isComplete,
+            memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
         });
     }
 
@@ -892,7 +927,7 @@ export default class AIApplication {
     }
 
     async #extractMemoryFootprints(message: string, current?: { candidate: string[]; certain: string[]; }) {
-        const result = new OperationResultWithData<{ candidate: string[]; certain: string[]; }>();
+        const result = new OperationResultWithData<{ candidate?: string[]; certain?: string[]; }>();
 
         const freeModel = await this.#aiModelCache.getFreeModel();
         if (!freeModel)
@@ -903,14 +938,13 @@ export default class AIApplication {
             model: freeModel,
             tokenLimit: 30,
             inputMessage: (
-                `You are an information extraction assistant for a chatbot memory system. Extract ONLY 'PERSONAL/USER PREFERENCE/IMPORTANT' SHORT TEXTS (candidate as possible memory things and certain);`
-                + `;${current ? ` Merge to current memory (candidate to certain) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{candidate:string[];certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object:`
+                `You are an information extraction assistant for a chatbot memory system. Extract any useful information like 'PERSONAL/USER PREFERENCE/IMPORTANT' SHORT TEXTS (candidate if it may be useful and certain if it's surly useful);`
+                + `;${current ? ` Merge to current memory (candidate to certain, do not return previous certain ones) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{candidate:string[];certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object; Here is the message:`
                 + `\n\n'((${message.slice(0, 1500)}))'`
             ),
         });
 
         if (!extractedFootprintResult?.output) {
-            console.log(extractedFootprintResult)
             return result.failed("errorOccurred");
         }
 
@@ -927,16 +961,14 @@ export default class AIApplication {
                 output = output.slice(0, -1);
         }
 
-        const footprints = JSON.parse(output) as { candidate: string[]; certain: string[]; };
+        try {
+            const footprints = JSON.parse(output) as { candidate?: string[]; certain?: string[]; };
 
-        if (!(footprints.candidate && footprints.certain))
-            return result.failed("errorOccurred");
-
-        result.succeeded().setData(footprints);
-
-        console.log(
-            footprints
-        )
+            if (Array.isArray(footprints.candidate) || Array.isArray(footprints.certain))
+                result.succeeded().setData(footprints);
+        } catch (err) {
+            logger.debug(`Extract memory JSON parse: ${err instanceof Error ? err.message : err}`);
+        }
 
         return result;
     }

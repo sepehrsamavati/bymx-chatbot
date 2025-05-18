@@ -58,7 +58,7 @@ export const getChatMessages: RouteHandlerMethod = async (request, reply) => {
 
 export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
 
-    const result = new OperationResultWithData<{ plainText?: string; isComplete: boolean; pointUsage: number; }>();
+    const result = new OperationResultWithData<Api.ChatDto.ILlmPromptResponse>();
 
     const userId = request.locals.user?.id!;
     const query = request.locals.dto as ChatPrompt;
@@ -130,6 +130,7 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
                 isComplete: chatCompletionResult.data.isComplete,
                 plainText: chatCompletionResult.data.plainText,
                 pointUsage: chatCompletionResult.data.pointUsage,
+                memoryUpdated: chatCompletionResult.data.memoryUpdated,
             });
     else
         result.failed(chatCompletionResult.message);

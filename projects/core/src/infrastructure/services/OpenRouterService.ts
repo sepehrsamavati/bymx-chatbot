@@ -122,8 +122,8 @@ export default class OpenRouterService implements IOpenRouterService {
 
         const _systemMessage = systemMessages.filter(msg => Boolean(msg)).join('. ') ?? "";
 
-        if (_systemMessage)
-            _messages.push({ role: 'system', content: _systemMessage });
+        // if (_systemMessage)
+        //     _messages.push({ role: 'system', content: _systemMessage });
 
         for (const message of messages) {
             _messages.push({ role: 'user', content: message.input });
@@ -147,7 +147,7 @@ export default class OpenRouterService implements IOpenRouterService {
         //         ]
         //     });
         // else
-        _messages.push({ role: 'user', content: inputMessage });
+        _messages.push({ role: 'user', content: _systemMessage ? `System message: ${_systemMessage};\nUser message: ${inputMessage}`: inputMessage });
 
         const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {};
 

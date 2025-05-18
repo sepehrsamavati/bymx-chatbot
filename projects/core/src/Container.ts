@@ -16,6 +16,7 @@ import OpenAIModelCache from "./infrastructure/services/AIModelCache.js";
 import type * as RepoInterfaces from "./types/contracts/repositories.js";
 import { ChatMemberCacheCleanup } from "./jobs/ChatMemberCacheCleanup.js";
 import ActionLockCache from "./infrastructure/services/ActionLockCache.js";
+import TelegramOtpApplication from "./application/TelegramOtpApplication.js";
 import OpenRouterService from "./infrastructure/services/OpenRouterService.js";
 import EventHandlerApplication from "./application/EventHandlerApplication.js";
 import UserTempFileApplication from "./application/UserTempFileApplication.js";
@@ -37,7 +38,6 @@ import { UserSubscriptionRepository } from "./infrastructure/repository/mongo/Us
 import { TelegramBroadcastRepository } from "./infrastructure/repository/mongo/TelegramBroadcastRepository.js";
 import { UserSubscriptionUsageRepository } from "./infrastructure/repository/mongo/UserSubscriptionUsageRepository.js";
 import { TelegramJoinRequiredChatRepository } from "./infrastructure/repository/mongo/TelegramJoinRequiredChatRepository.js";
-import TelegramOtpApplication from "./application/TelegramOtpApplication.js";
 
 type Constants = {
     projectName: string;
@@ -89,6 +89,7 @@ type Applications = {
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     otpCache: ServiceInterfaces.ICacheStorage<OTP>;
+    memoryCandidateCache: ServiceInterfaces.ICacheStorage<string[]>;
     openRouter: ServiceInterfaces.IOpenRouterService;
     aiModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
@@ -160,6 +161,7 @@ export default class CoreServices {
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             otpCache: asClass(CacheStorage<OTP>, { lifetime: "SINGLETON" }),
+            memoryCandidateCache: asClass(CacheStorage<string[]>, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
 

@@ -99,6 +99,12 @@ export default class UserRepository extends Transactional implements IUserReposi
         if (update.voiceResponseType !== undefined)
             _update["voiceResponse.type"] = update.voiceResponseType;
 
+        if (update.memoryOn !== undefined)
+            _update["memory.on"] = update.memoryOn;
+
+        if (update.memoryFootprints !== undefined)
+            _update["memory.footprints"] = update.memoryFootprints;
+
         if (Object.hasOwn(update, 'voiceResponseLanguagePrompt')) {
             if (update.voiceResponseLanguagePrompt !== undefined)
                 _update["voiceResponse.languagePrompt"] = update.voiceResponseLanguagePrompt;

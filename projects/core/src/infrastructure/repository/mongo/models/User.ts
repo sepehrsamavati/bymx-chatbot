@@ -130,4 +130,14 @@ const schema = new mongoose.Schema<MongoStored<UserDBModel>>({
 		},
 		// required: true,
 	},
+	memory: {
+		on: {
+			type: Boolean,
+			required: true,
+		},
+		footprints: {
+			type: [String],
+			required: true,
+		},
+	},
 }, { versionKey: false, collection: userModelDefinition.collection });

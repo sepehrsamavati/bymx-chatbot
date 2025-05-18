@@ -61,6 +61,9 @@ export type UpdateUserModel = {
     voiceResponseType?: User['voiceResponse']['type'];
     voiceResponseLanguagePrompt?: User['voiceResponse']['languagePrompt'];
 
+    memoryOn?: NonNullable<User['memory']>['on'];
+    memoryFootprints?: NonNullable<User['memory']>['footprints'];
+
     telegramInviteUsed?: NonNullable<UserTelegram['invite']>['used'];
     telegramFirstName?: string;
     telegramLastName?: string;
