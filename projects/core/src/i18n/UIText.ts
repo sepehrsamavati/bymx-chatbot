@@ -272,6 +272,18 @@ const keys = [
     "countryCode",
     "pointUsage",
     "generate",
+    "randomTopics",
+    "coding",
+    "workout",
+    "cooking",
+    "summarizeText",
+    "_prompt_coding",
+    "_prompt_codingPythonHttpServer",
+    "_prompt_workout",
+    "_prompt_workoutAtHome",
+    "_prompt_cooking",
+    "_prompt_cookingPizza",
+    "_prompt_summarizeText",
 ] as const;
 
 export type UITextKey = typeof keys[number];

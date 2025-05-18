@@ -260,5 +260,17 @@
     "phoneNumber": "شماره تلفن",
     "countryCode": "کد کشور",
     "pointUsage": "مصرف امتیاز",
-    "generate": "تولید"
+    "generate": "تولید",
+    "randomTopics": "موضوع تصادفی",
+    "coding": "کدنویسی",
+    "workout": "ورزش",
+    "cooking": "آشپزی",
+    "summarizeText": "خلاصه‌سازی متن",
+    "_prompt_coding": "به عنوان یک دستیار به من کمک کن برنامه‌ای بنویسم که",
+    "_prompt_codingPythonHttpServer": "به من کمک کن کد سرور HTTP با پایتون بنویسم",
+    "_prompt_workout": "برنامه ورزشی بده برای",
+    "_prompt_workoutAtHome": "برنامه ورزشی قابل اجرا در خانه بده",
+    "_prompt_cooking": "به من کمک کن غذا درست کنم",
+    "_prompt_cookingPizza": "به من کمک کن پیتزا درست کنم، چه موادی نیاز داره و باید چیکار کنم؟",
+    "_prompt_summarizeText": "به من کمک کن این متن رو خلاصه کنم"
 }

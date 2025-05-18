@@ -260,5 +260,17 @@
     "phoneNumber": "Phone number",
     "countryCode": "Country code",
     "pointUsage": "Point usage",
-    "generate": "Generate"
+    "generate": "Generate",
+    "randomTopics": "Random topics",
+    "coding": "Coding",
+    "workout": "Workout",
+    "cooking": "Cooking",
+    "summarizeText": "Summarize text",
+    "_prompt_coding": "Help me write code for",
+    "_prompt_codingPythonHttpServer": "Provide me code for HTTP server in Python",
+    "_prompt_workout": "Give me workout routine/plan to",
+    "_prompt_workoutAtHome": "Suggest me a workout routine for home",
+    "_prompt_cooking": "Help me cook",
+    "_prompt_cookingPizza": "Help me cook pizza, list materials and describe steps",
+    "_prompt_summarizeText": "Help me summarize this text"
 }
