@@ -4,6 +4,7 @@ import { useSession } from "~/core/Session";
 import { useCallback, useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
+import Warning from "@mui/icons-material/Warning";
 import ClearAll from "@mui/icons-material/ClearAll";
 import MoreVert from "@mui/icons-material/MoreVert";
 import chatService from "~/core/services/chatService";
@@ -18,6 +19,7 @@ export default function ChatMoreActions(props: {
     const navigate = useNavigate();
     const [deletingChat, setDeletingChat] = useState(false);
     const [clearingHistory, setClearingHistory] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
@@ -26,6 +28,7 @@ export default function ChatMoreActions(props: {
     };
     const handleClose = () => {
         setAnchorEl(null);
+        setShowDeleteConfirm(false);
     };
 
     const clearHistory = useCallback(() => {
@@ -93,12 +96,21 @@ export default function ChatMoreActions(props: {
                     </ListItemIcon>
                     {session.uiText.clearCurrentChatHistory}
                 </MenuItem>
-                <MenuItem disabled={deletingChat} onClick={deleteChat}>
-                    <ListItemIcon color="red">
-                        <DeleteForever fontSize="small" />
-                    </ListItemIcon>
-                    {session.uiText.delete}
-                </MenuItem>
+                {showDeleteConfirm ? (
+                    <MenuItem disabled={deletingChat} onClick={deleteChat}>
+                        <ListItemIcon color="red">
+                            <Warning color="error" fontSize="small" />
+                        </ListItemIcon>
+                        {session.uiText.confirmToDelete}
+                    </MenuItem>
+                ) : (
+                    <MenuItem onClick={() => setShowDeleteConfirm(true)}>
+                        <ListItemIcon color="red">
+                            <DeleteForever fontSize="small" />
+                        </ListItemIcon>
+                        {session.uiText.delete}
+                    </MenuItem>
+                )}
             </Menu>
         </div>
     );

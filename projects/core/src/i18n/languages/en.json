@@ -49,7 +49,7 @@
     "acceptTos": "I have read and agree to the terms",
     "delete": "Delete",
     "confirm": "Confirm",
-    "confirmToDelete": "Confirm deletion:",
+    "confirmToDelete": "Confirm deletion",
     "selectChatBeforeUse": "Select a chat before use:",
     "usedPointsForThisMessage": "Points used for this message",
     "modelProcessedThisMessage": "Model that generated this message",
