@@ -1,7 +1,7 @@
 import colors from "~/core/config/colors";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
-import { stringHelper } from "bymx-core/shared";
+import { stringHelper, UIText } from "bymx-core/shared";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
@@ -11,11 +11,15 @@ import UploadFile from "@mui/icons-material/UploadFile";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
 import type { Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
+import MenuBook from "@mui/icons-material/MenuBook";
+import DataObject from "@mui/icons-material/DataObject";
+import Restaurant from "@mui/icons-material/Restaurant";
+import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, Chip, CircularProgress, Icon, IconButton, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -33,11 +37,23 @@ type SelectedAttachmentFile = {
     name: AttachmentFile['name'];
 };
 
+enum ReadyPromptCategory {
+    Coding = 1, Workout = 2, Cooking = 3, SummarizeText = 4,
+}
+
+const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UIText.UITextKey[] } = ({
+    [ReadyPromptCategory.Coding]: ["_prompt_coding", "_prompt_codingPythonHttpServer"],
+    [ReadyPromptCategory.Workout]: ["_prompt_workout", "_prompt_workoutAtHome"],
+    [ReadyPromptCategory.Cooking]: ["_prompt_cooking", "_prompt_cookingPizza"],
+    [ReadyPromptCategory.SummarizeText]: ["_prompt_summarizeText"],
+});
+
 export default function Chat() {
     const session = useSession();
     const navigate = useNavigate();
     const { chatId } = useParams();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
+    const [messages, setMessages] = useState<ChatMessage[]>();
     const streamingMessageChunks = useRef<(string | undefined)[]>([]);
     const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; output: string; }>();
     const initialized = useRef(false);
@@ -54,6 +70,7 @@ export default function Chat() {
     const socket = useMemo(() => socketManager(), []);
     const cantSubmit = inputText.trim().length === 0 || waitingForCompletion;
     const formRef = useRef<HTMLFormElement>(null);
+    const textInputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
         if (!chatSectionRef.current) return;
@@ -88,13 +105,13 @@ export default function Chat() {
             .then(res => {
                 if (res.result?.data)
                     setMessages(_current => {
-                        const oldMessages = [..._current];
+                        const oldMessages = _current ? [..._current] : [];
                         const messagesToAdd = [...(res.result?.data || [])]
                             .filter(message => !oldMessages.some(m => m.id === message.id)); // prevent duplicate
 
                         const newMessages = [...messagesToAdd, ...oldMessages];
 
-                        reachedToFirstMessage.current = _current.length === newMessages.length;
+                        reachedToFirstMessage.current = _current?.length === newMessages.length;
 
                         return newMessages;
                     });
@@ -181,7 +198,7 @@ export default function Chat() {
                 const result = response.result;
                 if (result?.data) {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
-                    setMessages(_current => [..._current, (
+                    setMessages(_current => [...(_current || []), (
                         {
                             id: requestId,
                             inputDate,
@@ -326,7 +343,7 @@ export default function Chat() {
     }, [getMessages, chatId]);
 
     useEffect(() => {
-        if (didFirstScrollToBottom.current || messages.length === 0) return;
+        if (didFirstScrollToBottom.current || messages?.length === 0) return;
         didFirstScrollToBottom.current = true;
         scrollToBottom(undefined, true);
     }, [messages, scrollToBottom]);
@@ -351,31 +368,33 @@ export default function Chat() {
                         ) : null}
                     </Box>
 
-                    <Select
-                        disabled={modelChangeLock}
-                        size="small"
-                        sx={{
-                            borderRadius: 50,
-                            fontFamily: "monospace",
-                            "> .MuiSelect-select": {
-                                padding: 1,
-                            }
-                        }}
-                        value={selectedModel}
-                        onChange={handleModelChange}
-                        displayEmpty
-                    >
-                        {session.chatModels.map(model => (
-                            <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
-                                <Stack direction="row" alignItems="center">
-                                    <Icon fontSize="small">
-                                        {model.caption.toLowerCase().startsWith("chatgpt") ? <CostlyModelIcon color="warning" fontSize="small" /> : <FreeModelIcon color="success" fontSize="small" />}
-                                    </Icon>
-                                    {model.caption}
-                                </Stack>
-                            </MenuItem>
-                        ))}
-                    </Select>
+                    {session.chatModels.length && selectedModel ? (
+                        <Select
+                            disabled={modelChangeLock}
+                            size="small"
+                            sx={{
+                                borderRadius: 50,
+                                fontFamily: "monospace",
+                                "> .MuiSelect-select": {
+                                    padding: 1,
+                                }
+                            }}
+                            value={selectedModel}
+                            onChange={handleModelChange}
+                            displayEmpty
+                        >
+                            {session.chatModels.map(model => (
+                                <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
+                                    <Stack direction="row" alignItems="center">
+                                        <Icon fontSize="small">
+                                            {model.caption.toLowerCase().startsWith("chatgpt") ? <CostlyModelIcon color="warning" fontSize="small" /> : <FreeModelIcon color="success" fontSize="small" />}
+                                        </Icon>
+                                        {model.caption}
+                                    </Stack>
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    ) : null}
 
                     <IconButton
                         sx={{
@@ -401,7 +420,7 @@ export default function Chat() {
                         <CircularProgress color="secondary" />
                     </Box>
                 ) : null}
-                {messages.map(message => (
+                {messages?.map(message => (
                     <Box
                         key={message.id}
                         fontSize="0.8em"
@@ -430,6 +449,17 @@ export default function Chat() {
                                 <MessageBubble text={currentlyGeneratingMessage.output} />
                             </Box>
                         </Box>
+                    </Box>
+                ) : null}
+
+                {messages?.length === 0 && !currentlyGeneratingMessage ? (
+                    <Box width="100%" flexGrow={1} display="flex" alignItems="center" justifyContent="center">
+                        <Stack direction="row" flexWrap="wrap" gap={1} maxWidth="250px" justifyContent="center">
+                            <Chip variant="outlined" color="info" label={session.uiText.coding} icon={<DataObject />} onClick={() => setSelectedCategory(ReadyPromptCategory.Coding)} />
+                            <Chip variant="outlined" color="success" label={session.uiText.workout} icon={<FitnessCenter />} onClick={() => setSelectedCategory(ReadyPromptCategory.Workout)} />
+                            <Chip variant="outlined" color="error" label={session.uiText.cooking} icon={<Restaurant />} onClick={() => setSelectedCategory(ReadyPromptCategory.Cooking)} />
+                            <Chip variant="outlined" color="warning" label={session.uiText.summarizeText} icon={<MenuBook />} onClick={() => setSelectedCategory(ReadyPromptCategory.SummarizeText)} />
+                        </Stack>
                     </Box>
                 ) : null}
 
@@ -525,7 +555,52 @@ export default function Chat() {
                             </label>
                         )}
                     </Box>
+
+                    <Divider />
+
+                    <Popover
+                        open={Boolean(selectedCategory)}
+                        // hideBackdrop
+                        anchorEl={textInputRef.current}
+                        onClose={() => setSelectedCategory(undefined)}
+                        anchorOrigin={{
+                            vertical: 'top',
+                            horizontal: 'left',
+                        }}
+                        slotProps={{
+                            paper: {
+                                sx: {
+                                    borderRadius: "1.3rem"
+                                }
+                            },
+                            backdrop: {
+                                sx: {
+                                    backdropFilter: "blur(2px) saturate(0.7) brightness(0.4)"
+                                }
+                            },
+                        }}
+                    >
+                        <Box width={textInputRef.current?.offsetWidth} maxWidth="100%">
+                            <Stack direction="column" gap={1} padding={0.8} width="100%">
+                                {selectedCategory ? (
+                                    readyPromptCategoryToPromptsListMap[selectedCategory].map(key => (
+                                        <Box
+                                            key={key}
+                                            onClick={() => {
+                                                setInputText(session.uiText[key]);
+                                                setSelectedCategory(undefined);
+                                                textInputRef.current?.focus()
+                                            }}
+                                            sx={{ cursor: "pointer", fontSize: "0.7em", borderRadius: "10rem", border: '1px dashed currentColor', padding: 0.5, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", width: "100%" }}
+                                        >{session.uiText[key]}</Box>
+                                    ))
+                                ) : null}
+                            </Stack>
+                        </Box>
+                    </Popover>
+
                     <TextField
+                        ref={textInputRef}
                         fullWidth
                         size="small"
                         multiline
