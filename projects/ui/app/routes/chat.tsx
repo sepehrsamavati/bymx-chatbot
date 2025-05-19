@@ -105,13 +105,14 @@ export default function Chat() {
             .then(res => {
                 if (res.result?.data)
                     setMessages(_current => {
-                        const oldMessages = _current ? [..._current] : [];
+                        _current ||= [];
+                        const oldMessages = [..._current];
                         const messagesToAdd = [...(res.result?.data || [])]
                             .filter(message => !oldMessages.some(m => m.id === message.id)); // prevent duplicate
 
                         const newMessages = [...messagesToAdd, ...oldMessages];
 
-                        reachedToFirstMessage.current = _current?.length === newMessages.length;
+                        reachedToFirstMessage.current = _current.length === newMessages.length;
 
                         return newMessages;
                     });
