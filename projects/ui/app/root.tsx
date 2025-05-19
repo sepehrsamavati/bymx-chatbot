@@ -11,7 +11,7 @@ import "./app.css";
 import { useMemo, useState } from "react";
 import type { Route } from "./+types/root";
 import { SnackbarProvider } from "notistack";
-import { ThemeProvider } from "@mui/material";
+import { Box, ThemeProvider } from "@mui/material";
 import { CacheProvider } from "@emotion/react";
 import { stringHelper } from "bymx-core/shared";
 import HttpClient from "./core/helper/HttpClient";
@@ -88,7 +88,9 @@ export default function App() {
       <SnackbarProvider
         maxSnack={3}
         action={(snackbarId) => (
-          <Button size="small" type="button" variant="text" color="error" onClick={() => session.closeSnackbar(snackbarId)}>{session.uiText.close}</Button>
+          <Box marginInlineStart="20px">
+            <Button size="small" type="button" variant="outlined" color="inherit" sx={{ fontFamily: "inherit" }} onClick={() => session.closeSnackbar(snackbarId)}>{session.uiText.close}</Button>
+          </Box>
         )}
       >
         <SnackbarProviderConfigurator />
