@@ -246,17 +246,19 @@ export default function Chats() {
                     <Divider sx={{ marginBlock: 6 }} />
 
                     <Grid container paddingInline={8} marginBottom={4} justifyContent="center">
-                        <Grid size={{ xs: 12, md: 8 }}>
-                            <Card onClick={() => navigate("/ui/imageGenerate")} sx={{ cursor: "pointer" }}>
-                                <CardMedia component="img" src={fluxSampleImage} />
-                                <CardActions>
-                                    <Stack sx={{ width: "100%" }} direction="row" flexWrap="wrap" alignItems="center" justifyContent="space-between">
-                                        <Button onClick={() => navigate("/ui/imageGenerate")} size="small" variant="text" color="warning">{session.uiText.createPicture}</Button>
-                                        {typeof imageGenerateCost === "number" ? <Chip size="small" label={<>{stringHelper.digitLocalization(imageGenerateCost, session.uiText._langCode)} ⚡</>} /> : null}
-                                    </Stack>
-                                </CardActions>
-                            </Card>
-                        </Grid>
+                        {typeof imageGenerateCost === "number" ? (
+                            <Grid size={{ xs: 12, md: 8 }}>
+                                <Card onClick={() => navigate("/ui/imageGenerate")} sx={{ cursor: "pointer" }}>
+                                    <CardMedia component="img" src={fluxSampleImage} />
+                                    <CardActions>
+                                        <Stack sx={{ width: "100%" }} direction="row" flexWrap="wrap" alignItems="center" justifyContent="space-between">
+                                            <Button onClick={() => navigate("/ui/imageGenerate")} size="small" variant="text" color="warning">{session.uiText.createPicture}</Button>
+                                            <Chip size="small" label={<>{stringHelper.digitLocalization(imageGenerateCost, session.uiText._langCode)} ⚡</>} />
+                                        </Stack>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ) : null}
                     </Grid>
                 </Stack>
             </Stack>

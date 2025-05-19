@@ -1,21 +1,23 @@
 import Button from "~/components/button";
 import colors from "~/core/config/colors";
+import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
+import { stringHelper } from "bymx-core/shared";
 import AutoFixHigh from "@mui/icons-material/AutoFixHigh";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import generativeAiService from "~/core/services/generativeAiService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography } from "@mui/material";
-import { stringHelper } from "bymx-core/shared";
 
 export default function ImageGenerate() {
     const session = useSession();
+    const navigate = useNavigate();
     const initialized = useRef(false);
     const [prompt, setPrompt] = useState("");
     const [imageUrlToLoad, setImageUrlToLoad] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const isValid = useMemo(() => prompt.length >= 10 && prompt.length <= 500, [prompt]);
     const [imageGenerateCost, setImageGenerateCost] = useState<number>();
+    const isValid = useMemo(() => typeof imageGenerateCost === "number" && prompt.length >= 10 && prompt.length <= 500, [prompt, imageGenerateCost]);
 
     const generateImage = useCallback(() => {
         setIsLoading(true);
@@ -38,10 +40,12 @@ export default function ImageGenerate() {
         generativeAiService
             .getImageGeneratePointUsage()
             .then(res => {
-                if (typeof res.result?.data === "number")
+                if (res.result?.ok && typeof res.result.data === "number")
                     setImageGenerateCost(res.result.data);
+                else
+                    navigate("/ui");
             });
-    }, []);
+    }, [navigate]);
 
     return (
         <Stack alignItems="center">
