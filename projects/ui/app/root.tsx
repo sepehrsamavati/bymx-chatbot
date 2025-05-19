@@ -18,6 +18,7 @@ import HttpClient from "./core/helper/HttpClient";
 import Session, { SessionContext } from "./core/Session";
 import { cacheRtl, muiThemeOptions, type ThemeName } from "./core/config/mui";
 import { SnackbarProviderConfigurator } from "./core/helper/snackbarProvider";
+import Button from "./components/button";
 
 // export const links: Route.LinksFunction = () => [
 //   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -84,9 +85,14 @@ export default function App() {
 
   return (
     <>
-      <SnackbarProvider maxSnack={3}>
+      <SnackbarProvider
+        maxSnack={3}
+        action={(snackbarId) => (
+          <Button size="small" type="button" variant="text" color="error" onClick={() => session.closeSnackbar(snackbarId)}>{session.uiText.close}</Button>
+        )}
+      >
         <SnackbarProviderConfigurator />
-      </SnackbarProvider>
+      </SnackbarProvider >
       <CacheProvider value={cacheProviderValue}>
         <ThemeProvider theme={themeProviderValue}>
           <SessionContext.Provider key={session.uiText._langCode} value={session}>
