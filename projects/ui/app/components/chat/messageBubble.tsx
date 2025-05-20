@@ -5,9 +5,10 @@ import Markdown from "react-markdown";
 import colors from "~/core/config/colors";
 import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { colors as muiColors } from "@mui/material";
 import AttachFile from "@mui/icons-material/AttachFile";
+import Grow from "@mui/material/Grow";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
 
 export default function MessageBubble(props?: {
@@ -18,6 +19,9 @@ export default function MessageBubble(props?: {
     modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
+    const [previousText, setPreviousText] = useState<string>("");
+    const [newTextParts, setNewTextParts] = useState<string[]>([]);
+
     const date = useMemo(() => {
         if (!props?.date) return null;
 
@@ -44,12 +48,48 @@ export default function MessageBubble(props?: {
         divRef.current
             .querySelectorAll("code[class^=language-]")
             .forEach(codeElement => {
-                const language = codeElement.className.split('-')[1]; // Extract language name
+                const language = codeElement.className.split('-')[1];
                 loadLanguage(language, () => {
                     PrismJS.highlightElement(codeElement);
-                }); // Load the language dynamically
+                });
             });
     }, [props]);
+
+    // Effect to detect new text parts and animate them
+    useEffect(() => {
+        if (props?.text === undefined) return;
+
+        // First render - no previous text
+        if (previousText === "") {
+            setPreviousText(props.text || "");
+            return;
+        }
+
+        // Text hasn't changed
+        if (props.text === previousText) return;
+
+        // Find the new parts by comparing with previous text
+        const newParts = [];
+        const oldParts = previousText.split(/(?=\n)/);
+        const currentParts = props.text.split(/(?=\n)/);
+
+        for (let i = 0; i < currentParts.length; i++) {
+            if (i >= oldParts.length || currentParts[i] !== oldParts[i]) {
+                newParts.push(currentParts[i]);
+            }
+        }
+
+        if (newParts.length > 0) {
+            setNewTextParts(newParts);
+            // Reset new parts after animation would complete
+            const timer = setTimeout(() => {
+                setNewTextParts([]);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+
+        setPreviousText(props.text || "");
+    }, [props?.text, previousText]);
 
     return (
         <Box
@@ -82,7 +122,7 @@ export default function MessageBubble(props?: {
                     margin: 1,
                     marginTop: 2,
                 },
-                ' li > code': {
+                ' li > code, p > code': {
                     color: colors.antiFlashWhite,
                     backgroundColor: muiColors.grey[900],
                     padding: 0.4,
@@ -93,7 +133,17 @@ export default function MessageBubble(props?: {
             }}
         >
             <div ref={divRef}>
-                <Markdown>{props?.text}</Markdown>
+                {/* Render the base text without the new parts */}
+                <Markdown>{previousText}</Markdown>
+                
+                {/* Animate the new parts */}
+                {newTextParts.map((part, index) => (
+                    <Grow key={index} in timeout={1e3}>
+                        <div>
+                            <Markdown>{part}</Markdown>
+                        </div>
+                    </Grow>
+                ))}
 
                 {props?.attachmentFilename ? (
                     <Chip
