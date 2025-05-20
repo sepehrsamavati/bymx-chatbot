@@ -7,7 +7,8 @@ import AutoFixHigh from "@mui/icons-material/AutoFixHigh";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import generativeAiService from "~/core/services/generativeAiService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography, type SxProps, type Theme } from "@mui/material";
+import { Box, Card, CardActions, CardMedia, Chip, IconButton, ImageList, ImageListItem, Stack, TextField, Typography, type SxProps, type Theme } from "@mui/material";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 
 type GeneratedImage = { prompt: string; source: string; };
 
@@ -67,6 +68,19 @@ export default function ImageGenerate() {
     return (
         <Stack alignItems="center">
             <Stack direction="column" width="100%" maxWidth="700px" gap={1}>
+                <Box textAlign="center">
+                    <Stack direction="row" flexWrap="wrap" gap={1} paddingInline={1}>
+                        <IconButton
+                            sx={{
+                                marginInlineStart: "auto"
+                            }}
+                            onClick={() => navigate("/ui/chats")}
+                        >
+                            <ArrowBack />
+                        </IconButton>
+                    </Stack>
+                </Box>
+
                 <Box margin={4}>
                     <Box textAlign="center">
                         <Typography fontWeight="900">{session.uiText.createPicture}</Typography>
