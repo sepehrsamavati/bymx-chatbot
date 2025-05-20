@@ -1,0 +1,10 @@
+.chat-backdrop::after {
+    content: "";
+    display: block;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 150px;
+    pointer-events: none;
+    background-image: linear-gradient(to bottom, transparent, var(--background-color));
+}

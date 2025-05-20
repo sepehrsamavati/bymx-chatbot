@@ -1,3 +1,4 @@
+import "../assets/css/chat.css";
 import colors from "~/core/config/colors";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
@@ -466,20 +467,11 @@ export default function Chat() {
 
                 <Box
                     width="100%"
+                    className="chat-backdrop"
                     sx={{
                         position: "relative",
                         display: { xs: "none", sm: "block" },
-                        height: { xs: 0, sm: "200px", flexShrink: 0, },
-                        "::after": {
-                            content: '""',
-                            display: "block",
-                            position: "fixed",
-                            bottom: 0,
-                            width: "100%",
-                            height: "150px",
-                            pointerEvents: "none",
-                            backgroundImage: `linear-gradient(to bottom, transparent, ${colors.backgroundDarkMode})`
-                        }
+                        height: { xs: 0, sm: "200px", flexShrink: 0, }
                     }}
                 />
             </Stack>

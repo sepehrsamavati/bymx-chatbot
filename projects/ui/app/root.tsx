@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import "./assets/css/global.css";
 import "./app.css";
 import { useMemo, useState } from "react";
 import type { Route } from "./+types/root";

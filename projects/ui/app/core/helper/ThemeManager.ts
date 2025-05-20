@@ -1,3 +1,4 @@
+import colors from "../config/colors";
 import Session from "../Session";
 import type { PaletteMode } from "@mui/material";
 
@@ -17,6 +18,10 @@ export default class ThemeManager {
         return this._name;
     }
 
+    #syncWithCss() {
+        document.documentElement.style.setProperty("--background-color", this.name === "light" ? colors.backgroundLightMode : colors.backgroundDarkMode);
+    }
+
     public set(name: PaletteMode) {
         this._name = name;
 
@@ -26,6 +31,7 @@ export default class ThemeManager {
         this.#session.localStorage.data.themeName = name;
         this.#session.localStorage.rewrite();
 
+        this.#syncWithCss();
         this.#session.syncUiWithTelegramApp();
         this.#session.refreshUI?.();
     }
