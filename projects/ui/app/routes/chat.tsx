@@ -217,7 +217,7 @@ export default function Chat() {
                 }
             })
             .finally(_finally);
-    }, [chatId, inputText, uploadingFile, socket]);
+    }, [chatId, inputText, uploadingFile, socket, selectedModel]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
