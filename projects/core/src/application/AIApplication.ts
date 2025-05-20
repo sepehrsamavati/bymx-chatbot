@@ -402,7 +402,7 @@ export default class AIApplication {
             else {
                 const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(modelInfo.userPointCost, subscriptions);
 
-                const taskCreationResult = await this.#generationTaskApplication.create({
+                await this.#generationTaskApplication.create({
                     expiry: startDate,
                     result: falResponse.data,
                     promptInfo: {
@@ -442,7 +442,7 @@ export default class AIApplication {
                         url: generatedImage.url,
                         pointUsage: modelInfo.userPointCost,
                         modelName: modelInfo.model.title,
-                        taskInternalId: taskCreationResult.data!,
+                        taskInternalId: internalTaskId,
                     });
             }
         }

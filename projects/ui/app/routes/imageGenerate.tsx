@@ -7,14 +7,28 @@ import AutoFixHigh from "@mui/icons-material/AutoFixHigh";
 import fluxSampleImage from "../assets/images/flux-sample.png";
 import generativeAiService from "~/core/services/generativeAiService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography, type SxProps, type Theme } from "@mui/material";
+
+type GeneratedImage = { prompt: string; source: string; };
+
+function ImageCard(props: GeneratedImage & { sx?: SxProps<Theme> }) {
+    const session = useSession();
+    return (
+        <Card sx={props.sx}>
+            <CardMedia component="img" src={props.source} />
+            <CardActions sx={{ width: "100%", justifyContent: "center", position: "absolute", bottom: 0, direction: session.fixDirection("ltr") }}>
+                <Chip size="small" sx={{ backdropFilter: "blur(10px)", boxShadow: "0 0 1em black", color: colors.antiFlashWhite }} label={props.prompt} />
+            </CardActions>
+        </Card>
+    );
+}
 
 export default function ImageGenerate() {
     const session = useSession();
     const navigate = useNavigate();
     const initialized = useRef(false);
     const [prompt, setPrompt] = useState("");
-    const [imageUrlToLoad, setImageUrlToLoad] = useState("");
+    const [imageUrlToLoad, setImageUrlToLoad] = useState<GeneratedImage>();
     const [isLoading, setIsLoading] = useState(false);
     const [imageGenerateCost, setImageGenerateCost] = useState<number>();
     const isValid = useMemo(() => typeof imageGenerateCost === "number" && prompt.length >= 10 && prompt.length <= 500, [prompt, imageGenerateCost]);
@@ -25,7 +39,10 @@ export default function ImageGenerate() {
             .fluxImageGenerate(prompt)
             .then(res => {
                 if (res.result?.data) {
-                    setImageUrlToLoad(`/api/v1/file/task?id=${res.result.data.id}`);
+                    setImageUrlToLoad({
+                        prompt: prompt,
+                        source: `/api/v1/file/task?id=${res.result.data.id}`,
+                    });
                 } else {
                     session.snackbarProvider(res.result?.message, { variant: "error" });
                 }
@@ -51,7 +68,7 @@ export default function ImageGenerate() {
         <Stack alignItems="center">
             <Stack direction="column" width="100%" maxWidth="700px" gap={1}>
                 <Box margin={4}>
-                    <Box textAlign="center" marginBottom={4}>
+                    <Box textAlign="center">
                         <Typography fontWeight="900">{session.uiText.createPicture}</Typography>
                         {typeof imageGenerateCost === "number" ? <Chip size="small" label={<>{session.uiText.pointUsage} {stringHelper.digitLocalization(imageGenerateCost, session.uiText._langCode)} ⚡</>} /> : null}
                     </Box>
@@ -80,18 +97,11 @@ export default function ImageGenerate() {
                     <ImageList sx={{ width: "100%", maxWidth: "500px" }} cols={1}>
                         {imageUrlToLoad ? (
                             <ImageListItem>
-                                <Card>
-                                    <CardMedia component="img" src={imageUrlToLoad} />
-                                </Card>
+                                <ImageCard prompt={imageUrlToLoad.prompt} source={imageUrlToLoad.source} />
                             </ImageListItem>
                         ) : null}
                         <ImageListItem>
-                            <Card>
-                                <CardMedia component="img" src={fluxSampleImage} />
-                                <CardActions sx={{ width: "100%", justifyContent: "center", position: "absolute", bottom: 0, direction: session.fixDirection("ltr") }}>
-                                    <Chip size="small" sx={{ backdropFilter: "blur(10px)", boxShadow: "0 0 1em black", color: colors.antiFlashWhite }} label="panda eating stake in restaurant" />
-                                </CardActions>
-                            </Card>
+                            <ImageCard prompt="panda eating stake in restaurant" source={fluxSampleImage} sx={{ marginTop: 8 }} />
                         </ImageListItem>
                     </ImageList>
                 </Box>

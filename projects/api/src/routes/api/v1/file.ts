@@ -99,9 +99,8 @@ export const getTaskFile: RouteHandlerMethod = async (request, reply) => {
         return reply.status(412).send({});
 
     const urlToFetch = typeof task.result === "object" && task.result
-        && 'payload' in task.result && typeof task.result.payload === "object" && task.result.payload
-        && 'images' in task.result.payload && Array.isArray(task.result.payload.images)
-        && task.result.payload?.images[0]?.url;
+        && 'images' in task.result && Array.isArray(task.result.images)
+        && task.result.images.at(0)?.url;
 
     if (typeof urlToFetch !== "string" || !URL.canParse(urlToFetch))
         return reply.status(400).send({});
