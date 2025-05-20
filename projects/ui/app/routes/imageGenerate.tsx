@@ -40,6 +40,7 @@ export default function ImageGenerate() {
             .fluxImageGenerate(prompt)
             .then(res => {
                 if (res.result?.data) {
+                    setPrompt("");
                     setImageUrlToLoad({
                         prompt: prompt,
                         source: `/api/v1/file/task?id=${res.result.data.id}`,
