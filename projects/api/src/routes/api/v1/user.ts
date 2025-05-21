@@ -222,7 +222,7 @@ export const telegramOtpAuth: RouteHandlerMethod = async (request, reply) => {
 
         result.succeeded().setData(userInfo);
 
-        const cookie = createSetCookieString(config.apiServer.cookieKey, await signToken(userInfo, config.apiServer.tokenSignSecret, 120 * 60e3), 120 * 60);
+        const cookie = createSetCookieString(config.apiServer.cookieKey, await signToken(userInfo, config.apiServer.tokenSignSecret, 120 * 60e3), 360 * 60);
         reply.header('Set-Cookie', cookie);
     }
     else
