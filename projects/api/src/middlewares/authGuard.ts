@@ -1,8 +1,8 @@
 import type { onRequestHookHandler } from "fastify";
 
-export default (async function authGuard(request, reply) {
+export default (function authGuard(request, reply, done) {
     if (request.locals.user)
-        return;
+        return done();
 
     reply.status(401).send({ message: "Authorization required!" });
 }) as onRequestHookHandler;

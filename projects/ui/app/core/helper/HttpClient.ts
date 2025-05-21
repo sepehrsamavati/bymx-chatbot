@@ -53,7 +53,7 @@ export default abstract class HttpClient {
 
         for (let tryNumber = 1; tryNumber <= 3; tryNumber++) {
             result = await this._send<ResponseType>(config);
-            if (![401, 403, 500, 504].includes(result.status))
+            if (![500, 504].includes(result.status))
                 break;
             else
                 await new Promise(r => setTimeout(r, 1e3));

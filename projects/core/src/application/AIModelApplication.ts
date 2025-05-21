@@ -1,6 +1,6 @@
 import config from "../config.js";
 import type { ServicesType } from "../Container.js";
-import { OperationResult } from "../export/shared.js";
+import { OperationResult, OperationResultWithData } from "../export/shared.js";
 import { AIModelType } from "../types/enums/aiModelType.js";
 import { calculatePointUsage } from "../helpers/costCalculator.js";
 import type { AIModel, AIModelViewModel } from "../types/entities/aiModel.js";
@@ -60,6 +60,29 @@ export default class AIModelApplication {
                 id: model.id,
                 title: model.title,
             }));
+    }
+
+    /** Gets all models without any filter */
+    async getAllRaw() {
+        const result = new OperationResultWithData<AIModel[]>();
+
+        const models = await this.#aiModelRepository.get();
+
+        if (Array.isArray(models))
+            result.succeeded().setData(models);
+        else
+            result.failed("errorWhileFetchingData");
+
+        return result;
+    }
+
+    async updateById(id: string, update: Partial<AIModel>) {
+        const result = new OperationResult().failed("errorOccurred");
+
+        if (await this.#aiModelRepository.updateById(id, update))
+            result.succeeded();
+
+        return result;
     }
 
     generativeModelCostCalculator(model: AIModel, multiplier = 1) {

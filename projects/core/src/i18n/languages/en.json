@@ -272,5 +272,6 @@
     "_prompt_workoutAtHome": "Suggest me a workout routine for home",
     "_prompt_cooking": "Help me cook",
     "_prompt_cookingPizza": "Help me cook pizza, list materials and describe steps",
-    "_prompt_summarizeText": "Help me summarize this text"
+    "_prompt_summarizeText": "Help me summarize this text",
+    "refreshModels": "Refresh models"
 }

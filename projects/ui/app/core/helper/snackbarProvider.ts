@@ -45,7 +45,7 @@ const snackbarProvider = (msg: SnackbarMessage, options?: { extendedOptions?: Ex
 };
 
 export const closeSnackbar = (key: SnackbarKey) => {
-    return useSnackbarRef.closeSnackbar();
+    return useSnackbarRef.closeSnackbar(key);
 };
 
 export default snackbarProvider;

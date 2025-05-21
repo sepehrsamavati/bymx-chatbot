@@ -6,8 +6,6 @@ import {
     prefix,
 } from "@react-router/dev/routes";
 
-// import {} from "@v7/"
-
 export default [
     route("/ui/login", "./routes/login.tsx", { id: "login" }),
     route("/ui/tgAuth", "./components/telegramAuth.tsx"),
@@ -21,6 +19,12 @@ export default [
                 route("/chats", "./routes/chats.tsx"),
                 route("/imageGenerate", "./routes/imageGenerate.tsx"),
                 route("/chat/:chatId", "./routes/chat.tsx"),
+
+                ...prefix("admin", [
+                    index("./routes/admin/index.tsx"),
+                    route("/models", "./routes/admin/models.tsx"),
+                ]),
+
                 route("*", "./routes/notFound.tsx"),
             ]),
         ]),

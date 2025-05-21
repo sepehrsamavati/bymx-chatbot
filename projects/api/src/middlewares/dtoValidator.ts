@@ -9,14 +9,14 @@ export const fastifyPayloadValidator = <T extends object>(Model: new () => T): p
             exposeDefaultValues: true
         }) ?? new Model();
 
-    return async (request, reply, done) => {
+    return (request, reply, done) => {
         const instance = createInstance(['GET', 'DELETE'].includes(request.method) ? request.query : request.body);
         const errors = validateSync(instance);
         if (errors.length)
             return reply.status(400).send(errors);
         else {
             request.locals.dto = instance;
-            return done;
+            done();
         }
     };
 };

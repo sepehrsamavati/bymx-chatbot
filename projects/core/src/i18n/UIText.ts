@@ -284,6 +284,7 @@ const keys = [
     "_prompt_cooking",
     "_prompt_cookingPizza",
     "_prompt_summarizeText",
+    "refreshModels",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -87,9 +87,11 @@ export type IUserTempFileRepository = {
 }
 
 export type IAIModelRepository = {
+    get(filter?: Partial<AIModel>, limit?: number): Promise<AIModel[] | null>;
     getAll(): Promise<AIModel[] | null>;
     getById(id: AIModel['id']): Promise<AIModel | null>;
     exists(id: AIModel['id']): Promise<boolean | null>;
+    updateById(id: AIModel['id'], update: Partial<AIModel>): Promise<boolean | null>;
 }
 
 export type IPlanRepository = {

@@ -3,13 +3,16 @@ import path from 'node:path';
 import IdDto from '../dto/IdDto.js';
 import jwt from "../middlewares/jwt.js";
 import ChatID from "../dto/chat/ChatID.js";
+import { UserType } from 'bymx-core/shared';
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
 import ChatPrompt from "../dto/chat/ChatPrompt.js";
+import roleGuard from '../middlewares/roleGuard.js';
 import authGuard from "../middlewares/authGuard.js";
+import UpdateById from '../dto/model/UpdateById.js';
 import SetChatTitle from "../dto/chat/SetChatTitle.js";
 import SetChatModel from "../dto/chat/SetChatModel.js";
 import TelegramAuth from "../dto/user/TelegramAuth.js";
@@ -120,6 +123,9 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         modelController.addHook('onRequest', authGuard);
 
         modelController.get("/all", model.getAllModels);
+        modelController.get("/raw", { preValidation: roleGuard([UserType.Admin]) }, model.getAllModelsAdmin);
+        modelController.patch("/", { preValidation: [roleGuard([UserType.Admin]), fastifyPayloadValidator(UpdateById)] }, model.updateById);
+        modelController.post("/refresh", { preValidation: roleGuard([UserType.Admin]) }, model.refreshModels);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/model" });

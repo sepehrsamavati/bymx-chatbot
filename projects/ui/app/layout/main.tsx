@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import Stack from "@mui/material/Stack";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, useNavigate } from "react-router";
 import Menu from "@mui/icons-material/Menu";
 import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
@@ -11,13 +11,14 @@ import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import userService from "~/core/services/userService";
-import { AIChatHistoryMemory, stringHelper, UIText } from "bymx-core/shared";
+import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
 import CreditCard from "@mui/icons-material/CreditCard";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
 import { Box, Button, Chip, Divider, Drawer, FormControl, InputLabel, MenuItem, Select, Skeleton, Typography, type SelectChangeEvent } from "@mui/material";
 import { getLanguageList } from "~/core/i18n/i18n";
 import chatService from "~/core/services/chatService";
+import RoleHoc from "~/components/roleHoc";
 
 function DrawerItem(props?: {
     title?: React.ReactNode;
@@ -33,9 +34,10 @@ function DrawerItem(props?: {
 
 function ProfileInfo() {
     const session = useSession();
+    const navigate = useNavigate();
     const [data, setData] = useState<UserEntity.UserInfoViewModel | undefined>(session.cacheStorage.profileInfo?.data);
     const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
-    const initialized = useRef(false);
+    const fetchDataLock = useRef(false);
 
     const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
         if (memoryAmountChangeLock) return;
@@ -57,14 +59,14 @@ function ProfileInfo() {
     }, [memoryAmountChangeLock, session]);
 
     useEffect(() => {
-        if (initialized.current) return;
-        initialized.current = true;
+        if (fetchDataLock.current) return;
 
-        if (session.cacheStorage.profileInfo && Date.now() - session.cacheStorage.profileInfo.date < 60e3) {
+        if (session.cacheStorage.profileInfo && Date.now() - session.cacheStorage.profileInfo.date < 30e3) {
             setData(session.cacheStorage.profileInfo.data);
             return;
         }
 
+        fetchDataLock.current = true;
         userService.getProfile()
             .then(res => {
                 if (res.result?.data) {
@@ -76,13 +78,21 @@ function ProfileInfo() {
                 }
                 else
                     session.snackbarProvider(session.uiText.errorWhileFetchingData, { variant: "error" });
-            });
+            })
+            .finally(() => fetchDataLock.current = false);
     }, []);
 
     const fullname = data ? `${data.user.firstName || ""} ${data.user.lastName || ""}` : "";
 
     return (
         <Box padding={2}>
+
+            <RoleHoc user={session.user?.type} allow={UserType.Admin}>
+                <DrawerItem title={null}>
+                    <Button fullWidth color="success" onClick={() => navigate("/ui/admin")}>{session.uiText.adminPanel}</Button>
+                </DrawerItem>
+            </RoleHoc>
+
             <DrawerItem title={<span dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"}>{fullname || <Skeleton width={80} />}</span>} />
             <Divider variant="middle" flexItem />
             {/* {data.dailyFreePoints ? ( */}
