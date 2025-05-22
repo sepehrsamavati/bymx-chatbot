@@ -5,7 +5,7 @@ import Markdown from "react-markdown";
 import colors from "~/core/config/colors";
 import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { colors as muiColors } from "@mui/material";
 import AttachFile from "@mui/icons-material/AttachFile";
 import Grow from "@mui/material/Grow";
@@ -19,8 +19,9 @@ export default function MessageBubble(props?: {
     modelTitle?: string;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
-    const [previousText, setPreviousText] = useState<string>("");
-    const [newTextParts, setNewTextParts] = useState<string[]>([]);
+    // const shouldPostRender = useRef(true);
+    // const [previousText, setPreviousText] = useState<string>("");
+    // const [newTextParts, setNewTextParts] = useState<string[]>([]);
 
     const date = useMemo(() => {
         if (!props?.date) return null;
@@ -33,7 +34,7 @@ export default function MessageBubble(props?: {
         return <i>{props.date.toLocaleTimeString()}</i>;
     }, [props]);
 
-    useEffect(() => {
+    const postRenderTasks = useCallback(() => {
         if (!divRef.current) return;
 
         divRef.current
@@ -53,43 +54,55 @@ export default function MessageBubble(props?: {
                     PrismJS.highlightElement(codeElement);
                 });
             });
-    }, [props]);
+    }, []);
+
+    useEffect(() => {
+        postRenderTasks();
+    }, [props, postRenderTasks]);
 
     // Effect to detect new text parts and animate them
-    useEffect(() => {
-        if (props?.text === undefined) return;
+    // useEffect(() => {
+    //     if (props?.text === undefined) return;
 
-        // First render - no previous text
-        if (previousText === "") {
-            setPreviousText(props.text || "");
-            return;
-        }
+    //     // First render - no previous text
+    //     if (previousText === "") {
+    //         setPreviousText(props.text || "");
+    //         return;
+    //     }
 
-        // Text hasn't changed
-        if (props.text === previousText) return;
+    //     // Text hasn't changed
+    //     if (props.text === previousText) {
+    //         shouldPostRender.current = true;
+    //         return;
+    //     }
 
-        // Find the new parts by comparing with previous text
-        const newParts = [];
-        const oldParts = previousText.split(/(?=\n)/);
-        const currentParts = props.text.split(/(?=\n)/);
+    //     // Find the new parts by comparing with previous text
+    //     const newParts = [];
+    //     const oldParts = previousText.split(/(?=\n)/);
+    //     const currentParts = props.text.split(/(?=\n)/);
 
-        for (let i = 0; i < currentParts.length; i++) {
-            if (i >= oldParts.length || currentParts[i] !== oldParts[i]) {
-                newParts.push(currentParts[i]);
-            }
-        }
+    //     for (let i = 0; i < currentParts.length; i++) {
+    //         if (i >= oldParts.length || currentParts[i] !== oldParts[i]) {
+    //             newParts.push(currentParts[i]);
+    //         }
+    //     }
 
-        if (newParts.length > 0) {
-            setNewTextParts(newParts);
-            // Reset new parts after animation would complete
-            const timer = setTimeout(() => {
-                setNewTextParts([]);
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
+    //     if (newParts.length > 0) {
+    //         setNewTextParts(newParts);
+    //         // Reset new parts after animation would complete
+    //         const timer = setTimeout(() => {
+    //             setNewTextParts([]);
+    //             shouldPostRender.current = true;
+    //         }, 1200);
+    //         return () => {
+    //             clearTimeout(timer);
+    //             shouldPostRender.current = false;
+    //         }
+    //     }
 
-        setPreviousText(props.text || "");
-    }, [props?.text, previousText]);
+    //     setPreviousText(props.text || "");
+    //     shouldPostRender.current = true;
+    // }, [props?.text, previousText]);
 
     return (
         <Box
@@ -134,16 +147,16 @@ export default function MessageBubble(props?: {
         >
             <div ref={divRef}>
                 {/* Render the base text without the new parts */}
-                <Markdown>{previousText}</Markdown>
-                
+                <Markdown>{props?.text}</Markdown>
+
                 {/* Animate the new parts */}
-                {newTextParts.map((part, index) => (
+                {/* {newTextParts.map((part, index) => (
                     <Grow key={index} in timeout={1e3}>
                         <div>
                             <Markdown>{part}</Markdown>
                         </div>
                     </Grow>
-                ))}
+                ))} */}
 
                 {props?.attachmentFilename ? (
                     <Chip
