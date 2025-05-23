@@ -3,13 +3,13 @@ import colors from "~/core/config/colors";
 import { UIText } from "bymx-core/shared";
 import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { getLanguageList } from "~/core/i18n/i18n";
 import userService from "~/core/services/userService";
 import CenteredContent from "~/layout/centeredContent";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, CssBaseline, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
-import { getLanguageList } from "~/core/i18n/i18n";
 
 enum FormState {
     EnterPhoneNumber,
@@ -24,6 +24,7 @@ export default function Login() {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [otp, setOtp] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const otpTimeoutRef = useRef(0);
     const fullPhoneNumber = useMemo(() => parsePhoneNumberFromString(countryCode + phoneNumber), [countryCode, phoneNumber]);
 
     const requestTelegramOtp = useCallback(() => {
@@ -32,8 +33,14 @@ export default function Login() {
         userService
             .requestTelegramOtp(fullPhoneNumber.number)
             .then(res => {
-                if (res.result?.ok)
+                if (res.result?.ok) {
                     setFormState(FormState.EnterOTP);
+                    window.clearTimeout(otpTimeoutRef.current);
+                    otpTimeoutRef.current = window.setTimeout(() => {
+                        setFormState(FormState.EnterPhoneNumber);
+                        setOtp("");
+                    }, (2 * 60e3) - 1e3);
+                }
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
             })
@@ -61,6 +68,10 @@ export default function Login() {
     useEffect(() => {
         if (session.localStorage.data.isLoggedIn)
             navigate("/ui/");
+
+        return () => {
+            window.clearTimeout(otpTimeoutRef.current);
+        };
     }, [session, navigate]);
 
     const enterPhoneNumberFormIsValid = fullPhoneNumber?.isValid() === true;

@@ -3,6 +3,8 @@ import type { ServicesType } from "../Container.js";
 import { randomEnglishString } from "../helpers/crypto/crypto.runner.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 
+const _2min = 2 * 60e3;
+
 export default class TelegramOtpApplication {
     #otpScope = "tg_otp_auth";
     #cacheStorage;
@@ -24,6 +26,7 @@ export default class TelegramOtpApplication {
             code: code,
             date: Date.now(),
             scope: this.#otpScope,
+            _expiry: Date.now() + _2min,
         });
 
         result.succeeded().setData(code);
@@ -33,7 +36,7 @@ export default class TelegramOtpApplication {
 
     async useOtp(userId: string, code: string) {
         const result = new OperationResult().failed("invalid");
-        const correctCode = this.#cacheStorage.get(userId)?.code;
+        const correctCode = this.#cacheStorage.getWithExpiryCheck(userId)?.code;
 
         if (!correctCode)
             result.failed();

@@ -1,20 +1,21 @@
 import CacheStorage from "./CacheStorage.js";
-import type { IExpirableCacheStorage } from "../../types/contracts/services.js";
+import type { IExpirableCacheStorage, ExpirableEntity } from "../../types/contracts/services.js";
 
-export default class ExpirableCacheStorage<T extends { _expiry: number; }> extends CacheStorage<T> implements IExpirableCacheStorage<T> {
+export default class ExpirableCacheStorage<T extends ExpirableEntity<B>, B> extends CacheStorage<T> implements IExpirableCacheStorage<T, B> {
     constructor() {
         super();
-        setInterval(() => this.#removeExpiredItems(), 60e3);
+        setInterval(() => this.#removeExpiredItems(), 60e3).unref();
     }
 
     #isExpired(item: T | null) {
-        return item && item._expiry >= Date.now();
+        return item && item._expiry <= Date.now();
     }
 
     getWithExpiryCheck(key: string): T | null {
         const item = this.get(key);
 
         if (this.#isExpired(item)) {
+            console.log("expired")
             this.unset(key);
             return null;
         }
@@ -26,8 +27,9 @@ export default class ExpirableCacheStorage<T extends { _expiry: number; }> exten
         const keys = this.getAllKeys();
 
         for (const key of keys) {
-            if (this.#isExpired(this.get(key)))
+            if (this.#isExpired(this.get(key))) {
                 this.unset(key);
+            }
         }
     }
 }

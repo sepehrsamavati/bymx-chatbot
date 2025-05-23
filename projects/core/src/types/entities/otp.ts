@@ -4,3 +4,7 @@ export type OTP = {
     key: string;
     code: string;
 }
+
+export type ExpirableOTP = OTP & {
+    _expiry: number;
+}

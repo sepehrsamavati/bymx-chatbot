@@ -101,6 +101,9 @@ export type ICacheStorage<T> = {
     getAllKeys(): string[];
 }
 
-export type IExpirableCacheStorage<T extends { _expiry: number; }> = ICacheStorage<T> & {
+
+export type ExpirableEntity<T> = T & { _expiry: number; };
+
+export type IExpirableCacheStorage<T extends ExpirableEntity<B>, B> = ICacheStorage<T> & {
     getWithExpiryCheck: ICacheStorage<T>['get'];
 };

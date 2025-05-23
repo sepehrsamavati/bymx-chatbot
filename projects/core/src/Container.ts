@@ -24,6 +24,7 @@ import UserRepository from "./infrastructure/repository/mongo/UserRepository.js"
 import MetadataStoreApplication from "./application/MetadataStoreApplication.js";
 import GenerationTaskApplication from "./application/GenerationTaskApplication.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
+import ExpirableCacheStorage from "./infrastructure/services/ExpirableCacheStorage.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
 import TelegramBroadcastApplication from "./application/TelegramBroadcastApplication.js";
 import { PromptRepository } from "./infrastructure/repository/mongo/PromptRepository.js";
@@ -88,7 +89,7 @@ type Applications = {
 
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
-    otpCache: ServiceInterfaces.ICacheStorage<OTP>;
+    otpCache: ServiceInterfaces.IExpirableCacheStorage<ServiceInterfaces.ExpirableEntity<OTP>, OTP>;
     memoryCandidateCache: ServiceInterfaces.ICacheStorage<string[]>;
     openRouter: ServiceInterfaces.IOpenRouterService;
     aiModelCache: ServiceInterfaces.IAIModelCache;
@@ -160,7 +161,7 @@ export default class CoreServices {
             aiMessageLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
-            otpCache: asClass(CacheStorage<OTP>, { lifetime: "SINGLETON" }),
+            otpCache: asClass(ExpirableCacheStorage<ServiceInterfaces.ExpirableEntity<OTP>, OTP>, { lifetime: "SINGLETON" }),
             memoryCandidateCache: asClass(CacheStorage<string[]>, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
