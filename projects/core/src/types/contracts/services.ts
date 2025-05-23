@@ -100,3 +100,7 @@ export type ICacheStorage<T> = {
     exists(key: string): boolean;
     getAllKeys(): string[];
 }
+
+export type IExpirableCacheStorage<T extends { _expiry: number; }> = ICacheStorage<T> & {
+    getWithExpiryCheck: ICacheStorage<T>['get'];
+};
