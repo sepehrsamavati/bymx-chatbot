@@ -60,6 +60,10 @@ export default class UserApplication {
                     on: false,
                     type: "onyx",
                 },
+                memory: {
+                    on: false,
+                    footprints: []
+                },
             });
 
             if (!userId)
