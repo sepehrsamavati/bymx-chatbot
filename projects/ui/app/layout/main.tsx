@@ -15,7 +15,7 @@ import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/s
 import CreditCard from "@mui/icons-material/CreditCard";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
-import { Box, Button, Chip, Divider, Drawer, FormControl, InputLabel, MenuItem, Select, Skeleton, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Button, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Skeleton, Switch, Typography, type SelectChangeEvent } from "@mui/material";
 import { getLanguageList } from "~/core/i18n/i18n";
 import chatService from "~/core/services/chatService";
 import RoleHoc from "~/components/roleHoc";
@@ -178,10 +178,12 @@ function ProfileInfo() {
 function Header() {
     const session = useSession();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
+    const [showExperimentalFeaturesSwitch, setShowExperimentalFeaturesSwitch] = useState(false);
     const [languageChangeLock, setLanguageChangeLock] = useState(false);
     const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
+    const [experimentalFeatures, setExperimentalFeatures] = useState(session.localStorage.data.experimentalFeatures);
 
     const handleLanguageChange = useCallback((event: SelectChangeEvent<string>) => {
         const langCode = event.target.value as UIText.LangCode;
@@ -284,7 +286,26 @@ function Header() {
                             >{changeThemeIcon}</IconButton>
                         </Box>
                         <Box marginBlock={15} textAlign="center">
-                            <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
+                            <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
+                                <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
+                            </Box>
+                            {showExperimentalFeaturesSwitch ? (
+                                <Box marginTop={2}>
+                                    <FormControlLabel
+                                        label={session.uiText.experimentalFeatures}
+                                        control={(
+                                            <Switch
+                                                checked={experimentalFeatures}
+                                                onClick={() => {
+                                                    session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
+                                                    session.localStorage.rewrite();
+                                                    setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                </Box>
+                            ) : null}
                         </Box>
                     </Box>
                 </Box>

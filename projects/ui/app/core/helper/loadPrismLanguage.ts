@@ -1,5 +1,7 @@
 import * as PrismJS from "prismjs";
 
+import 'prismjs/components/prism-markup-templating';
+
 const loadLanguage = (language: string, callback: Function) => {
     if (PrismJS.languages[language]) { // Already loaded
         callback();

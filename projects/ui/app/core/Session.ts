@@ -7,7 +7,7 @@ import { createContext, useContext } from "react";
 import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { Direction, PaletteMode } from "@mui/material";
-import type { LocalStorage_v3 } from "../types/localStorage";
+import type { LocalStorage_v4 } from "../types/localStorage";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
@@ -118,13 +118,14 @@ export default class Session {
 
     public readonly storage = new SessionStorageHelper();
 
-    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v3>({
-        _dataVersion: 3,
+    public readonly localStorage = new UpgradeableLocalStorageHelper<LocalStorage_v4>({
+        _dataVersion: 4,
         syncedWithTg: false,
         themeName: "light",
         isLoggedIn: false,
         language: "en",
         chatCount: 0,
+        experimentalFeatures: false,
     });
 
     public fixDirection(targetDirection: Direction) {

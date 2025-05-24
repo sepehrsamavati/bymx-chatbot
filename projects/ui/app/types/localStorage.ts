@@ -17,3 +17,7 @@ export type LocalStorage_v2 = LocalStorage_v1 & {
 export type LocalStorage_v3 = LocalStorage_v2 & {
     chatCount: number;
 }
+
+export type LocalStorage_v4 = LocalStorage_v3 & {
+    experimentalFeatures: boolean;
+}

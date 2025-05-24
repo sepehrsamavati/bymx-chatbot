@@ -365,7 +365,10 @@ export default function Chat() {
                         {chatId ? (
                             <ChatMoreActions
                                 chatId={chatId}
-                                onClearMessage={() => setMessages([])}
+                                onClearMessage={() => {
+                                    reachedToFirstMessage.current = true;
+                                    setMessages([]);
+                                }}
                             />
                         ) : null}
                     </Box>
