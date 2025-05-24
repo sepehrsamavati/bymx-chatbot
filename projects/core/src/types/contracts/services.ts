@@ -85,6 +85,7 @@ export type IAIModelCache = {
     getModelByName(name: string): AIModel | undefined;
     getDefault(): Promise<AIModel>;
     getFreeModel(): Promise<AIModel | null>;
+    getLowCostModel(): Promise<AIModel | null>;
 }
 
 export type IActionLockCache<T> = {

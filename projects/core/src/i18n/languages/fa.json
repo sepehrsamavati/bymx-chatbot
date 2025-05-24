@@ -274,5 +274,6 @@
     "_prompt_cookingPizza": "به من کمک کن پیتزا درست کنم، چه موادی نیاز داره و باید چیکار کنم؟",
     "_prompt_summarizeText": "به من کمک کن این متن رو خلاصه کنم",
     "refreshModels": "بارگیری مجدد مدل‌ها",
-    "experimentalFeatures": "امکانات آزمایشی"
+    "experimentalFeatures": "امکانات آزمایشی",
+    "memoryUpdate": "حافظه بروزرسانی شد"
 }

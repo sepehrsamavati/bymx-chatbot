@@ -89,6 +89,7 @@ type PreprocessingOutput = {
     image?: UserTempFile;
     maxOutputTokens?: number;
     fileFsId?: string;
+    memoryUpdated: boolean;
 }
 
 type FalAiResponse = Awaited<ReturnType<typeof fal.subscribe>>;
@@ -308,6 +309,63 @@ export default class AIApplication {
         if ((historyTokensCount + inputTokens) >= _model.llmInfo.contextWindow)
             return result.failed("modelMemoryExceeded");
 
+        let memoryUpdated = false;
+
+        if (user.memory?.on && totalRemainingPoints > 5) {
+            // const currentCandidate = this.#memoryCandidateCache.get(user.id) ?? [];
+
+            const memoryExtractMessage = historyMessages.length ? (
+                `New message: ${inputTextForModel}`
+                + (
+                    "\n\nOlder messages:\n\n" + historyMessages
+                        .slice(-3)
+                        .map(m => (
+                            `User: ${m.input.slice(0, 500)}`
+                            + `\nAssistant: ${m.output.slice(0, 500)}`
+                        ))
+                        .join('\n\n')
+                )
+            ) : inputTextForModel;
+
+            const memoryExtract = await this.#extractMemoryFootprints(memoryExtractMessage, {
+                certain: user.memory.footprints ?? [],
+            });
+
+            if (memoryExtract.data) {
+                // if (memoryExtract.data.candidate?.length)
+                //     this.#memoryCandidateCache.set(user.id, memoryExtract.data.candidate);
+                // else
+                //     this.#memoryCandidateCache.unset(user.id);
+
+                if (memoryExtract.data.certain) {
+                    const newFootprints = [... new Set(user.memory.footprints.concat(memoryExtract.data.certain))];
+                    const memoryUpdateResult = await this.#userRepository.update(
+                        user.id,
+                        {
+                            memoryFootprints: newFootprints // unique values
+                        }
+                    );
+                    if (memoryUpdateResult?.ok) {
+                        user.memory.footprints = newFootprints;
+                        memoryUpdated = true;
+                    }
+                }
+            }
+
+            if (memoryExtract.data?.result && (memoryExtract.data.model.pricePmu.input !== 0 || memoryExtract.data.model.pricePmu.output !== 0)) {
+                const { userPointCost: memoryExtractUserPointCost } = modelCostCalculator({
+                    model: memoryExtract.data.model,
+                    inputUnits: memoryExtract.data.result.inputTokens,
+                    outputUnits: memoryExtract.data.result.outputTokens,
+                });
+
+                totalUserPointUsage += memoryExtractUserPointCost;
+                totalRemainingPoints -= memoryExtractUserPointCost;
+
+                await this.#userSubscriptionApplication.saveSubscriptionsUsage(memoryExtractUserPointCost, subscriptions);
+            }
+        }
+
 
         result.succeeded().setData({
             chat: _chat ? {
@@ -325,6 +383,7 @@ export default class AIApplication {
             inputTextForModel,
             maxOutputTokens: predictedCost.outputTokens,
             fileFsId: extractableFileFsId,
+            memoryUpdated,
         });
 
         return result;
@@ -768,42 +827,13 @@ export default class AIApplication {
         if (!(preprocessResult.ok && preprocessResult.data))
             return result.failed(preprocessResult.message);
 
-        const { subscriptions, chat, historyMessages, model, inputTokens, maxOutputTokens, image } = preprocessResult.data;
+        const { subscriptions, chat, historyMessages, model, inputTokens, maxOutputTokens, image, memoryUpdated } = preprocessResult.data;
         let { totalRemainingPoints, totalUserPointUsage } = preprocessResult.data;
         const { user } = multiModalInput;
         const userWantsVoiceResponse = multiModalInput.voiceResponse ?? multiModalInput.user.voiceResponse.on;
 
-        let resultData: IOpenAITextResult, memoryUpdated = false;
+        let resultData: IOpenAITextResult;
         const sendLangToGpt = inputTokens < 3 && historyMessages.length === 0;
-
-        if (multiModalInput.user.memory?.on) {
-            const currentCandidate = this.#memoryCandidateCache.get(multiModalInput.user.id) ?? [];
-
-            const memoryExtract = await this.#extractMemoryFootprints(preprocessResult.data.inputTextForModel, {
-                candidate: currentCandidate,
-                certain: multiModalInput.user.memory.footprints ?? [],
-            });
-
-            if (memoryExtract.data) {
-                if (memoryExtract.data.candidate?.length)
-                    this.#memoryCandidateCache.set(multiModalInput.user.id, memoryExtract.data.candidate);
-                else
-                    this.#memoryCandidateCache.unset(multiModalInput.user.id);
-
-                if (memoryExtract.data.certain) {
-                    const memoryUpdateResult = await this.#userRepository.update(
-                        multiModalInput.user.id,
-                        {
-                            memoryFootprints: (multiModalInput.user.memory.footprints.concat(memoryExtract.data.certain))
-                        }
-                    );
-                    if (memoryUpdateResult?.ok) {
-                        multiModalInput.user.memory.footprints = memoryExtract.data.certain;
-                        memoryUpdated = true;
-                    }
-                }
-            }
-        }
 
         /* --START-- */
         let imageUrl: string | undefined = undefined;
@@ -926,23 +956,29 @@ export default class AIApplication {
         return result;
     }
 
-    async #extractMemoryFootprints(message: string, current?: { candidate: string[]; certain: string[]; }) {
-        const result = new OperationResultWithData<{ candidate?: string[]; certain?: string[]; }>();
+    async #extractMemoryFootprints(message: string, current?: { certain: string[]; }) {
+        const result = new OperationResultWithData<{
+            certain?: string[];
+            model: AIModel;
+            result?: IOpenAITextResult | null;
+        }>();
 
-        const freeModel = await this.#aiModelCache.getFreeModel();
-        if (!freeModel)
+        const model = await this.#aiModelCache.getLowCostModel();
+        if (!model)
             return result.failed("modelNotAvailable");
 
-        const extractedFootprintResult = await (freeModel.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
+        const extractedFootprintResult = await (model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
             messages: [],
-            model: freeModel,
+            model: model,
             tokenLimit: 30,
-            inputMessage: (
-                `You are an information extraction assistant for a chatbot memory system. Extract any useful information like 'PERSONAL/USER PREFERENCE/IMPORTANT' SHORT TEXTS (candidate if it may be useful and certain if it's surly useful);`
-                + `;${current ? ` Merge to current memory (candidate to certain, do not return previous certain ones) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{candidate:string[];certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object; Here is the message:`
-                + `\n\n'((${message.slice(0, 1500)}))'`
-            ),
+            systemMessages: [
+                `You are an information extraction assistant for a chatbot memory system. Extract useful information; SHORT TEXTS;`
+                + `;${current ? ` Merge to current memory (candidate to certain, do not return previous certain ones) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object;`
+            ],
+            inputMessage: message.slice(0, 1500),
         });
+
+        result.setData({ model, result: extractedFootprintResult });
 
         if (!extractedFootprintResult?.output) {
             return result.failed("errorOccurred");
@@ -962,10 +998,16 @@ export default class AIApplication {
         }
 
         try {
-            const footprints = JSON.parse(output) as { candidate?: string[]; certain?: string[]; };
+            const footprints = JSON.parse(output) as { certain?: string[]; };
 
-            if (Array.isArray(footprints.candidate) || Array.isArray(footprints.certain))
-                result.succeeded().setData(footprints);
+            if (Array.isArray(footprints.certain))
+                result
+                    .succeeded()
+                    .setData({
+                        model,
+                        ...result.data,
+                        ...footprints,
+                    });
         } catch (err) {
             logger.debug(`Extract memory JSON parse: ${err instanceof Error ? err.message : err}`);
         }

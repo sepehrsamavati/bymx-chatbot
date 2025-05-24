@@ -197,6 +197,9 @@ export default function Chat() {
         chatService
             .submitPrompt(dto)
             .then(response => {
+                if(response.result?.data?.memoryUpdated)
+                    session.snackbarProvider(session.uiText.memoryUpdate, { variant: "success" });
+
                 const result = response.result;
                 if (result?.data) {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
