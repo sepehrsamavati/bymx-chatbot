@@ -111,7 +111,7 @@ export default class AIApplication {
     #userRepository;
     #userTempFileApplication;
     #generationTaskApplication;
-    #memoryCandidateCache;
+    // #memoryCandidateCache;
 
     #fluxModelName;
     #trellisModelName;
@@ -130,7 +130,7 @@ export default class AIApplication {
         this.#userRepository = container.userRepository;
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
-        this.#memoryCandidateCache = container.memoryCandidateCache;
+        // this.#memoryCandidateCache = container.memoryCandidateCache;
 
         this.#fluxModelName = this.#aiModelApplication.fluxModelName;
         this.#trellisModelName = this.#aiModelApplication.trellisModelName;
@@ -970,10 +970,18 @@ export default class AIApplication {
         const extractedFootprintResult = await (model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
             messages: [],
             model: model,
-            tokenLimit: 30,
+            tokenLimit: 200,
             systemMessages: [
-                `You are an information extraction assistant for a chatbot memory system. Extract useful information; SHORT TEXTS;`
-                + `;${current ? ` Merge to current memory (candidate to certain, do not return previous certain ones) status if you found anything: ((${JSON.stringify(current)}));` : ""} RETURN SERIALIZED JSON object '{certain:string[];}' it's going to be parsed as JSON, if nothing is valuable ONLY return an empty object;`
+                `You are a concise information extraction assistant for a chatbot memory system.` +
+                ` Extract only clear, important facts from the user message.` +
+                ` Return ONLY a JSON object with the structure: { certain: string[] }.` +
+                ` Each string in 'certain' should be a short, factual statement derived from the message.` +
+                ` If there is current memory data, merge new facts with it without duplicates.` +
+                ` Do NOT include any other text outside the JSON.` +
+                ` If no new facts can be extracted, return { "certain": [] }.` +
+                (current
+                    ? ` Current memory: ${JSON.stringify(current)}. Use it to avoid repeats.`
+                    : "")
             ],
             inputMessage: message.slice(0, 1500),
         });
