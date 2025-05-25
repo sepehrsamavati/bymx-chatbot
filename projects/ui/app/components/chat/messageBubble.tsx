@@ -1,13 +1,12 @@
+import "../../assets/css/chat.css";
 import * as PrismJS from "prismjs";
 import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
 import Chip from "@mui/material/Chip";
 import Markdown from "react-markdown";
-import colors from "~/core/config/colors";
 import { useSession } from "~/core/Session";
 import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
-import { colors as muiColors } from "@mui/material";
 import AttachFile from "@mui/icons-material/AttachFile";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -39,11 +38,16 @@ export default function MessageBubble(props?: {
         if (!divRef.current) return;
 
         // Handle text direction
-        divRef.current.querySelectorAll('p').forEach(paragraphElement => {
-            if (stringHelper.isRtl(paragraphElement.innerText.trimStart()))
-                paragraphElement.dir = "rtl";
+        divRef.current.querySelectorAll('p, code').forEach(element => {
+            if (!('innerText' in element))
+                return;
+
+            const _element = element as HTMLDivElement;
+
+            if (stringHelper.isRtl(_element.innerText.trimStart()))
+                _element.dir = "rtl";
             else
-                paragraphElement.dir = "ltr";
+                _element.dir = "ltr";
         });
 
         // Highlight all complete code blocks
@@ -53,7 +57,7 @@ export default function MessageBubble(props?: {
                 try {
                     PrismJS.highlightElement(codeElement);
                 } catch (err) {
-                    console.error("PRISM ERR", err)
+                    console.error("PRISM ERR", err);
                 }
             });
         });
@@ -129,32 +133,7 @@ export default function MessageBubble(props?: {
             component="div"
             fontSize="inherit"
             whiteSpace="pre-line"
-            sx={{
-                position: "relative",
-                'h1, h2, h3, h4, h5, h6': { margin: 0 },
-                ' p': { margin: 0 },
-                ' pre': {
-                    overflow: "auto",
-                    direction: "rtl",
-                    borderRadius: 2,
-                },
-                ' ol, ul': {
-                    margin: 0,
-                    whiteSpace: "initial"
-                },
-                ' li': {
-                    margin: 1,
-                    marginTop: 2,
-                },
-                ' li > code, p > code': {
-                    color: colors.antiFlashWhite,
-                    backgroundColor: muiColors.grey[900],
-                    padding: 0.4,
-                    borderRadius: "10em",
-                    display: "inline-block",
-                    marginBottom: "1px",
-                }
-            }}
+            className="message-bubble"
         >
             <div ref={divRef}>
                 <Markdown>{displayText}</Markdown>
