@@ -1,20 +1,19 @@
 import "../assets/css/chat.css";
-import colors from "~/core/config/colors";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
-import { stringHelper, UIText } from "bymx-core/shared";
-import ArrowBack from "@mui/icons-material/ArrowBack";
+import { LayoutInner } from "~/layout/layoutInner";
+import MenuBook from "@mui/icons-material/MenuBook";
 import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
 import { socketManager } from "~/core/services/socket";
 import UploadFile from "@mui/icons-material/UploadFile";
+import { stringHelper, UIText } from "bymx-core/shared";
+import DataObject from "@mui/icons-material/DataObject";
+import Restaurant from "@mui/icons-material/Restaurant";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
 import type { Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
-import MenuBook from "@mui/icons-material/MenuBook";
-import DataObject from "@mui/icons-material/DataObject";
-import Restaurant from "@mui/icons-material/Restaurant";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
@@ -361,21 +360,11 @@ export default function Chat() {
     }, [session.themeManager.name]);
 
     return (
-        <Stack direction="column" height="100%">
-            <Box textAlign="center">
-                <Stack direction="row" flexWrap="wrap" gap={1} paddingInline={1}>
-                    <Box>
-                        {chatId ? (
-                            <ChatMoreActions
-                                chatId={chatId}
-                                onClearMessage={() => {
-                                    reachedToFirstMessage.current = true;
-                                    setMessages([]);
-                                }}
-                            />
-                        ) : null}
-                    </Box>
-
+        <LayoutInner
+            fullWidth
+            fullHeight
+            topBar={(
+                <>
                     {session.chatModels.length && selectedModel ? (
                         <Select
                             disabled={modelChangeLock}
@@ -404,16 +393,20 @@ export default function Chat() {
                         </Select>
                     ) : null}
 
-                    <IconButton
-                        sx={{
-                            marginInlineStart: "auto"
-                        }}
-                        onClick={() => navigate("/ui/chats")}
-                    >
-                        <ArrowBack />
-                    </IconButton>
-                </Stack>
-            </Box>
+                    <Box>
+                        {chatId ? (
+                            <ChatMoreActions
+                                chatId={chatId}
+                                onClearMessage={() => {
+                                    reachedToFirstMessage.current = true;
+                                    setMessages([]);
+                                }}
+                            />
+                        ) : null}
+                    </Box>
+                </>
+            )}
+        >
 
             <Stack
                 flexGrow={1}
@@ -640,6 +633,6 @@ export default function Chat() {
                     />
                 </form>
             </Card>
-        </Stack>
+        </LayoutInner>
     );
 }
