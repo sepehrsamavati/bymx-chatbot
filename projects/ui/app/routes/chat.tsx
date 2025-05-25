@@ -197,7 +197,7 @@ export default function Chat() {
         chatService
             .submitPrompt(dto)
             .then(response => {
-                if(response.result?.data?.memoryUpdated)
+                if (response.result?.data?.memoryUpdated)
                     session.snackbarProvider(session.uiText.memoryUpdate, { variant: "success" });
 
                 const result = response.result;
@@ -433,13 +433,13 @@ export default function Chat() {
                         key={message.id}
                         fontSize="0.8em"
                     >
-                        <Box marginInline={1} marginBlock={2}>
-                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
+                        <Box marginInline={1} marginBlock={2} textAlign="end">
+                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", textAlign: "initial" }}>
                                 <MessageBubble attachmentFilename={message.attachmentFilename} text={message.input} date={message.input.length < 15 ? undefined : new Date(message.inputDate)} />
                             </Card>
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
-                            <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
+                            <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
                                 <MessageBubble pointUsage={message.points} text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
                             </Box>
                         </Box>
@@ -447,13 +447,13 @@ export default function Chat() {
                 ))}
                 {currentlyGeneratingMessage ? (
                     <Box fontSize="0.8em">
-                        <Box marginInline={1} marginBlock={2}>
-                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
+                        <Box marginInline={1} marginBlock={2} textAlign="end">
+                            <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", textAlign: "initial" }}>
                                 <MessageBubble text={currentlyGeneratingMessage.input} />
                             </Card>
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
-                            <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", float: "inline-end" }}>
+                            <Box sx={{ backgroundColor: "transparent", display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
                                 <MessageBubble text={currentlyGeneratingMessage.output} />
                             </Box>
                         </Box>
