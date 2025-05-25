@@ -311,7 +311,11 @@ export default class AIApplication {
 
         let memoryUpdated = false;
 
-        if (user.memory?.on && totalRemainingPoints > 5) {
+        if (user.memory?.on // memory is on
+            && totalRemainingPoints > 5 // has points
+            && user.memory.footprints.length <= 20 // has less than 20 items
+            && user.memory.footprints.map(item => item.length).reduce((a, b) => a + b, 0) < 500 // total amount of texts are less than 500
+        ) {
             // const currentCandidate = this.#memoryCandidateCache.get(user.id) ?? [];
 
             const memoryExtractMessage = historyMessages.length ? (
