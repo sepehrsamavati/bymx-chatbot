@@ -90,7 +90,7 @@ type Applications = {
 type Services = {
     openAI: ServiceInterfaces.IOpenAIService;
     otpCache: ServiceInterfaces.IExpirableCacheStorage<ServiceInterfaces.ExpirableEntity<OTP>, OTP>;
-    memoryCandidateCache: ServiceInterfaces.ICacheStorage<string[]>;
+    // memoryCandidateCache: ServiceInterfaces.ICacheStorage<string[]>;
     openRouter: ServiceInterfaces.IOpenRouterService;
     aiModelCache: ServiceInterfaces.IAIModelCache;
     aiMessageLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
@@ -162,7 +162,7 @@ export default class CoreServices {
             calculateInviteLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             fileProcessingLockCache: asClass(ActionLockCache, { lifetime: "SINGLETON" }),
             otpCache: asClass(ExpirableCacheStorage<ServiceInterfaces.ExpirableEntity<OTP>, OTP>, { lifetime: "SINGLETON" }),
-            memoryCandidateCache: asClass(CacheStorage<string[]>, { lifetime: "SINGLETON" }),
+            // memoryCandidateCache: asClass(CacheStorage<string[]>, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
 
