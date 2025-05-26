@@ -6,6 +6,7 @@ import AIApplication from "./application/AIApplication.js";
 import UserApplication from "./application/UserApplication.js";
 import PlanApplication from "./application/PlanApplication.js";
 import AIChatApplication from "./application/AIChatApplication.js";
+import GracefulShutdown from "./infrastructure/GracefulShutdown.js";
 import { UserTempFileCleanup } from "./jobs/UserTempFileCleanup.js";
 import CacheStorage from "./infrastructure/services/CacheStorage.js";
 import AIModelApplication from "./application/AIModelApplication.js";
@@ -80,6 +81,7 @@ type Applications = {
     telegramBroadcastApplication: TelegramBroadcastApplication;
     telegramJoinRequiredChatApplication: TelegramJoinRequiredChatApplication;
 
+    gracefulShutdown: GracefulShutdown;
     fileProcessingLockCache: ServiceInterfaces.IActionLockCache<User['id']>;
     /** Cache chat members to prevent spamming Telegram */
     chatMemberCacheStorage: ServiceInterfaces.ICacheStorage<Date>;
@@ -154,6 +156,8 @@ export default class CoreServices {
             userSubscriptionApplication: asClass(UserSubscriptionApplication, { lifetime: "SCOPED" }),
             telegramBroadcastApplication: asClass(TelegramBroadcastApplication, { lifetime: "SCOPED" }),
             telegramJoinRequiredChatApplication: asClass(TelegramJoinRequiredChatApplication, { lifetime: "SCOPED" }),
+
+            gracefulShutdown: asValue(GracefulShutdown.getInstance()),
 
             openAI: asClass(OpenAIService, { lifetime: "SINGLETON" }),
             openRouter: asClass(OpenRouterService, { lifetime: "SINGLETON" }),

@@ -275,5 +275,6 @@
     "_prompt_summarizeText": "Help me summarize this text",
     "refreshModels": "Refresh models",
     "experimentalFeatures": "Experimental features",
-    "memoryUpdate": "Memory updated"
+    "memoryUpdate": "Memory updated",
+    "underMaintenanceTryAgainLater": "Software under maintenance, please try again a few minutes later"
 }

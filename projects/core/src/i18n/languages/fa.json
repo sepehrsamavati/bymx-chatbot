@@ -275,5 +275,6 @@
     "_prompt_summarizeText": "به من کمک کن این متن رو خلاصه کنم",
     "refreshModels": "بارگیری مجدد مدل‌ها",
     "experimentalFeatures": "امکانات آزمایشی",
-    "memoryUpdate": "حافظه بروزرسانی شد"
+    "memoryUpdate": "حافظه بروزرسانی شد",
+    "underMaintenanceTryAgainLater": "نرم افزار در حال بروزرسانی می‌باشد، لطفا بعد از چند دقیقه مجدد تلاش نمایید"
 }

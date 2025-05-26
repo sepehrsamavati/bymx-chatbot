@@ -112,6 +112,7 @@ export default class AIApplication {
     #userTempFileApplication;
     #generationTaskApplication;
     // #memoryCandidateCache;
+    #gracefulShutdown;
 
     #fluxModelName;
     #trellisModelName;
@@ -131,6 +132,7 @@ export default class AIApplication {
         this.#userTempFileApplication = container.userTempFileApplication;
         this.#generationTaskApplication = container.generationTaskApplication;
         // this.#memoryCandidateCache = container.memoryCandidateCache;
+        this.#gracefulShutdown = container.gracefulShutdown;
 
         this.#fluxModelName = this.#aiModelApplication.fluxModelName;
         this.#trellisModelName = this.#aiModelApplication.trellisModelName;
@@ -400,9 +402,6 @@ export default class AIApplication {
         if (!modelInfo)
             return result.failed("modelNotAvailable");
 
-        // const costUsdCent = model.pricePmu.output / (1_000_000 * 100); // 0.3;
-        // const userPointCost = calculatePointUsage({ usdCent: costUsdCent + (((config.feePercentage * costUsdCent) / 100)) });
-
         const { subscriptions, totalRemainingPoints } = await this.#userSubscriptionApplication.getActiveSubscriptions(user, true) ?? {};
 
         if (!(subscriptions && totalRemainingPoints !== undefined))
@@ -416,6 +415,9 @@ export default class AIApplication {
 
         if (this.#messageLock.isLocked(user.id))
             return result.failed("youHavePendingPrompts");
+
+        if (!this.#gracefulShutdown.startRequest())
+            return result.failed("underMaintenanceTryAgainLater");
 
         this.#messageLock.lock(user.id);
 
@@ -451,6 +453,7 @@ export default class AIApplication {
 
         if (!falResponse) {
             this.#messageLock.unlock(user.id);
+            this.#gracefulShutdown.endRequest();
             return result.failed("errorWhileFetchingData");
         }
 
@@ -511,6 +514,7 @@ export default class AIApplication {
         }
 
         this.#messageLock.unlock(user.id);
+        this.#gracefulShutdown.endRequest();
 
         return result;
     }
@@ -539,6 +543,9 @@ export default class AIApplication {
 
         if (this.#messageLock.isLocked(user.id))
             return result.failed("youHavePendingPrompts");
+
+        if (!this.#gracefulShutdown.startRequest())
+            return result.failed("underMaintenanceTryAgainLater");
 
         this.#messageLock.lock(user.id);
 
@@ -598,6 +605,7 @@ export default class AIApplication {
             result.failed("errorOccurred");
 
         this.#messageLock.unlock(user.id);
+        this.#gracefulShutdown.endRequest();
 
         return result;
     }
@@ -635,6 +643,9 @@ export default class AIApplication {
 
         if (this.#messageLock.isLocked(user.id))
             return result.failed("youHavePendingPrompts");
+
+        if (!this.#gracefulShutdown.startRequest())
+            return result.failed("underMaintenanceTryAgainLater");
 
         this.#messageLock.lock(user.id);
 
@@ -712,6 +723,7 @@ export default class AIApplication {
         }
 
         this.#messageLock.unlock(user.id);
+        this.#gracefulShutdown.endRequest();
 
         return result;
     }
@@ -758,6 +770,9 @@ export default class AIApplication {
 
         if (this.#messageLock.isLocked(user.id))
             return result.failed("youHavePendingPrompts");
+
+        if (!this.#gracefulShutdown.startRequest())
+            return result.failed("underMaintenanceTryAgainLater");
 
         this.#messageLock.lock(user.id);
 
@@ -820,6 +835,7 @@ export default class AIApplication {
             result.failed("errorOccurred");
 
         this.#messageLock.unlock(user.id);
+        this.#gracefulShutdown.endRequest();
 
         return result;
     }
@@ -951,11 +967,15 @@ export default class AIApplication {
         if (this.#messageLock.isLocked(multiModalInput.user.id))
             return new OperationResultWithData<MultiModalOutput>().failed("youHavePendingPrompts");
 
+        if (!this.#gracefulShutdown.startRequest())
+            return new OperationResultWithData<MultiModalOutput>().failed("underMaintenanceTryAgainLater");
+
         this.#messageLock.lock(multiModalInput.user.id);
 
         const result = await this._multiModalChatCompletion(multiModalInput);
 
         this.#messageLock.unlock(multiModalInput.user.id);
+        this.#gracefulShutdown.endRequest();
 
         return result;
     }
