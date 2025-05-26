@@ -23,6 +23,7 @@ export default [
                 ...prefix("admin", [
                     index("./routes/admin/index.tsx"),
                     route("/models", "./routes/admin/models.tsx"),
+                    route("/shutdown", "./routes/admin/gracefulShutdown.tsx"),
                 ]),
 
                 route("*", "./routes/notFound.tsx"),

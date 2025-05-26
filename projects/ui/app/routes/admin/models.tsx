@@ -5,6 +5,7 @@ import type { AiModelEntity } from "bymx-core/types";
 import modelService from "~/core/services/modelService";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, Card, CardActions, CardContent, CardHeader, Chip, Grid, IconButton, Stack, Switch } from "@mui/material";
+import { LayoutInner } from "~/layout/layoutInner";
 
 type MuiColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 
@@ -60,11 +61,13 @@ export default function AdminPanelIndex() {
     }, [fetchData]);
 
     return (
-        <>
-            <Box padding={2} marginBottom={5}>
+        <LayoutInner
+            fullWidth
+            topBar={(
                 <Button variant="outlined" color="success" disabled={refreshing} onClick={refreshModels}>{session.uiText.refreshModels}</Button>
-            </Box>
-            <Grid container spacing={2} margin={2}>
+            )}
+        >
+            <Grid container spacing={2} margin={2} marginTop={5}>
                 {models?.map(model => (
                     <Grid key={model.id} size={{ xs: 12, md: 6, lg: 4, xl: 3 }}>
                         <Card>
@@ -116,6 +119,6 @@ export default function AdminPanelIndex() {
                     </Grid>
                 ))}
             </Grid>
-        </>
+        </LayoutInner>
     );
 }
