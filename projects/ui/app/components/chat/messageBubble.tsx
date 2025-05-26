@@ -4,14 +4,105 @@ import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
 import Chip from "@mui/material/Chip";
 import Markdown from "react-markdown";
+import Menu from "@mui/material/Menu";
 import { useSession } from "~/core/Session";
+import Divider from "@mui/material/Divider";
+import MenuItem from "@mui/material/MenuItem";
 import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
+import AutoMode from "@mui/icons-material/AutoMode";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import AttachFile from "@mui/icons-material/AttachFile";
+import ContentCopy from "@mui/icons-material/ContentCopy";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
+import FormatAlignCenter from "@mui/icons-material/FormatAlignCenter";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const messageFadeInDuration = 1e3;
+
+function Actions(props?: {
+    anchorEl?: HTMLElement | null;
+    open?: boolean;
+    handleClose?: () => void;
+    onCopy?: () => void;
+    onSelectText?: () => void;
+    onRegenerate?: () => void;
+}) {
+    const session = useSession();
+
+    return (
+        <Menu
+            anchorEl={props?.anchorEl}
+            open={(props?.anchorEl && props?.open) ?? false}
+            onClose={props?.handleClose}
+            onClick={props?.handleClose}
+            onContextMenu={e => {
+                if (props?.handleClose) {
+                    e.preventDefault();
+                    props.handleClose();
+                }
+            }}
+            slotProps={{
+                paper: {
+                    elevation: 0,
+                    sx: {
+                        overflow: 'visible',
+                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                        mt: 1.5,
+                        '& .MuiAvatar-root': {
+                            width: 32,
+                            height: 32,
+                            ml: -0.5,
+                            mr: 1,
+                        },
+                        '&::before': {
+                            content: '""',
+                            display: 'block',
+                            position: 'absolute',
+                            top: 0,
+                            insetInlineStart: "50%",
+                            width: 10,
+                            height: 10,
+                            bgcolor: 'background.paper',
+                            transform: 'translateY(-50%) translateX(-50%) rotate(45deg)',
+                            zIndex: 0,
+                        },
+                    },
+                },
+            }}
+            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+        >
+            {props?.onCopy ? (
+                <MenuItem onClick={props?.onCopy}>
+                    <ListItemIcon>
+                        <ContentCopy fontSize="small" />
+                    </ListItemIcon>
+                    {session.uiText.copy}
+                </MenuItem>
+            ) : null}
+            {props?.onSelectText ? (
+                <MenuItem onClick={props?.onSelectText}>
+                    <ListItemIcon>
+                        <FormatAlignCenter fontSize="small" />
+                    </ListItemIcon>
+                    {session.uiText.selectText}
+                </MenuItem>
+            ) : null}
+            {props?.onRegenerate ? (
+                <>
+                    <Divider />
+                    <MenuItem onClick={props?.onRegenerate}>
+                        <ListItemIcon>
+                            <AutoMode fontSize="small" />
+                        </ListItemIcon>
+                        {session.uiText.regenerate}
+                    </MenuItem>
+                </>
+            ) : null}
+        </Menu>
+    );
+}
 
 export default function MessageBubble(props?: {
     text?: string;
@@ -24,7 +115,11 @@ export default function MessageBubble(props?: {
     const divRef = useRef<HTMLDivElement>(null);
     const [displayText, setDisplayText] = useState<string>("");
     const [animatedParts, setAnimatedParts] = useState<string[]>([]);
+    const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState<HTMLElement>();
+    const [contextMenuOpen, setContextMenuOpen] = useState(false);
     const lastCompleteCodeBlockEnd = useRef<number>(0);
+    const contextMenuTouchTimerRef = useRef(0);
+    const contextMenuTouchTargetRef = useRef<EventTarget>(null);
 
     const date = useMemo(() => {
         if (!props?.date) return null;
@@ -33,6 +128,26 @@ export default function MessageBubble(props?: {
             return <i>{props.date.toLocaleString()}</i>;
         return <i>{props.date.toLocaleTimeString()}</i>;
     }, [props]);
+
+    const openContextMenu = useCallback((e: Pick<Event, 'target' | 'preventDefault'>) => {
+        const el = e.target instanceof HTMLElement ? e.target : null;
+        if (!el) return;
+        e.preventDefault();
+        setContextMenuAnchorEl(el);
+        setContextMenuOpen(true);
+    }, []);
+
+    const handleTouchStart: React.TouchEventHandler<HTMLDivElement> = useCallback((e) => {
+        e.preventDefault();
+        contextMenuTouchTargetRef.current = e.target;
+        contextMenuTouchTimerRef.current = window.setTimeout(openContextMenu, 500);
+    }, [openContextMenu]);
+
+    const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = useCallback(() => {
+        if (contextMenuTouchTimerRef.current) {
+            clearTimeout(contextMenuTouchTimerRef.current);
+        }
+    }, []);
 
     const postRenderTasks = useCallback(() => {
         if (!divRef.current) return;
@@ -135,7 +250,18 @@ export default function MessageBubble(props?: {
             whiteSpace="pre-line"
             className="message-bubble"
         >
-            <div ref={divRef}>
+            <Actions
+                open={contextMenuOpen}
+                anchorEl={contextMenuAnchorEl || divRef.current}
+                handleClose={() => setContextMenuOpen(false)}
+            />
+            <div
+                ref={divRef}
+                onContextMenu={openContextMenu}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchEnd}
+            >
                 <Markdown>{displayText}</Markdown>
 
                 {animatedParts.map((part, index) => (

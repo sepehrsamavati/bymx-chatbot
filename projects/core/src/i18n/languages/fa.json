@@ -276,5 +276,9 @@
     "refreshModels": "بارگیری مجدد مدل‌ها",
     "experimentalFeatures": "امکانات آزمایشی",
     "memoryUpdate": "حافظه بروزرسانی شد",
-    "underMaintenanceTryAgainLater": "نرم افزار در حال بروزرسانی می‌باشد، لطفا بعد از چند دقیقه مجدد تلاش نمایید"
+    "underMaintenanceTryAgainLater": "نرم افزار در حال بروزرسانی می‌باشد، لطفا بعد از چند دقیقه مجدد تلاش نمایید",
+    "copy": "کپی",
+    "copied": "کپی شد",
+    "selectText": "انتخاب متن",
+    "regenerate": "پردازش مجدد"
 }

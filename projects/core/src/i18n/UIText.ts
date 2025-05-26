@@ -288,6 +288,10 @@ const keys = [
     "experimentalFeatures",
     "memoryUpdate",
     "underMaintenanceTryAgainLater",
+    "copy",
+    "copied",
+    "selectText",
+    "regenerate",
 ] as const;
 
 export type UITextKey = typeof keys[number];

@@ -276,5 +276,9 @@
     "refreshModels": "Refresh models",
     "experimentalFeatures": "Experimental features",
     "memoryUpdate": "Memory updated",
-    "underMaintenanceTryAgainLater": "Software under maintenance, please try again a few minutes later"
+    "underMaintenanceTryAgainLater": "Software under maintenance, please try again a few minutes later",
+    "copy": "Copy",
+    "copied": "Copied",
+    "selectText": "Select text",
+    "regenerate": "Regenerate"
 }
