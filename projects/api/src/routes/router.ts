@@ -2,6 +2,7 @@ import url from 'node:url';
 import path from 'node:path';
 import IdDto from '../dto/IdDto.js';
 import jwt from "../middlewares/jwt.js";
+import websocket from '@fastify/websocket';
 import ChatID from "../dto/chat/ChatID.js";
 import { UserType } from 'bymx-core/shared';
 import FastifyStatic from "@fastify/static";
@@ -24,8 +25,6 @@ import ImageGenerate from '../dto/generativeAi/ImageGenerate.js';
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
 
-import websocket from '@fastify/websocket';
-
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 import * as file from './api/v1/file.js';
@@ -36,6 +35,7 @@ import getTempFile from "./api/v1/getTempFile.js";
 import { getLanguageData } from "./api/v1/uiText.js";
 import falAiSetResult from "./api/v1/falAiSetResult.js";
 import * as generativeAi from "./api/v1/generativeAi.js";
+import * as gracefulShutdown from "./api/v1/gracefulShutdown.js";
 import { setWsHandlers } from '../webSocket/v1/setWsHandlers.js';
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
@@ -142,13 +142,24 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
     }, { prefix: httpServerUrls.v1.baseAddress + "/generativeAi" });
 
 
-    fastifyInstance.register((baseController, _, next) => {
+    fastifyInstance.register((baseControllerNoAuth, _, next) => {
 
-        baseController.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
+        baseControllerNoAuth.get(`/${httpServerUrls.v1.tempFile.path}/:id`, getTempFile);
 
-        baseController.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: fastifyPayloadValidator(FalAiResult) }, falAiSetResult);
+        baseControllerNoAuth.post(`/${httpServerUrls.v1.falAiSetResult.path}/:id`, { preValidation: fastifyPayloadValidator(FalAiResult) }, falAiSetResult);
 
-        baseController.get("/uiText/:langCode", getLanguageData);
+        baseControllerNoAuth.get("/uiText/:langCode", getLanguageData);
+
+        next();
+    }, { prefix: httpServerUrls.v1.baseAddress });
+
+    fastifyInstance.register((baseControllerWithAuth, _, next) => {
+
+        baseControllerWithAuth.addHook('onRequest', jwt);
+        baseControllerWithAuth.addHook('onRequest', authGuard);
+
+        baseControllerWithAuth.post("/shutdown", { preValidation: roleGuard([UserType.Admin]) }, gracefulShutdown.requestShutdown);
+        baseControllerWithAuth.get("/requests", { preValidation: roleGuard([UserType.Admin]) }, gracefulShutdown.getInfo);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress });
