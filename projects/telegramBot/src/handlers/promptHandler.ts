@@ -443,8 +443,8 @@ export const promptHandler: IUpdateHandler = {
                 form.append('duration', result.audio.duration.toString());
                 form.append('voice', new Blob([result.audio.data]));
 
-                if (result.plainText.length < 1024) {
-                    form.append("caption", convertToTelegramMarkdown(result.plainText));
+                if (result.plainText && result.plainText.length < 1024) {
+                    form.append("caption", convertToTelegramMarkdown(result.plainText!));
                     if (result.isComplete)
                         form.append("parse_mode", "Markdown");
                 }
@@ -462,7 +462,7 @@ export const promptHandler: IUpdateHandler = {
                     {
                         chat_id: sentMessage.chat.id,
                         message_id: sentMessage.message_id,
-                        text: convertToTelegramMarkdown(result.plainText),
+                        text: convertToTelegramMarkdown(result.plainText || context.uiText.errorOccurred),
                         parse_mode: result.isComplete ? "Markdown" : undefined,
                         reply_markup: {
                             inline_keyboard: [
