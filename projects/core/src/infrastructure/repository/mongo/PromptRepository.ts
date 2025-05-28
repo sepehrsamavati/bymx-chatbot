@@ -10,7 +10,7 @@ export class PromptRepository implements IPromptRepository {
         this.#databaseConnection = container.databaseConnection;
     }
 
-    async create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<boolean | null> {
+    async create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<string | null> {
         const res = await this.#databaseConnection.models.prompt.create({
             cost: message.cost,
             insertDate: message.insertDate,
@@ -26,7 +26,7 @@ export class PromptRepository implements IPromptRepository {
             fileId: message.fileId,
             responseTime: message.responseTime,
         });
-        return Boolean(res?._id);
+        return res?._id.toString() || null;
     }
     async getRecentHistory(chatId: string, count: number, cursorPromptId?: string): Promise<PromptBasicInfo[] | null> {
         const query: FilterQuery<PromptDBModel> = {

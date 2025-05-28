@@ -43,6 +43,7 @@ type MultiModalInputAttachment = {
 }
 
 type MultiModalOutput = {
+    messageId: string | null;
     plainText: string;
     pointUsage: number;
     isComplete: boolean;
@@ -852,7 +853,7 @@ export default class AIApplication {
         const { user } = multiModalInput;
         const userWantsVoiceResponse = multiModalInput.voiceResponse ?? multiModalInput.user.voiceResponse.on;
 
-        let resultData: IOpenAITextResult;
+        let llmResultData: IOpenAITextResult;
         const sendLangToGpt = inputTokens < 3 && historyMessages.length === 0;
 
         /* --START-- */
@@ -883,7 +884,7 @@ export default class AIApplication {
         if (!res)
             return result.failed();
 
-        resultData = res;
+        llmResultData = res;
 
         const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
             model: model,
@@ -896,7 +897,7 @@ export default class AIApplication {
 
         const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, subscriptions);
 
-        await this.#promptRepository.create({
+        const savedPromptCreateResult = await this.#promptRepository.create({
             chat: chat,
             cost: cost,
             insertDate: new Date(),
@@ -913,9 +914,16 @@ export default class AIApplication {
         });
         /* --END-- */
 
-
-        const outputText = resultData.output;
+        const outputText = llmResultData.output;
         const shouldGenerateAudio = userWantsVoiceResponse && outputText.length < 500;
+
+        const resultData: MultiModalOutput = {
+            messageId: savedPromptCreateResult || null,
+            pointUsage: totalUserPointUsage,
+            plainText: llmResultData.output,
+            isComplete: llmResultData.isComplete,
+            memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
+        };
 
         if (shouldGenerateAudio) {
             const textToSpeechUserPointCost = calculatePointUsage({ usd: (outputText.length * this.#openAI.textToSpeechPmu) / 1e6 });
@@ -926,7 +934,6 @@ export default class AIApplication {
                 });
 
                 if (modelAudioOutput) {
-
                     totalUserPointUsage += textToSpeechUserPointCost;
                     totalRemainingPoints -= textToSpeechUserPointCost;
 
@@ -934,33 +941,17 @@ export default class AIApplication {
 
                     const duration = await getAudioDuration(modelAudioOutput.output);
 
-                    return result.succeeded().setData({
-                        pointUsage: totalUserPointUsage,
-                        plainText: outputText,
-                        isComplete: resultData.isComplete,
-                        memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
-                        audio: {
-                            data: modelAudioOutput.output,
-                            duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
-                        },
-                    });
+                    resultData.audio = {
+                        data: modelAudioOutput.output,
+                        duration: Math.round(duration && !Number.isNaN(duration) ? duration : 0),
+                    };
                 }
-
-                return result.succeeded().setData({
-                    plainText: outputText,
-                    pointUsage: totalUserPointUsage,
-                    isComplete: resultData.isComplete,
-                    memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
-                });
             }
         }
 
-        return result.succeeded().setData({
-            pointUsage: totalUserPointUsage,
-            plainText: resultData.output,
-            isComplete: resultData.isComplete,
-            memoryUpdated: memoryUpdated ? memoryUpdated : undefined,
-        });
+        return result
+            .succeeded()
+            .setData(resultData);
     }
 
     public async multiModalChatCompletion(multiModalInput: MultiModalInput): Promise<OperationResultWithData<MultiModalOutput>> {
