@@ -280,5 +280,6 @@
     "copy": "Copy",
     "copied": "Copied",
     "selectText": "Select text",
-    "regenerate": "Regenerate"
+    "regenerate": "Regenerate",
+    "fullscreenView": "Fullscreen view"
 }

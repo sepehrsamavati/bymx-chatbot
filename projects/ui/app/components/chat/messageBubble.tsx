@@ -1,3 +1,4 @@
+import Button from "../button";
 import "../../assets/css/chat.css";
 import * as PrismJS from "prismjs";
 import Box from "@mui/material/Box";
@@ -12,20 +13,52 @@ import { stringHelper } from "bymx-core/shared";
 import Typography from "@mui/material/Typography";
 import AutoMode from "@mui/icons-material/AutoMode";
 import ListItemIcon from "@mui/material/ListItemIcon";
+import { copyToClipboard } from "~/core/helper/utils";
+import OpenInFull from "@mui/icons-material/OpenInFull";
 import AttachFile from "@mui/icons-material/AttachFile";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
-import FormatAlignCenter from "@mui/icons-material/FormatAlignCenter";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import CloseFullscreen from "@mui/icons-material/CloseFullscreen";
+import { Dialog, DialogActions, DialogContent } from "@mui/material";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const messageFadeInDuration = 1e3;
+
+const typographyProcess = (element: HTMLElement | null) => {
+    // Handle text direction
+    element?.querySelectorAll('p, code')
+        .forEach(childElement => {
+            if (!('innerText' in childElement))
+                return;
+
+            const _element = childElement as HTMLDivElement;
+
+            if (stringHelper.isRtl(_element.innerText.trimStart()))
+                _element.dir = "rtl";
+            else
+                _element.dir = "ltr";
+        });
+
+    // Highlight all complete code blocks
+    element?.querySelectorAll("code[class^=language-]")
+        .forEach(codeElement => {
+            const language = codeElement.className.split('-')[1];
+            loadLanguage(language, () => {
+                try {
+                    PrismJS.highlightElement(codeElement);
+                } catch (err) {
+                    console.error("PRISM ERR", err);
+                }
+            });
+        });
+};
 
 function Actions(props?: {
     anchorEl?: HTMLElement | null;
     open?: boolean;
     handleClose?: () => void;
     onCopy?: () => void;
-    onSelectText?: () => void;
+    onFullscreenView?: () => void;
     onRegenerate?: () => void;
 }) {
     const session = useSession();
@@ -81,12 +114,12 @@ function Actions(props?: {
                     {session.uiText.copy}
                 </MenuItem>
             ) : null}
-            {props?.onSelectText ? (
-                <MenuItem onClick={props?.onSelectText}>
+            {props?.onFullscreenView ? (
+                <MenuItem onClick={props?.onFullscreenView}>
                     <ListItemIcon>
-                        <FormatAlignCenter fontSize="small" />
+                        <OpenInFull fontSize="small" />
                     </ListItemIcon>
-                    {session.uiText.selectText}
+                    {session.uiText.fullscreenView}
                 </MenuItem>
             ) : null}
             {props?.onRegenerate ? (
@@ -113,10 +146,12 @@ export default function MessageBubble(props?: {
 }) {
     const session = useSession();
     const divRef = useRef<HTMLDivElement>(null);
+    const viewTextModalContentRef = useRef<HTMLDivElement>(null);
     const [displayText, setDisplayText] = useState<string>("");
     const [animatedParts, setAnimatedParts] = useState<string[]>([]);
     const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState<HTMLElement>();
     const [contextMenuOpen, setContextMenuOpen] = useState(false);
+    const [viewTextModalOpen, setViewTextModalOpen] = useState(false);
     const lastCompleteCodeBlockEnd = useRef<number>(0);
     const contextMenuTouchTimerRef = useRef(0);
     const contextMenuTouchTargetRef = useRef<EventTarget>(null);
@@ -149,38 +184,23 @@ export default function MessageBubble(props?: {
         }
     }, []);
 
-    const postRenderTasks = useCallback(() => {
-        if (!divRef.current) return;
-
-        // Handle text direction
-        divRef.current.querySelectorAll('p, code').forEach(element => {
-            if (!('innerText' in element))
-                return;
-
-            const _element = element as HTMLDivElement;
-
-            if (stringHelper.isRtl(_element.innerText.trimStart()))
-                _element.dir = "rtl";
-            else
-                _element.dir = "ltr";
-        });
-
-        // Highlight all complete code blocks
-        divRef.current.querySelectorAll("code[class^=language-]").forEach(codeElement => {
-            const language = codeElement.className.split('-')[1];
-            loadLanguage(language, () => {
-                try {
-                    PrismJS.highlightElement(codeElement);
-                } catch (err) {
-                    console.error("PRISM ERR", err);
-                }
+    const copyToClipboardHandler = useCallback(() => {
+        copyToClipboard(props?.text ?? "")
+            .then(ok => {
+                session.snackbarProvider(ok ? session.uiText.copied : session.uiText.errorOccurred, {
+                    variant: ok ? "success" : "error",
+                    autoHideDuration: 2e3,
+                    anchorOrigin: {
+                        horizontal: "center",
+                        vertical: "bottom"
+                    }
+                });
             });
-        });
-    }, []);
+    }, [props, session]);
 
     useLayoutEffect(() => {
-        postRenderTasks();
-    }, [displayText, postRenderTasks]);
+        typographyProcess(divRef.current);
+    }, [displayText]);
 
     useLayoutEffect(() => {
         const text = props?.text || "";
@@ -194,7 +214,7 @@ export default function MessageBubble(props?: {
 
         // If text hasn't changed, just ensure rendering is correct
         if (props.text === displayText) {
-            postRenderTasks();
+            typographyProcess(divRef.current);
             return;
         }
 
@@ -240,21 +260,46 @@ export default function MessageBubble(props?: {
         // Default case - just update the text
         setDisplayText(text);
         lastCompleteCodeBlockEnd.current = 0; // Reset if we're out of all code blocks
-    }, [session, props?.text, displayText, postRenderTasks]);
+    }, [session, props?.text, displayText]);
 
     return (
         <Box
             padding={1}
             component="div"
-            fontSize="inherit"
-            whiteSpace="pre-line"
             className="message-bubble"
         >
             <Actions
                 open={contextMenuOpen}
                 anchorEl={contextMenuAnchorEl || divRef.current}
                 handleClose={() => setContextMenuOpen(false)}
+                onCopy={copyToClipboardHandler}
+                onFullscreenView={() => setViewTextModalOpen(true)}
             />
+
+            <Dialog
+                fullScreen
+                open={viewTextModalOpen}
+                onClose={() => setViewTextModalOpen(false)}
+                slotProps={{
+                    transition: {
+                        onTransitionStart: () => {
+                            typographyProcess(viewTextModalContentRef.current);
+                        }
+                    }
+                }}
+            >
+                <DialogContent
+                    ref={viewTextModalContentRef}
+                    className="message-bubble"
+                >
+                    <Markdown>{props?.text}</Markdown>
+                </DialogContent>
+                <DialogActions>
+                    {props?.modelTitle ? <Chip label={props.modelTitle} /> : null}
+                    <Button color="error" startIcon={<CloseFullscreen />} onClick={() => setViewTextModalOpen(false)}>{session.uiText.close}</Button>
+                </DialogActions>
+            </Dialog>
+
             <div
                 ref={divRef}
                 onContextMenu={openContextMenu}

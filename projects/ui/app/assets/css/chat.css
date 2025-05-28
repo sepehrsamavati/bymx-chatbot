@@ -11,6 +11,8 @@
 
 .message-bubble {
     position: relative;
+    font-size: inherit;
+    white-space: pre-line;
 }
 
 .message-bubble h1,
@@ -32,7 +34,7 @@
 .message-bubble pre {
     overflow: auto;
     direction: ltr;
-    border-radius: 2;
+    border-radius: 6px;
 }
 
 .message-bubble li {
