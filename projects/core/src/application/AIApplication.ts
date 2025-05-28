@@ -20,6 +20,7 @@ import systemMessageMapper from "../helpers/systemMessageMapper.js";
 import type { UserTempFile } from "../types/entities/userTempFile.js";
 import { GenerationTaskType } from "../types/enums/generationTaskType.js";
 import { OperationResultWithData } from "../common/dto/OperationResult.js";
+import type { ILlmPromptResponse } from "../types/contracts/api/dto/chat.js";
 import { getFileContent } from "../helpers/fileContent/fileContent.runner.js";
 import { GenerationTaskStatus } from "../types/enums/generationTaskStatus.js";
 import type { AIGeneratedMediaResponse } from "../types/contracts/aiResponse.js";
@@ -42,12 +43,7 @@ type MultiModalInputAttachment = {
     image: { image: UserTempFile | undefined; };
 }
 
-type MultiModalOutput = {
-    messageId: string | null;
-    plainText: string;
-    pointUsage: number;
-    isComplete: boolean;
-    memoryUpdated?: true;
+type MultiModalOutput = ILlmPromptResponse & {
     audio?: {
         data: Buffer;
         /** Seconds */
