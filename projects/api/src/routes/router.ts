@@ -25,8 +25,6 @@ import ImageGenerate from '../dto/generativeAi/ImageGenerate.js';
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-
 import * as file from './api/v1/file.js';
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
@@ -37,6 +35,8 @@ import falAiSetResult from "./api/v1/falAiSetResult.js";
 import * as generativeAi from "./api/v1/generativeAi.js";
 import * as gracefulShutdown from "./api/v1/gracefulShutdown.js";
 import { setWsHandlers } from '../webSocket/v1/setWsHandlers.js';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
