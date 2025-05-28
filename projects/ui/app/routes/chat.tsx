@@ -41,6 +41,8 @@ enum ReadyPromptCategory {
     Coding = 1, Workout = 2, Cooking = 3, SummarizeText = 4,
 }
 
+const autoScrollThreshold = 100;
+
 const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UIText.UITextKey[] } = ({
     [ReadyPromptCategory.Coding]: ["_prompt_coding", "_prompt_codingPythonHttpServer"],
     [ReadyPromptCategory.Workout]: ["_prompt_workout", "_prompt_workoutAtHome"],
@@ -66,6 +68,7 @@ export default function Chat() {
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
+    const autoScrollEnabled = useRef(true);
     const socket = useMemo(() => socketManager(), []);
     const cantSubmit = inputText.trim().length === 0 || waitingForCompletion;
     const formRef = useRef<HTMLFormElement>(null);
@@ -75,8 +78,7 @@ export default function Chat() {
         if (!chatSectionRef.current) return;
 
         const element = chatSectionRef.current;
-        const scrollTopMax = element.scrollHeight - element.clientHeight;
-        const shouldScroll = force || (scrollTopMax - element.scrollTop < 100);
+        const shouldScroll = force || autoScrollEnabled.current;
 
         if (shouldScroll) {
             const scrollFunction = () => {
@@ -102,7 +104,7 @@ export default function Chat() {
                 lastMessageId,
             })
             .then(res => {
-                if (res.result?.data)
+                if (res.result?.data) {
                     setMessages(_current => {
                         _current ||= [];
                         const oldMessages = [..._current];
@@ -115,6 +117,7 @@ export default function Chat() {
 
                         return newMessages;
                     });
+                }
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
             })
@@ -221,6 +224,11 @@ export default function Chat() {
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
             getMessages();
+
+        if (chatSectionRef.current)
+            autoScrollEnabled.current =
+                chatSectionRef.current.scrollTop + chatSectionRef.current.clientHeight >=
+                chatSectionRef.current.scrollHeight - autoScrollThreshold;
     }, [getMessages]);
 
     const handleModelChange = useCallback((event: SelectChangeEvent<string>) => {
@@ -331,7 +339,8 @@ export default function Chat() {
 
         if (messages.length === 1)
             submitPrompt(session.uiText._prompt_didNotUnderstand);
-        else
+        else {
+            setWaitingForCompletion(true);
             chatService
                 .deleteMessagesAfter(chatId!, message.id)
                 .then(res => {
@@ -353,6 +362,7 @@ export default function Chat() {
                         session.snackbarProvider(res.result?.message, { variant: "error" });
                     }
                 });
+        }
     }, [chatId, session, messages]);
 
     useEffect(() => {
@@ -380,6 +390,19 @@ export default function Chat() {
     }, [messages, scrollToBottom]);
 
     useEffect(() => {
+        if (!chatSectionRef.current) return;
+
+        const observer = new MutationObserver(() => {
+            scrollToBottom(cb => setTimeout(cb, 300));
+        });
+        observer.observe(chatSectionRef.current, { childList: true });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [scrollToBottom]);
+
+    useEffect(() => {
         if (session.themeManager.name === "light")
             import('prismjs/themes/prism.min.css');
         else
@@ -399,6 +422,7 @@ export default function Chat() {
                             sx={{
                                 borderRadius: 50,
                                 fontFamily: "monospace",
+                                fontSize: "0.8em",
                                 "> .MuiSelect-select": {
                                     padding: 1,
                                 }
