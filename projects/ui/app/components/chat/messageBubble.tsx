@@ -19,7 +19,7 @@ import AttachFile from "@mui/icons-material/AttachFile";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
 import CloseFullscreen from "@mui/icons-material/CloseFullscreen";
-import { Dialog, DialogActions, DialogContent } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, IconButton, Stack } from "@mui/material";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const messageFadeInDuration = 1e3;
@@ -63,7 +63,7 @@ function Actions(props?: {
 }) {
     const session = useSession();
 
-    return (
+    const _menu = (
         <Menu
             anchorEl={props?.anchorEl}
             open={(props?.anchorEl && props?.open) ?? false}
@@ -134,6 +134,27 @@ function Actions(props?: {
                 </MenuItem>
             ) : null}
         </Menu>
+    );
+
+    return (
+        <>
+            {_menu}
+            {props?.onRegenerate && props.onCopy ? (
+                <Box marginTop={0.4}>
+                    <Stack direction="row" flexWrap="wrap" fontSize="1.4em">
+                        <IconButton onClick={props?.onCopy} sx={{ fontSize: "inherit" }}>
+                            <ContentCopy fontSize="inherit" />
+                        </IconButton>
+                        <IconButton onClick={props?.onFullscreenView} sx={{ fontSize: "inherit" }}>
+                            <OpenInFull fontSize="inherit" />
+                        </IconButton>
+                        <IconButton onClick={props?.onRegenerate} sx={{ fontSize: "inherit" }}>
+                            <AutoMode fontSize="inherit" />
+                        </IconButton>
+                    </Stack>
+                </Box>
+            ) : null}
+        </>
     );
 }
 
@@ -269,15 +290,6 @@ export default function MessageBubble(props?: {
             component="div"
             className="message-bubble"
         >
-            <Actions
-                open={contextMenuOpen}
-                anchorEl={contextMenuAnchorEl || divRef.current}
-                handleClose={() => setContextMenuOpen(false)}
-                onCopy={copyToClipboardHandler}
-                onFullscreenView={() => setViewTextModalOpen(true)}
-                onRegenerate={props?.onRegenerate}
-            />
-
             <Dialog
                 fullScreen
                 open={viewTextModalOpen}
@@ -298,6 +310,7 @@ export default function MessageBubble(props?: {
                 </DialogContent>
                 <DialogActions>
                     {props?.modelTitle ? <Chip label={props.modelTitle} /> : null}
+                    {typeof props?.pointUsage === "number" ? <Chip variant="outlined" label={`⚡ ${props.pointUsage}`} /> : ''}
                     <Button color="error" startIcon={<CloseFullscreen />} onClick={() => setViewTextModalOpen(false)}>{session.uiText.close}</Button>
                 </DialogActions>
             </Dialog>
@@ -328,21 +341,28 @@ export default function MessageBubble(props?: {
                     />
                 )}
             </div>
-            <Typography
-                component="span"
-                sx={{
-                    bottom: 0,
-                    insetInlineStart: 0,
-                    position: "absolute",
-                    marginBottom: -1.6,
-                    fontSize: "0.6em",
-                    fontFamily: "monospace",
-                    color: "GrayText",
-                    direction: "rtl",
-                }}
-            >
-                {props?.modelTitle} {date}{typeof props?.pointUsage === "number" ? ` ⚡${props.pointUsage}` : ''}
-            </Typography>
+
+            <Stack direction="row" flexWrap="wrap" gap={1} justifyContent="space-between" alignItems="center">
+                <Actions
+                    open={contextMenuOpen}
+                    anchorEl={contextMenuAnchorEl || divRef.current}
+                    handleClose={() => setContextMenuOpen(false)}
+                    onCopy={copyToClipboardHandler}
+                    onFullscreenView={() => setViewTextModalOpen(true)}
+                    onRegenerate={props?.onRegenerate}
+                />
+                <Typography
+                    component="span"
+                    sx={{
+                        fontSize: "0.6em",
+                        fontFamily: "monospace",
+                        color: "GrayText",
+                        direction: session.fixDirection("ltr"),
+                    }}
+                >
+                    {date}{typeof props?.pointUsage === "number" ? ` ⚡${props.pointUsage}` : ''}
+                </Typography>
+            </Stack>
         </Box>
     );
 }

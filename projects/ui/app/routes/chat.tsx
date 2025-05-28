@@ -455,7 +455,7 @@ export default function Chat() {
                     >
                         <Box marginInline={1} marginBlock={2} textAlign="end">
                             <Card variant="elevation" sx={{ borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%", textAlign: "initial" }}>
-                                <MessageBubble attachmentFilename={message.attachmentFilename} text={message.input} date={message.input.length < 15 ? undefined : new Date(message.inputDate)} />
+                                <MessageBubble attachmentFilename={message.attachmentFilename} text={message.input} />
                             </Card>
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
