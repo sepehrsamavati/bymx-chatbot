@@ -192,4 +192,16 @@ export default class AIChatApplication {
 
         return result;
     }
+
+    async deleteMessagesAfter(chatId: string, messageId: string) {
+        const result = new OperationResult();
+
+        const ok = await this.#promptRepository.deleteAfter(chatId, messageId);
+
+        if (ok)
+            result
+                .succeeded();
+
+        return result;
+    }
 }

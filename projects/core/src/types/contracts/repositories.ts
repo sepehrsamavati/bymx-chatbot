@@ -113,6 +113,8 @@ export type IPromptRepository = {
     create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<string | null>;
     getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
     getRecentHistory(chatId: string, count: number, cursorPromptId?: string): Promise<PromptBasicInfo[] | null>;
+    /** Delete records with greater or equal ID (next messages, self included) */
+    deleteAfter(chatId: string, promptId: string): Promise<boolean | null>;
     countUserFileUsage(userId: string, fromDate: Date): Promise<number | null>;
     deleteByChatId(chatId: string): Promise<boolean | null>;
 }

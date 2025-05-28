@@ -139,13 +139,28 @@ export class PromptRepository implements IPromptRepository {
     }
 
     async deleteByChatId(chatId: string): Promise<boolean | null> {
-        const res = await this.#databaseConnection.models
+        await this.#databaseConnection.models
             .prompt
             .updateMany({
                 isDeleted: false,
                 chat: chatId,
             }, {
                 isDeleted: true
+            });
+        return true;
+    }
+
+    async deleteAfter(chatId: string, cursorPromptId: string): Promise<boolean | null> {
+        await this.#databaseConnection.models
+            .prompt
+            .updateMany({
+                isDeleted: false,
+                chat: chatId,
+                _id: {
+                    $gte: cursorPromptId
+                }
+            }, {
+                isDeleted: true,
             });
         return true;
     }
