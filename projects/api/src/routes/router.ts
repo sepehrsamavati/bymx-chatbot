@@ -24,6 +24,7 @@ import ChatMessagesQuery from "../dto/chat/ChatMessagesQuery.js";
 import ImageGenerate from '../dto/generativeAi/ImageGenerate.js';
 import TelegramOtpRequest from '../dto/user/TelegramOtpRequest.js';
 import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
+import ChatDeleteMessagesAfter from '../dto/chat/ChatDeleteMessagesAfter.js';
 
 import * as file from './api/v1/file.js';
 import * as user from "./api/v1/user.js";
@@ -113,6 +114,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.get("/canICreateANewChat", chat.canCreateNewChat);
         chatController.post("/new", chat.createNewChat);
         chatController.post("/generateTitle", { preValidation: fastifyPayloadValidator(ChatID) }, chat.generateAndSetTitle);
+        chatController.delete("/messagesAfter", { preValidation: fastifyPayloadValidator(ChatDeleteMessagesAfter) }, chat.deleteMessagesAfter);
 
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/chat" });

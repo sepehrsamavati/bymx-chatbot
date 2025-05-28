@@ -3,11 +3,11 @@ import type ChatID from "../../../dto/chat/ChatID.js";
 import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
-import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
-import SetChatMemoryAmount from "../../../dto/user/SetMemoryAmount.js";
-import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
-import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 import { getSocketById } from "../../../webSocket/v1/setWsHandlers.js";
+import type ChatMessagesQuery from "../../../dto/chat/ChatMessagesQuery.js";
+import ChatDeleteMessagesAfter from "../../../dto/chat/ChatDeleteMessagesAfter.js";
+import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
+import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
 
 export const getAllChats: RouteHandlerMethod = async (request, reply) => {
 
@@ -127,6 +127,7 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
         result
             .succeeded()
             .setData({
+                messageId: chatCompletionResult.data.messageId,
                 isComplete: chatCompletionResult.data.isComplete,
                 plainText: chatCompletionResult.data.plainText,
                 pointUsage: chatCompletionResult.data.pointUsage,
@@ -305,6 +306,24 @@ export const generateAndSetTitle: RouteHandlerMethod = async (request, reply) =>
         result.failed("itemNotFound");
     else
         result = await request.locals.applications.aiApplication.generateAndSetChatTitle(chat.id);
+
+    return reply.status(200).send(result);
+
+};
+
+export const deleteMessagesAfter: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    const userId = request.locals.user?.id!;
+    const query = request.locals.dto as ChatDeleteMessagesAfter;
+
+    const chat = await request.locals.applications.aiChatApplication.getUserChatById(userId, query.chatId);
+
+    if (!chat)
+        result.failed("itemNotFound");
+    else
+        result = await request.locals.applications.aiChatApplication.deleteMessagesAfter(chat.id, query.messageId);
 
     return reply.status(200).send(result);
 

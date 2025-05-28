@@ -123,15 +123,15 @@ function Actions(props?: {
                 </MenuItem>
             ) : null}
             {props?.onRegenerate ? (
-                <>
-                    <Divider />
-                    <MenuItem onClick={props?.onRegenerate}>
-                        <ListItemIcon>
-                            <AutoMode fontSize="small" />
-                        </ListItemIcon>
-                        {session.uiText.regenerate}
-                    </MenuItem>
-                </>
+                <Divider />
+            ) : null}
+            {props?.onRegenerate ? (
+                <MenuItem onClick={props?.onRegenerate}>
+                    <ListItemIcon>
+                        <AutoMode fontSize="small" />
+                    </ListItemIcon>
+                    {session.uiText.regenerate}
+                </MenuItem>
             ) : null}
         </Menu>
     );
@@ -143,6 +143,7 @@ export default function MessageBubble(props?: {
     attachmentFilename?: string;
     pointUsage?: number;
     modelTitle?: string;
+    onRegenerate?: () => void;
 }) {
     const session = useSession();
     const divRef = useRef<HTMLDivElement>(null);
@@ -274,6 +275,7 @@ export default function MessageBubble(props?: {
                 handleClose={() => setContextMenuOpen(false)}
                 onCopy={copyToClipboardHandler}
                 onFullscreenView={() => setViewTextModalOpen(true)}
+                onRegenerate={props?.onRegenerate}
             />
 
             <Dialog

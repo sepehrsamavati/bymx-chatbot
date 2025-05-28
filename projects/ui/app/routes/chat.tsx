@@ -1,9 +1,9 @@
 import "../assets/css/chat.css";
+import { useParams } from "react-router";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
 import { LayoutInner } from "~/layout/layoutInner";
 import MenuBook from "@mui/icons-material/MenuBook";
-import { useNavigate, useParams } from "react-router";
 import chatService from "~/core/services/chatService";
 import fileService from "~/core/services/fileService";
 import { socketManager } from "~/core/services/socket";
@@ -50,7 +50,6 @@ const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UITex
 
 export default function Chat() {
     const session = useSession();
-    const navigate = useNavigate();
     const { chatId } = useParams();
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
     const [messages, setMessages] = useState<ChatMessage[]>();
@@ -125,12 +124,12 @@ export default function Chat() {
             });
     }, [chatId, messages]);
 
-    const submitPrompt = useCallback((stream = false) => {
+    const submitPrompt = useCallback((text?: string) => {
         if (!chatId) return;
         setWaitingForCompletion(true);
 
-        const _inputText = inputText;
-        const _attachmentFile = uploadingFile;
+        const _inputText = text || inputText;
+        const _attachmentFile = text ? undefined : uploadingFile;
         const inputDate = Date.now();
         const socketConnectionId = socket.getConnectionId();
         const requestId = window.crypto.randomUUID();
@@ -164,34 +163,32 @@ export default function Chat() {
         };
 
 
-        if (stream) {
-            /** @todo Should remove if request failed - increases memory usage */
-            socket
-                .registerPromptResultHandler(
-                    requestId,
-                    result => {
+        /** @todo Should remove if request failed - increases memory usage */
+        socket
+            .registerPromptResultHandler(
+                requestId,
+                result => {
 
-                        if (responseReturned)
-                            return { closeListener: true };
+                    if (responseReturned)
+                        return { closeListener: true };
 
-                        if (result.finished && result.isComplete) {
-                            streamingMessageChunks.current = [];
-                            setCurrentlyGeneratingMessage(undefined);
-                            return { closeListener: true };
-                        } else {
-                            if (!result) {
-                                rollback();
-                            } else if (result?.outputChunk) {
-                                scrollToBottom(cb => setTimeout(() => cb(), 10));
-                                streamingMessageChunks.current[result.outputChunk.index] = result.outputChunk.value;
-                                setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: streamingMessageChunks.current.filter(v => typeof v === "string").join('') }));
-                            }
+                    if (result.finished && result.isComplete) {
+                        streamingMessageChunks.current = [];
+                        setCurrentlyGeneratingMessage(undefined);
+                        return { closeListener: true };
+                    } else {
+                        if (!result) {
+                            rollback();
+                        } else if (result?.outputChunk) {
+                            scrollToBottom(cb => setTimeout(() => cb(), 10));
+                            streamingMessageChunks.current[result.outputChunk.index] = result.outputChunk.value;
+                            setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: streamingMessageChunks.current.filter(v => typeof v === "string").join('') }));
                         }
+                    }
 
-                        return;
-                    },
-                );
-        }
+                    return;
+                },
+            );
 
         chatService
             .submitPrompt(dto)
@@ -204,7 +201,7 @@ export default function Chat() {
                     scrollToBottom(cb => setTimeout(() => cb(), 10));
                     setMessages(_current => [...(_current || []), (
                         {
-                            id: requestId,
+                            id: result.data?.messageId || requestId,
                             inputDate,
                             outputDate: Date.now(),
                             modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
@@ -328,6 +325,36 @@ export default function Chat() {
         uploadFile(file);
     }, [uploadFile, uploadingFile]);
 
+    const regenerate = useCallback((message: ChatMessage) => {
+        if (!messages || messages.length === 0)
+            return;
+
+        if (messages.length === 1)
+            submitPrompt(session.uiText._prompt_didNotUnderstand);
+        else
+            chatService
+                .deleteMessagesAfter(chatId!, message.id)
+                .then(res => {
+                    if (res.result?.ok) {
+                        setMessages(_current => {
+                            _current ||= [];
+                            let _messages = [..._current];
+
+                            const index = _messages.findIndex(m => m.id === message.id);
+
+                            if (index !== -1)
+                                _messages = _messages.slice(0, index)
+
+                            return _messages;
+                        });
+                        submitPrompt(message.input);
+                    } else {
+                        setWaitingForCompletion(false);
+                        session.snackbarProvider(res.result?.message, { variant: "error" });
+                    }
+                });
+    }, [chatId, session, messages]);
+
     useEffect(() => {
         if (initialized.current || !chatId) return;
         initialized.current = true;
@@ -433,7 +460,10 @@ export default function Chat() {
                         </Box>
                         <Box marginInline={1} marginBottom={8}>
                             <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
-                                <MessageBubble pointUsage={message.points} text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle} />
+                                <MessageBubble
+                                    pointUsage={message.points} text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle}
+                                    onRegenerate={!isLoadingMessages.current && !waitingForCompletion ? () => regenerate(message) : undefined}
+                                />
                             </Box>
                         </Box>
                     </Box>
@@ -514,7 +544,7 @@ export default function Chat() {
                     ref={formRef}
                     onSubmit={e => {
                         e.preventDefault();
-                        submitPrompt(true);
+                        submitPrompt();
                     }}
                 >
                     <Box

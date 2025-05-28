@@ -1,6 +1,6 @@
 import HttpClient from "../helper/HttpClient";
 import type { Api, CaptionOnly, PromptViewModel } from "bymx-core/types";
-import type { AIChatHistoryMemory, OperationResult, OperationResultWithData } from "bymx-core/shared";
+import type { OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const chatService = Object.freeze({
     getAll() {
@@ -90,6 +90,13 @@ const chatService = Object.freeze({
             path: "/api/v1/chat/generateTitle",
             method: HttpClient.Methods.POST,
             body: { chatId }
+        });
+    },
+    deleteMessagesAfter(chatId: string, messageId: string) {
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/chat/messagesAfter",
+            method: HttpClient.Methods.DELETE,
+            body: { chatId, messageId }
         });
     },
 });

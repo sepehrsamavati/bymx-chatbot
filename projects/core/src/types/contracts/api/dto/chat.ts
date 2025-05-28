@@ -7,6 +7,7 @@ export type ILlmPromptRequest = {
 }
 
 export type ILlmPromptResponse = {
+    messageId: string | null;
     plainText?: string;
     memoryUpdated?: true;
     isComplete: boolean;

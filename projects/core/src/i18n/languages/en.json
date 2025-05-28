@@ -273,6 +273,7 @@
     "_prompt_cooking": "Help me cook",
     "_prompt_cookingPizza": "Help me cook pizza, list materials and describe steps",
     "_prompt_summarizeText": "Help me summarize this text",
+    "_prompt_didNotUnderstand": "I didn't understand",
     "refreshModels": "Refresh models",
     "experimentalFeatures": "Experimental features",
     "memoryUpdate": "Memory updated",
