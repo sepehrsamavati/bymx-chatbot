@@ -12,14 +12,14 @@ import { stringHelper, UIText } from "bymx-core/shared";
 import DataObject from "@mui/icons-material/DataObject";
 import Restaurant from "@mui/icons-material/Restaurant";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
-import type { Api, PromptViewModel } from "bymx-core/types";
+import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
+import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -49,6 +49,29 @@ const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UITex
     [ReadyPromptCategory.Cooking]: ["_prompt_cooking", "_prompt_cookingPizza"],
     [ReadyPromptCategory.SummarizeText]: ["_prompt_summarizeText"],
 });
+
+function ModelCostIndicatorIcon(props: { model: AiModelEntity.AIModelViewModel }) {
+
+    if (props.model.costRatio === 0)
+        return <FreeModelIcon color="disabled" fontSize="small" />;
+
+    const color = ({
+        1: "info",
+        2: "success",
+        3: "success",
+        4: "warning",
+    } as const)[props.model.costRatio] ?? "error";
+
+    return <CostlyModelIcon color={color} fontSize="small" />;
+}
+
+// const modelCostToTextMap = (model?: AiModelEntity.AIModelViewModel): UIText.UITextKey => ({
+//     0: "free",
+//     1: "lowCost",
+//     2: "affordable",
+//     3: "affordable",
+//     4: "costly",
+// } as const)[model?.costRatio!] ?? "costly"
 
 export default function Chat() {
     const session = useSession();
@@ -207,7 +230,7 @@ export default function Chat() {
                             id: result.data?.messageId || requestId,
                             inputDate,
                             outputDate: Date.now(),
-                            modelTitle: session.chatModels.find(model => model.id === selectedModel)?.caption ?? "",
+                            modelTitle: session.chatModels.find(model => model.id === selectedModel)?.title ?? "",
                             input: _inputText,
                             attachmentFilename: _attachmentFile?.name,
                             output: result?.data?.plainText ?? "ERR", points: result?.data?.pointUsage as number
@@ -435,9 +458,9 @@ export default function Chat() {
                                 <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
                                     <Stack direction="row" alignItems="center">
                                         <Icon fontSize="small">
-                                            {model.caption.toLowerCase().startsWith("chatgpt") ? <CostlyModelIcon color="warning" fontSize="small" /> : <FreeModelIcon color="success" fontSize="small" />}
+                                            <ModelCostIndicatorIcon model={model} />
                                         </Icon>
-                                        {model.caption}
+                                        {model.title}
                                     </Stack>
                                 </MenuItem>
                             ))}

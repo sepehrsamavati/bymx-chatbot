@@ -1,15 +1,27 @@
 import type { RouteHandlerMethod } from "fastify";
-import type { AiModelEntity, CaptionOnly } from "bymx-core/types";
 import { OperationResultWithData } from "bymx-core/shared";
-import UpdateById from "../../../dto/model/UpdateById.js";
+import type UpdateById from "../../../dto/model/UpdateById.js";
+import type { AiModelEntity, CaptionOnly } from "bymx-core/types";
 
-export const getAllModels: RouteHandlerMethod = async (request, reply) => {
+export const getAllModelsCaptionOnly: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<CaptionOnly[]>();
 
     const models = request.locals.applications.aiModelApplication.getChatModelViewModels();
 
     result.succeeded().setData(models.map(m => ({ id: m.id, caption: m.title, })));
+
+    return reply.status(200).send(result);
+
+};
+
+export const getAllModelsViewModel: RouteHandlerMethod = async (request, reply) => {
+
+    const result = new OperationResultWithData<AiModelEntity.AIModelViewModel[]>();
+
+    const models = request.locals.applications.aiModelApplication.getChatModelViewModels();
+
+    result.succeeded().setData(models);
 
     return reply.status(200).send(result);
 

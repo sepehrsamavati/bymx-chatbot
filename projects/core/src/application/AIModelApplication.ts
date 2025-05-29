@@ -9,6 +9,27 @@ export default class AIModelApplication {
     #aiModelCache;
     #aiModelRepository;
 
+    static #viewModelCostCalculator(model: AIModel): (0 | 1 | 2 | 3 | 4 | 5) {
+        const pmuIoCost = model.pricePmu.input + model.pricePmu.output;
+
+        if (pmuIoCost === 0)
+            return 0;
+
+        if (model.pricePmu.output <= 2)
+            return 1;
+
+        if (model.pricePmu.output <= 3)
+            return 2;
+
+        if (model.pricePmu.output <= 5)
+            return 3;
+
+        if (model.pricePmu.output <= 8)
+            return 4;
+
+        return 5;
+    }
+
     /** Image generate */
     get fluxModelName() {
         return "fal-ai/flux/schnell";
@@ -59,6 +80,7 @@ export default class AIModelApplication {
             .map(model => ({
                 id: model.id,
                 title: model.title,
+                costRatio: AIModelApplication.#viewModelCostCalculator(model),
             }));
     }
 

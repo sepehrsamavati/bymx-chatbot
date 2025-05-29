@@ -28,4 +28,7 @@ export type AIModel = {
 
 export type AIModelDBModel = StoredEntity<AIModel>;
 
-export type AIModelViewModel = Pick<AIModel, 'id' | 'title'>;
+export type AIModelViewModel = Pick<AIModel, 'id' | 'title'> & {
+    /** A number `from 0 to 5`; `0` as free and `5` as very expensive */
+    costRatio: number;
+};

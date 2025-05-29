@@ -1,11 +1,11 @@
 import HttpClient from "../helper/HttpClient";
-import type { AiModelEntity, CaptionOnly } from "bymx-core/types";
+import type { AiModelEntity } from "bymx-core/types";
 import type { OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const modelService = Object.freeze({
     getAll() {
-        return HttpClient.send<OperationResultWithData<CaptionOnly[]>>({
-            path: "/api/v1/model/all",
+        return HttpClient.send<OperationResultWithData<AiModelEntity.AIModelViewModel[]>>({
+            path: "/api/v1/model/allViewModel",
             method: HttpClient.Methods.GET,
         });
     },

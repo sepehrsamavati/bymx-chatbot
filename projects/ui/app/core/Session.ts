@@ -8,7 +8,7 @@ import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { Direction, PaletteMode } from "@mui/material";
 import type { LocalStorage_v4 } from "../types/localStorage";
-import type { CaptionOnly, UserEntity } from "bymx-core/types";
+import type { AiModelEntity, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
 
@@ -99,11 +99,11 @@ export default class Session {
         }
     }
 
-    private _chatModels: CaptionOnly[] = [];
-    public get chatModels(): CaptionOnly[] {
+    private _chatModels: AiModelEntity.AIModelViewModel[] = [];
+    public get chatModels(): AiModelEntity.AIModelViewModel[] {
         return this._chatModels;
     }
-    public set chatModels(v: CaptionOnly[]) {
+    public set chatModels(v: AiModelEntity.AIModelViewModel[]) {
         this._chatModels = v;
     }
 

@@ -124,7 +124,8 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         modelController.addHook('onRequest', jwt);
         modelController.addHook('onRequest', authGuard);
 
-        modelController.get("/all", model.getAllModels);
+        modelController.get("/all", model.getAllModelsCaptionOnly);
+        modelController.get("/allViewModel", model.getAllModelsViewModel);
         modelController.get("/raw", { preValidation: roleGuard([UserType.Admin]) }, model.getAllModelsAdmin);
         modelController.patch("/", { preValidation: [roleGuard([UserType.Admin]), fastifyPayloadValidator(UpdateById)] }, model.updateById);
         modelController.post("/refresh", { preValidation: roleGuard([UserType.Admin]) }, model.refreshModels);
