@@ -1,7 +1,7 @@
 import OpenAI from "openai";
+import { ProxyAgent } from "undici";
 import config from "../../config.js";
 import { logger } from "../../helpers/logger.js";
-import { HttpsProxyAgent } from 'https-proxy-agent';
 import { isChatCompletionStream } from "../../helpers/isStream.js";
 import type { IOpenAIRequest, IOpenAITextResult, IOpenRouterService, StreamingChatResponseReader } from "../../types/contracts/services.js";
 
@@ -13,7 +13,9 @@ export default class OpenRouterService implements IOpenRouterService {
         apiKey: config.openRouter.apiToken,
         maxRetries: config.openAiClient.retries,
         timeout: config.openAiClient.timeout,
-        httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
+        fetchOptions: {
+            dispatcher: config.httpProxyUri ? new ProxyAgent(config.httpProxyUri) : undefined
+        }
     });
 
     async #streamChatCompletion(opts: OpenAI.Chat.ChatCompletionCreateParams, streamReader: StreamingChatResponseReader) {
@@ -147,7 +149,7 @@ export default class OpenRouterService implements IOpenRouterService {
         //         ]
         //     });
         // else
-        _messages.push({ role: 'user', content: _systemMessage ? `System message: ${_systemMessage};\nUser message: ${inputMessage}`: inputMessage });
+        _messages.push({ role: 'user', content: _systemMessage ? `System message: ${_systemMessage};\nUser message: ${inputMessage}` : inputMessage });
 
         const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {};
 

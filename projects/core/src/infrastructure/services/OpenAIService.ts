@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import OpenAI from "openai";
+import { ProxyAgent } from "undici";
 import config from "../../config.js";
-import { HttpsProxyAgent } from 'https-proxy-agent';
 import { errorLogger, logger } from "../../helpers/logger.js";
 import { isChatCompletionStream } from "../../helpers/isStream.js";
 import { OperationResult } from "../../common/dto/OperationResult.js";
@@ -14,7 +14,9 @@ export default class OpenAIService implements IOpenAIService {
         apiKey: config.openAI.apiToken,
         maxRetries: config.openAiClient.retries,
         timeout: config.openAiClient.timeout,
-        httpAgent: config.httpProxyUri ? new HttpsProxyAgent(config.httpProxyUri) : undefined,
+        fetchOptions: {
+            dispatcher: config.httpProxyUri ? new ProxyAgent(config.httpProxyUri) : undefined
+        }
     });
 
     async #streamChatCompletion(opts: OpenAI.Chat.ChatCompletionCreateParams, streamReader: StreamingChatResponseReader) {
@@ -207,7 +209,7 @@ export default class OpenAIService implements IOpenAIService {
         const result = new OperationResult().failed();
 
         try {
-            const res = await this.#client.files.del(id);
+            const res = await this.#client.files.delete(id);
 
             if (res.deleted)
                 result.succeeded();
@@ -222,7 +224,7 @@ export default class OpenAIService implements IOpenAIService {
         const result = new OperationResult().failed();
 
         try {
-            const res = await this.#client.vectorStores.del(id);
+            const res = await this.#client.vectorStores.delete(id);
 
             if (res.deleted)
                 result.succeeded();
@@ -244,7 +246,7 @@ export default class OpenAIService implements IOpenAIService {
                 user: userId
             });
 
-            if (res.data.length) {
+            if (res.data?.length) {
                 const url = res.data.at(0)?.url;
                 if (!url)
                     return null;
