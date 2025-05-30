@@ -12,13 +12,13 @@ import { stringHelper, UIText } from "bymx-core/shared";
 import DataObject from "@mui/icons-material/DataObject";
 import Restaurant from "@mui/icons-material/Restaurant";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
-import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import MessageBubble from "~/components/chat/messageBubble";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
 type ChatMessage = PromptViewModel & {
@@ -505,7 +505,7 @@ export default function Chat() {
                                 <MessageBubble attachmentFilename={message.attachmentFilename} text={message.input} />
                             </Card>
                         </Box>
-                        <Box marginInline={1} marginBottom={8}>
+                        <Box marginInline={1} marginBottom={2}>
                             <Box sx={{ backgroundColor: "transparent", borderRadius: 10, display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
                                 <MessageBubble
                                     pointUsage={message.points} text={message.output} date={new Date(message.outputDate)} modelTitle={message.modelTitle}
@@ -522,7 +522,7 @@ export default function Chat() {
                                 <MessageBubble text={currentlyGeneratingMessage.input} />
                             </Card>
                         </Box>
-                        <Box marginInline={1} marginBottom={8}>
+                        <Box marginInline={1} marginBottom={2}>
                             <Box sx={{ backgroundColor: "transparent", display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
                                 <MessageBubble text={currentlyGeneratingMessage.output} />
                             </Box>

@@ -62,6 +62,8 @@ function Actions(props?: {
     onRegenerate?: () => void;
 }) {
     const session = useSession();
+    const [showRegenerateConfirm, setShowRegenerateButtonConfirm] = useState(false);
+    const regenerateButtonRef = useRef<HTMLElement | null>(null);
 
     const _menu = (
         <Menu
@@ -74,34 +76,6 @@ function Actions(props?: {
                     e.preventDefault();
                     props.handleClose();
                 }
-            }}
-            slotProps={{
-                paper: {
-                    elevation: 0,
-                    sx: {
-                        overflow: 'visible',
-                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                        mt: 1.5,
-                        '& .MuiAvatar-root': {
-                            width: 32,
-                            height: 32,
-                            ml: -0.5,
-                            mr: 1,
-                        },
-                        '&::before': {
-                            content: '""',
-                            display: 'block',
-                            position: 'absolute',
-                            top: 0,
-                            insetInlineStart: "50%",
-                            width: 10,
-                            height: 10,
-                            bgcolor: 'background.paper',
-                            transform: 'translateY(-50%) translateX(-50%) rotate(45deg)',
-                            zIndex: 0,
-                        },
-                    },
-                },
             }}
             transformOrigin={{ horizontal: 'center', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
@@ -148,9 +122,52 @@ function Actions(props?: {
                         <IconButton onClick={props?.onFullscreenView} sx={{ fontSize: "inherit" }}>
                             <OpenInFull fontSize="inherit" />
                         </IconButton>
-                        <IconButton onClick={props?.onRegenerate} sx={{ fontSize: "inherit" }}>
+                        <IconButton ref={regenerateButtonRef} component="span" onClick={() => setShowRegenerateButtonConfirm(true)} sx={{ fontSize: "inherit" }}>
                             <AutoMode fontSize="inherit" />
                         </IconButton>
+
+                        <Menu
+                            anchorEl={regenerateButtonRef.current}
+                            open={showRegenerateConfirm}
+                            onClose={() => setShowRegenerateButtonConfirm(false)}
+                            slotProps={{
+                                paper: {
+                                    elevation: 0,
+                                    sx: {
+                                        overflow: 'visible',
+                                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                                        mt: 0.5,
+                                        '& .MuiAvatar-root': {
+                                            width: 32,
+                                            height: 32,
+                                            ml: -0.5,
+                                            mr: 1,
+                                        },
+                                        '&::before': {
+                                            content: '""',
+                                            display: 'block',
+                                            position: 'absolute',
+                                            top: 0,
+                                            insetInlineStart: "50%",
+                                            width: 10,
+                                            height: 10,
+                                            bgcolor: 'background.paper',
+                                            transform: 'translateY(-50%) translateX(-50%) rotate(45deg)',
+                                            zIndex: 0,
+                                        },
+                                    },
+                                },
+                            }}
+                            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+                            anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+                        >
+                            <MenuItem onClick={props?.onRegenerate}>
+                                <ListItemIcon>
+                                    <AutoMode fontSize="small" />
+                                </ListItemIcon>
+                                {session.uiText.regenerate}
+                            </MenuItem>
+                        </Menu>
                     </Stack>
                 </Box>
             ) : null}
@@ -209,14 +226,15 @@ export default function MessageBubble(props?: {
     const copyToClipboardHandler = useCallback(() => {
         copyToClipboard(props?.text ?? "")
             .then(ok => {
-                session.snackbarProvider(ok ? session.uiText.copied : session.uiText.errorOccurred, {
-                    variant: ok ? "success" : "error",
-                    autoHideDuration: 2e3,
-                    anchorOrigin: {
-                        horizontal: "center",
-                        vertical: "bottom"
-                    }
-                });
+                if (!ok)
+                    session.snackbarProvider(session.uiText.errorOccurred, {
+                        variant: "error",
+                        autoHideDuration: 2e3,
+                        anchorOrigin: {
+                            horizontal: "center",
+                            vertical: "bottom"
+                        }
+                    });
             });
     }, [props, session]);
 
