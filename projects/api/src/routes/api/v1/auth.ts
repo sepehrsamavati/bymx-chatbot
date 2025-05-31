@@ -1,11 +1,31 @@
 import { UserEntity } from "bymx-core/types";
 import { config, crypto } from "bymx-core/server";
 import type { RouteHandlerMethod } from "fastify";
+import { type CookieSerializeOptions } from "@fastify/cookie";
 import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
 import sendMessageToUser from "bymx-tg-endpoint/sendMessageToUser";
 import TelegramOtpLogin from "../../../dto/user/TelegramOtpLogin.js";
 import TelegramOtpRequest from "../../../dto/user/TelegramOtpRequest.js";
 import { OperationResult, OperationResultWithData, stringHelper, UIText } from "bymx-core/shared";
+
+const setCookieOptions = {
+    accessToken: {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        domain: config.apiServer.domain,
+        maxAge: 900 // 15 minutes
+    } as CookieSerializeOptions,
+    refreshToken: {
+        path: '/api/v1/auth/refresh',
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        domain: config.apiServer.domain,
+        maxAge: 5184000 // 60 days
+    } as CookieSerializeOptions,
+};
 
 export const telegramAuth: RouteHandlerMethod = async function (request, reply) {
 
@@ -83,23 +103,8 @@ export const telegramAuth: RouteHandlerMethod = async function (request, reply) 
             { expiresIn: '60d' } // Long-lived
         );
 
-        reply.setCookie(config.apiServer.accessTokenCookieKey, accessToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            domain: config.apiServer.domain,
-            maxAge: 900 // 15 minutes
-        });
-
-        reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, {
-            path: '/api/v1/auth/refresh',
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            domain: config.apiServer.domain,
-            maxAge: 5184000 // 60 days
-        });
+        reply.setCookie(config.apiServer.accessTokenCookieKey, accessToken, setCookieOptions.accessToken);
+        reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, setCookieOptions.refreshToken);
     }
     else
         result.failed("userNotFound");
@@ -174,23 +179,8 @@ export const telegramOtpAuth: RouteHandlerMethod = async function (request, repl
             { expiresIn: '60d' } // Long-lived
         );
 
-        reply.setCookie(config.apiServer.accessTokenCookieKey, accessToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            domain: config.apiServer.domain,
-            maxAge: 900 // 15 minutes
-        });
-
-        reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, {
-            path: '/api/v1/auth/refresh',
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            domain: config.apiServer.domain,
-            maxAge: 5184000 // 60 days
-        });
+        reply.setCookie(config.apiServer.accessTokenCookieKey, accessToken, setCookieOptions.accessToken);
+        reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, setCookieOptions.refreshToken);
 
         result.succeeded().setData(userInfo);
     }
@@ -243,14 +233,7 @@ export const refreshAccessToken: RouteHandlerMethod = async function (request, r
         { expiresIn: '15m' }
     );
 
-    reply.setCookie(config.apiServer.accessTokenCookieKey, newAccessToken, {
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        domain: config.apiServer.domain,
-        maxAge: 900 // 15 minutes
-    });
+    reply.setCookie(config.apiServer.accessTokenCookieKey, newAccessToken, setCookieOptions.accessToken);
 
     result.succeeded();
 
