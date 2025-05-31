@@ -93,7 +93,7 @@ export const telegramAuth: RouteHandlerMethod = async function (request, reply) 
         });
 
         reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, {
-            path: '/',
+            path: '/api/v1/auth/refresh',
             httpOnly: true,
             secure: true,
             sameSite: "strict",
@@ -184,7 +184,7 @@ export const telegramOtpAuth: RouteHandlerMethod = async function (request, repl
         });
 
         reply.setCookie(config.apiServer.refreshTokenCookieKey, refreshToken, {
-            path: '/',
+            path: '/api/v1/auth/refresh',
             httpOnly: true,
             secure: true,
             sameSite: "strict",
