@@ -256,14 +256,16 @@ function Header() {
                     maxWidth="360px"
                 >
                     <ProfileInfo />
-                    <Box padding={2}>
-                        <DrawerItem title={session.uiText.language}>
+                    <Box padding={2} paddingTop={0}>
+                        <DrawerItem title={null}>
                             <FormControl
                                 component="div"
                                 size="small"
+                                fullWidth
                             >
-                                <InputLabel size="small">{session.uiText.language}</InputLabel>
+                                <InputLabel size="small">🌐 {session.uiText.language}</InputLabel>
                                 <Select
+                                    fullWidth
                                     disabled={languageChangeLock}
                                     size="small"
                                     sx={{
@@ -272,19 +274,19 @@ function Header() {
                                     }}
                                     onChange={handleLanguageChange}
                                     value={session.localStorage.data.language}
-                                    label={session.uiText.language}
+                                    label={`🌐 ${session.uiText.language}`}
                                 >
                                     {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </DrawerItem>
-                        <Box marginBlock={3} textAlign="center">
+                        <Box marginBlock={2} textAlign="center">
                             <IconButton
                                 color="inherit"
                                 onClick={toggleTheme}
                             >{changeThemeIcon}</IconButton>
                         </Box>
-                        <Box marginBlock={3} textAlign="center">
+                        <Box marginBlock={8} textAlign="center">
                             <Button
                                 fullWidth
                                 color="error"
@@ -292,7 +294,7 @@ function Header() {
                                 onClick={() => session.signOut()}
                             >{session.uiText.logout}</Button>
                         </Box>
-                        <Box marginBlock={15} textAlign="center">
+                        <Box marginTop={5} textAlign="center">
                             <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
                                 <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
                             </Box>
