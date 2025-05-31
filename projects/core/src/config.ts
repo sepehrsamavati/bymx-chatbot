@@ -43,9 +43,13 @@ const config = {
         staticPaymentReceiptChatId: process.env.BYMX_STATIC_PAYMENT_TG_RECEIPT_CHAT_ID ?? "",
     },
     apiServer: {
+        domain: "",
         port: Number.parseInt(process.env.BYMX_API_SERVER_PORT ?? "3017"),
         baseAddress: process.env.BYMX_API_SERVER_BASE_ADDRESS ?? "",
         cookieKey: "Auth",
+        accessTokenCookieKey: "access_token",
+        refreshTokenCookieKey: "refresh_token",
+        sessionSecretHexKey: process.env.BYMX_API_SERVER_SESSION_COOKIE_SIGN_KEY || "",
         tokenSignSecret: process.env.BYMX_API_SERVER_COOKIE_SIGN_SECRET || "",
     },
     fileUploadLimit: {
@@ -83,6 +87,14 @@ const config = {
     }
 };
 
+configError(
+    "API server base address is not defined/valid URL",
+    !URL.canParse(config.apiServer.baseAddress)
+);
+
+config.apiServer.domain = config.isDevelopment ? 'localhost' : new URL(config.apiServer.baseAddress).host;
+
+// Freeze Start
 for (const key of Object.keys(config)) {
     const value = config[key as keyof typeof config];
     if (value && typeof value === "object")
@@ -90,15 +102,11 @@ for (const key of Object.keys(config)) {
 }
 
 Object.freeze(config);
+// Freeze End
 
 configError(
     "API server port is not valid (1-65535 integer range)",
     !Number.isInteger(config.apiServer.port) || config.apiServer.port <= 0 || config.apiServer.port > 65535
-);
-
-configError(
-    "API server base address is not defined/valid URL",
-    !URL.canParse(config.apiServer.baseAddress)
 );
 
 configError(

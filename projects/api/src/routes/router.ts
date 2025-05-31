@@ -27,6 +27,7 @@ import { fastifyPayloadValidator } from "../middlewares/dtoValidator.js";
 import ChatDeleteMessagesAfter from '../dto/chat/ChatDeleteMessagesAfter.js';
 
 import * as file from './api/v1/file.js';
+import * as auth from "./api/v1/auth.js";
 import * as user from "./api/v1/user.js";
 import * as chat from "./api/v1/chat.js";
 import * as model from "./api/v1/model.js";
@@ -54,7 +55,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
             prefix: httpServerUrls.v1.baseAddress + "/ws"
         })
             .after(() => {
-                setWsHandlers(wsController);
+                setWsHandlers(fastifyInstance, wsController);
             });
 
         next();
@@ -76,14 +77,16 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         next();
     }, { prefix: httpServerUrls.v1.baseAddress + "/file" });
 
-    fastifyInstance.register((userControllerNoAuth, _, next) => {
+    fastifyInstance.register((authController, _, next) => {
 
-        userControllerNoAuth.post("/tgAuth", { preValidation: fastifyPayloadValidator(TelegramAuth) }, user.telegramAuth);
-        userControllerNoAuth.post("/tgOtp", { preValidation: fastifyPayloadValidator(TelegramOtpRequest) }, user.sendTelegramOtp);
-        userControllerNoAuth.post("/tgOtpAuth", { preValidation: fastifyPayloadValidator(TelegramOtpLogin) }, user.telegramOtpAuth);
+        authController.post("/tgAuth", { preValidation: fastifyPayloadValidator(TelegramAuth) }, auth.telegramAuth);
+        authController.post("/tgOtp", { preValidation: fastifyPayloadValidator(TelegramOtpRequest) }, auth.sendTelegramOtp);
+        authController.post("/tgOtpAuth", { preValidation: fastifyPayloadValidator(TelegramOtpLogin) }, auth.telegramOtpAuth);
+        authController.post("/logout", auth.logout);
+        authController.post("/refresh", auth.refreshAccessToken);
 
         next();
-    }, { prefix: httpServerUrls.v1.baseAddress + "/user" });
+    }, { prefix: httpServerUrls.v1.baseAddress + "/auth" });
 
     fastifyInstance.register((userController, _, next) => {
 

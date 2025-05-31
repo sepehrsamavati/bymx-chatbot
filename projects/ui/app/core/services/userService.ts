@@ -5,7 +5,7 @@ import type { IOperationResult, IOperationResultWithData, UserEntity } from "bym
 const userService = Object.freeze({
     telegramAuth(initData: string) {
         return HttpClient.send<IOperationResultWithData<UserEntity.UserViewModel>>({
-            path: "/api/v1/user/tgAuth",
+            path: "/api/v1/auth/tgAuth",
             method: HttpClient.Methods.POST,
             body: { initData },
         });
@@ -31,14 +31,14 @@ const userService = Object.freeze({
     },
     requestTelegramOtp(phoneNumber: string) {
         return HttpClient.send<IOperationResult>({
-            path: "/api/v1/user/tgOtp",
+            path: "/api/v1/auth/tgOtp",
             method: HttpClient.Methods.POST,
             body: { phoneNumber }
         });
     },
     telegramOtpAuth(phoneNumber: string, otp: string) {
         return HttpClient.send<IOperationResultWithData<UserEntity.UserViewModel>>({
-            path: "/api/v1/user/tgOtpAuth",
+            path: "/api/v1/auth/tgOtpAuth",
             method: HttpClient.Methods.POST,
             body: { phoneNumber, otp }
         });
@@ -50,11 +50,10 @@ const userService = Object.freeze({
             body: dto,
         });
     },
-    /** @todo */
     logout() {
-        return HttpClient.send<null>({
-            path: "/api/v1/user/logout",
-            method: HttpClient.Methods.GET
+        return HttpClient.send<OperationResult>({
+            path: "/api/v1/auth/logout",
+            method: HttpClient.Methods.POST,
         });
     },
 });

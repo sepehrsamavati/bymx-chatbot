@@ -160,28 +160,22 @@ export default class Session {
 
     public requestSideMenuOpen?: () => void;
 
-    /** @todo */
     public async signOut() {
-        this.localStorage.data.isLoggedIn = false;
-        this.localStorage.rewrite();
-        return true;
-        // if (this._signOutLock) return;
-        // this._signOutLock = true;
+        if (this._signOutLock) return;
+        this._signOutLock = true;
 
-        // const res = await userService.logout();
+        const { result } = await userService.logout();
 
-        // if (res.data?.isSucceeded) {
-        //     this.localStorage.data.isLoggedIn = false;
-        //     this.localStorage.rewrite();
-        //     this.user = undefined;
-        //     window.location.reload();
-        // } else {
-        //     // this.snackbarProvider(res.data?.message, { variant: "error" });
-        // }
+        if (result?.ok) {
+            this.localStorage.data.isLoggedIn = false;
+            this.localStorage.rewrite();
+            this.user = undefined;
+            window.location.reload();
+        }
 
-        // this._signOutLock = false;
+        this._signOutLock = false;
 
-        // return res.data?.isSucceeded;
+        return result?.ok;
     }
 
     public readonly themeManager;
