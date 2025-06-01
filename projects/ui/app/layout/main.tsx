@@ -10,21 +10,21 @@ import Close from "@mui/icons-material/Close";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
-import { getLanguageList } from "~/core/i18n/i18n";
 import CssBaseline from '@mui/material/CssBaseline';
+import Settings from "@mui/icons-material/Settings";
 import DarkMode from "@mui/icons-material/DarkMode";
-import chatService from "~/core/services/chatService";
 import LightMode from "@mui/icons-material/LightMode";
+import chatService from "~/core/services/chatService";
 import userService from "~/core/services/userService";
 import CreditCard from "@mui/icons-material/CreditCard";
 import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
+import { stringHelper, UserType } from "bymx-core/shared";
 import bymxHeader from "../assets/images/baymax_header.png";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import ExpandCircleDown from "@mui/icons-material/ExpandCircleDown";
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
-import { Box, ButtonGroup, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Modal, Select, Skeleton, Switch, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Chip, Divider, Drawer, Modal, Skeleton, TextField, Typography } from "@mui/material";
 
 const generateChatsTitle = (
     chatIds: string[],
@@ -309,51 +309,7 @@ function ProfileInfo() {
     const session = useSession();
     const navigate = useNavigate();
     const [data, setData] = useState<UserEntity.UserInfoViewModel | undefined>(session.cacheStorage.profileInfo?.data);
-    const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const fetchDataLock = useRef(false);
-    const [languageChangeLock, setLanguageChangeLock] = useState(false);
-    const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
-
-    const toggleTheme = useCallback(() => {
-        const newThemeName = session.themeManager.name === 'light' ? 'dark' : 'light';
-        session.themeManager.set(newThemeName);
-        setChangeThemeIcon(newThemeName === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
-    }, [session]);
-
-    const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
-        if (memoryAmountChangeLock) return;
-        const memoryAmount = event.target.value as AIChatHistoryMemory;
-        setMemoryAmountChangeLock(true);
-        userService
-            .setMemoryAmount({ amount: memoryAmount })
-            .then(res => {
-                if (res.result?.ok && session.user) {
-                    session.user.memoryAmount = memoryAmount;
-                    session.user.saveMessages = memoryAmount !== AIChatHistoryMemory.None;
-                }
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => {
-                setMemoryAmountChangeLock(false);
-            });
-    }, [memoryAmountChangeLock, session]);
-
-    const handleLanguageChange = useCallback((event: SelectChangeEvent<string>) => {
-        const langCode = event.target.value as UIText.LangCode;
-        setLanguageChangeLock(true);
-        userService
-            .changeLanguage(langCode)
-            .then(res => {
-                if (res.result?.ok)
-                    session.languageChange(langCode);
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => {
-                setLanguageChangeLock(false);
-            });
-    }, [session]);
 
     useEffect(() => {
         if (fetchDataLock.current) return;
@@ -390,17 +346,7 @@ function ProfileInfo() {
                 </DrawerItem>
             </RoleHoc>
 
-            <DrawerItem title={null}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Typography dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"} whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">{fullname || <Skeleton width={80} />}</Typography>
-                    <Box textAlign="center">
-                        <IconButton
-                            color="inherit"
-                            onClick={toggleTheme}
-                        >{changeThemeIcon}</IconButton>
-                    </Box>
-                </Stack>
-            </DrawerItem>
+            <DrawerItem title={<Typography dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"} whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">{fullname || <Skeleton width={80} />}</Typography>} />
 
             <Divider variant="middle" flexItem />
 
@@ -424,7 +370,7 @@ function ProfileInfo() {
                     </Box>
                 ) : <Skeleton width={80} />}
             </DrawerItem>
-            {/* ) : null} */}
+
             <DrawerItem
                 title={
                     <Button size="small" type="button" variant="text" color="inherit" startIcon={<CreditCard sx={{ mb: '2px' }} />}>
@@ -451,65 +397,23 @@ function ProfileInfo() {
                 ) : <Skeleton width={80} />}
             </DrawerItem>
             <Divider variant="middle" flexItem />
-
-            <DrawerItem title={null}>
-                <Stack direction="row" gap={0.5} alignItems="center">
-                    <FormControl
-                        fullWidth
-                        size="small"
-                        component="div"
-                    >
-                        <InputLabel size="small">{session.uiText.memory}</InputLabel>
-                        <Select
-                            disabled={memoryAmountChangeLock}
-                            size="small"
-                            sx={{
-                                borderRadius: 50,
-                            }}
-                            onChange={handleMemoryAmountChange}
-                            value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
-                            label={session.uiText.memory}
-                        >
-                            <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
-                            <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <FormControl
-                        fullWidth
-                        size="small"
-                        component="div"
-                    >
-                        <InputLabel size="small">🌐 {session.uiText.language}</InputLabel>
-                        <Select
-                            disabled={languageChangeLock}
-                            size="small"
-                            sx={{
-                                borderRadius: 50,
-                            }}
-                            onChange={handleLanguageChange}
-                            value={session.localStorage.data.language}
-                            label={`🌐 ${session.uiText.language}`}
-                        >
-                            {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                </Stack>
-            </DrawerItem>
-
-            <Divider variant="middle" flexItem />
         </Box>
     );
 }
 
 function Header() {
     const session = useSession();
+    const navigate = useNavigate();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
-    const [showExperimentalFeaturesSwitch, setShowExperimentalFeaturesSwitch] = useState(false);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
-    const [experimentalFeatures, setExperimentalFeatures] = useState(session.localStorage.data.experimentalFeatures);
+    const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
+
+    const toggleTheme = useCallback(() => {
+        const newThemeName = session.themeManager.name === 'light' ? 'dark' : 'light';
+        session.themeManager.set(newThemeName);
+        setChangeThemeIcon(newThemeName === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
+    }, [session]);
 
     useEffect(() => {
         session.requestSideMenuOpen = () => setMenuIsOpen(true);
@@ -569,6 +473,29 @@ function Header() {
                 >
                     <ProfileInfo />
 
+                    <Stack paddingInline={2} marginBottom={5} direction="row" alignItems="center" gap={1}>
+                        <Button
+                            fullWidth
+                            size="small"
+                            startIcon={<Settings />}
+                            variant="outlined"
+                            color="inherit"
+                            sx={{
+                                borderRadius: 50
+                            }}
+                            onClick={() => {
+                                navigate("/ui/settings");
+                                setMenuIsOpen(false);
+                            }}
+                        >{session.uiText.settings}</Button>
+                        <Box textAlign="center">
+                            <IconButton
+                                color="inherit"
+                                onClick={toggleTheme}
+                            >{changeThemeIcon}</IconButton>
+                        </Box>
+                    </Stack>
+
                     <Chats afterNavigate={closeMenuRequestHandler} />
 
                     <Box marginTop={15} />
@@ -579,29 +506,6 @@ function Header() {
                             variant="outlined"
                             onClick={() => session.signOut()}
                         >{session.uiText.logout}</Button>
-                    </Box>
-
-                    <Box marginBlock={2} textAlign="center">
-                        <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
-                            <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
-                        </Box>
-                        {showExperimentalFeaturesSwitch ? (
-                            <Box marginTop={2}>
-                                <FormControlLabel
-                                    label={session.uiText.experimentalFeatures}
-                                    control={(
-                                        <Switch
-                                            checked={experimentalFeatures}
-                                            onClick={() => {
-                                                session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
-                                                session.localStorage.rewrite();
-                                                setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
-                                            }}
-                                        />
-                                    )}
-                                />
-                            </Box>
-                        ) : null}
                     </Box>
                 </Box>
             </Drawer>

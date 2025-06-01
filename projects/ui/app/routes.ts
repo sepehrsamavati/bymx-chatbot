@@ -19,6 +19,7 @@ export default [
                 route("/chats", "./routes/chats.tsx"),
                 route("/imageGenerate", "./routes/imageGenerate.tsx"),
                 route("/chat/:chatId", "./routes/chat.tsx"),
+                route("/settings", "./routes/settings.tsx"),
 
                 ...prefix("admin", [
                     index("./routes/admin/index.tsx"),
