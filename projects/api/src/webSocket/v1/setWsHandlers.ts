@@ -1,9 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { config, logger } from 'bymx-core/server';
 import { Api, UserEntity } from 'bymx-core/types';
-import type { FastifyPluginCallback } from "fastify";
-import { validateToken } from '../../helpers/jwtHelper.js';
-import { extractCookies } from '../../helpers/cookieHelper.js';
+import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import type { WebSocket, WebsocketHandler } from "@fastify/websocket";
 
 type SocketConnectionContext = {
@@ -18,7 +16,7 @@ const MAX_CONNECTIONS_PER_USER = 5;
 
 export const getSocketById = (id: string) => socketStorage.get(id);
 
-export const setWsHandlers = (controller: Parameters<FastifyPluginCallback>['0']) => {
+export const setWsHandlers = (fastifyInstance: FastifyInstance, controller: Parameters<FastifyPluginCallback>['0']) => {
 
     controller
         .get("/", { websocket: true }, () => null);
@@ -26,12 +24,20 @@ export const setWsHandlers = (controller: Parameters<FastifyPluginCallback>['0']
     controller
         .websocketServer
         .on("connection", async (socket: Parameters<WebsocketHandler>[0], request: Parameters<WebsocketHandler>[1]) => {
-            const authToken = extractCookies(request.headers.cookie)?.find(c => c.key === config.apiServer.cookieKey)?.value;
-
-            if (!authToken)
+            if (!request.headers.cookie)
                 return socket.close();
 
-            const payload = await validateToken(authToken, config.apiServer.tokenSignSecret);
+            const cookies = fastifyInstance.parseCookie(request.headers.cookie);
+            const accessToken = cookies[config.apiServer.accessTokenCookieKey];
+
+            if (!accessToken)
+                return socket.close();
+
+            const payload = fastifyInstance.jwt.verify(accessToken);
+
+            console.log("\n\n\n")
+            console.log(payload)
+            console.log("\n\n\n")
 
             if (!payload)
                 return socket.close();

@@ -1,5 +1,7 @@
 import "reflect-metadata";
 import Fastify from 'fastify';
+import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
 import { setRoutes } from "./routes/router.js";
 import { config, IServices, logger } from "bymx-core/server";
 
@@ -15,7 +17,7 @@ export default class HttpServer {
     #init() {
         const coreServices = this.services.core;
 
-        this.#fastify.addHook('onRequest', function (req, res, done) {
+        this.#fastify.addHook('onRequest', (req, res, done) => {
             const scope = coreServices.createApplicationScope();
 
             req.locals = {
@@ -31,6 +33,8 @@ export default class HttpServer {
             done();
         });
 
+        this.#setupAuth();
+
         setRoutes(this.#fastify);
 
         this.#fastify.listen({
@@ -39,5 +43,19 @@ export default class HttpServer {
             .then(() => {
                 logger.info("Server started");
             });
+    }
+
+    #setupAuth() {
+        this.#fastify.register(fastifyCookie)
+
+        this.#fastify.register(fastifyJwt, {
+            secret: config.apiServer.tokenSignSecret,
+            cookie: {
+                cookieName: config.apiServer.accessTokenCookieKey,
+                signed: true
+            },
+            verify: { extractToken: (req) => req.cookies[config.apiServer.accessTokenCookieKey] },
+            decode: { complete: true },
+        });
     }
 }

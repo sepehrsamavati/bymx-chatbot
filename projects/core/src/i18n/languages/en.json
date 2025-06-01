@@ -282,5 +282,6 @@
     "copied": "Copied",
     "selectText": "Select text",
     "regenerate": "Regenerate",
-    "fullscreenView": "Fullscreen view"
+    "fullscreenView": "Fullscreen view",
+    "logout": "Logout"
 }

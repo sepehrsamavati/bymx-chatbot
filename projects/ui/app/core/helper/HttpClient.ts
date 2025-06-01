@@ -1,6 +1,6 @@
 import type Session from "../Session";
 import type { I18nKey } from "../i18n/i18n";
-import { stringHelper } from "bymx-core/shared";
+import { type OperationResult, stringHelper } from "bymx-core/shared";
 
 enum HttpMethods {
     GET, POST, PUT, PATCH, DELETE
@@ -53,7 +53,27 @@ export default abstract class HttpClient {
 
         for (let tryNumber = 1; tryNumber <= 3; tryNumber++) {
             result = await this._send<ResponseType>(config);
-            if (![500, 504].includes(result.status))
+            if (result.status === 401) {
+                const refreshTokenResult = await this._send<OperationResult>(
+                    this.generateRequestConfig({
+                        path: "/api/v1/auth/refresh",
+                        method: HttpMethods.POST,
+                    })
+                );
+
+                if (!refreshTokenResult.result?.ok) {
+                    if (HttpClient.session) {
+                        HttpClient.session.localStorage.data.isLoggedIn = false;
+                        HttpClient.session.localStorage.rewrite();
+                        await HttpClient.session.signOut();
+                    }
+                    window.location.reload();
+                    break;
+                }
+
+                continue; // retry
+            }
+            else if (![500, 504].includes(result.status))
                 break;
             else
                 await new Promise(r => setTimeout(r, 1e3));
@@ -148,13 +168,11 @@ export default abstract class HttpClient {
                 path: config.requestPath
             });
 
-        if (rawResponse.status === 401) {
-            if (HttpClient.session) {
-                HttpClient.session.localStorage.data.isLoggedIn = false;
-                HttpClient.session.localStorage.rewrite();
-            }
-            window.location.reload();
-        }
+        if (rawResponse.status === 401)
+            return {
+                result: null,
+                status: 401,
+            };
 
         if (rawResponse.status === 500)
             HttpClient.session?.snackbarProvider(HttpClient.session.uiText.errorOccurred, { variant: "error" });

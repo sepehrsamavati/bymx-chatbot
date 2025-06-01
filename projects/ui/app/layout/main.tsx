@@ -1,24 +1,23 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import Stack from "@mui/material/Stack";
-import { Link, Outlet, useNavigate } from "react-router";
+import RoleHoc from "~/components/roleHoc";
 import Menu from "@mui/icons-material/Menu";
 import { useSession } from "~/core/Session";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
 import type { UserEntity } from "bymx-core/types";
+import { getLanguageList } from "~/core/i18n/i18n";
 import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import userService from "~/core/services/userService";
-import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
 import CreditCard from "@mui/icons-material/CreditCard";
+import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
+import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
 import { Box, Button, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Skeleton, Switch, Typography, type SelectChangeEvent } from "@mui/material";
-import { getLanguageList } from "~/core/i18n/i18n";
-import chatService from "~/core/services/chatService";
-import RoleHoc from "~/components/roleHoc";
 
 function DrawerItem(props?: {
     title?: React.ReactNode;
@@ -257,14 +256,16 @@ function Header() {
                     maxWidth="360px"
                 >
                     <ProfileInfo />
-                    <Box padding={2}>
-                        <DrawerItem title={session.uiText.language}>
+                    <Box padding={2} paddingTop={0}>
+                        <DrawerItem title={null}>
                             <FormControl
                                 component="div"
                                 size="small"
+                                fullWidth
                             >
-                                <InputLabel size="small">{session.uiText.language}</InputLabel>
+                                <InputLabel size="small">🌐 {session.uiText.language}</InputLabel>
                                 <Select
+                                    fullWidth
                                     disabled={languageChangeLock}
                                     size="small"
                                     sx={{
@@ -273,19 +274,27 @@ function Header() {
                                     }}
                                     onChange={handleLanguageChange}
                                     value={session.localStorage.data.language}
-                                    label={session.uiText.language}
+                                    label={`🌐 ${session.uiText.language}`}
                                 >
                                     {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </DrawerItem>
-                        <Box marginBlock={3} textAlign="center">
+                        <Box marginBlock={2} textAlign="center">
                             <IconButton
                                 color="inherit"
                                 onClick={toggleTheme}
                             >{changeThemeIcon}</IconButton>
                         </Box>
-                        <Box marginBlock={15} textAlign="center">
+                        <Box marginBlock={8} textAlign="center">
+                            <Button
+                                fullWidth
+                                color="error"
+                                variant="text"
+                                onClick={() => session.signOut()}
+                            >{session.uiText.logout}</Button>
+                        </Box>
+                        <Box marginTop={5} textAlign="center">
                             <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
                                 <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
                             </Box>
@@ -315,7 +324,6 @@ function Header() {
 }
 
 export default function MainLayout() {
-
     return (
         <>
             <CssBaseline />

@@ -206,6 +206,7 @@ export default function Login() {
                                         type="text"
                                         fullWidth
                                         autoFocus
+                                        autoComplete="off"
                                         label={session.uiText.otp}
                                         value={otp}
                                         slotProps={{
