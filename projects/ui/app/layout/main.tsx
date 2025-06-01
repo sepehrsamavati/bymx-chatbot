@@ -20,8 +20,8 @@ import CreditCard from "@mui/icons-material/CreditCard";
 import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
+import ExpandCircleDown from "@mui/icons-material/ExpandCircleDown";
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
 import { Box, ButtonGroup, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Modal, Select, Skeleton, Switch, TextField, Typography, type SelectChangeEvent } from "@mui/material";
@@ -57,12 +57,15 @@ function DrawerItem(props?: {
     );
 }
 
-function Chats() {
+function Chats(props: {
+    afterNavigate: () => void;
+}) {
     const navigate = useNavigate();
     const session = useSession();
     const initialized = useRef(false);
     const isGeneratingChatTitle = useRef(false);
     const latestChatId = useRef<string>(undefined);
+    const isLoadingChats = useRef(false);
     const [loadedAllChats, setLoadedAllChats] = useState(false);
     const [chats, setChats] = useState<CaptionOnly[]>([]);
     const [titleModalOpen, setTitleModalOpen] = useState(false);
@@ -81,13 +84,14 @@ function Chats() {
             .then(res => {
                 if (res.result?.data) {
                     navigate(`/ui/chat/${res.result.data}`);
+                    props.afterNavigate();
                 }
             })
             .finally(() => {
                 setCreatingNewChat(false);
             });
 
-    }, [canCreateNewChat, creatingNewChat]);
+    }, [canCreateNewChat, creatingNewChat, props]);
 
     const disposeSetTitleModal = useCallback(() => {
         setTitleModalOpen(false);
@@ -116,6 +120,8 @@ function Chats() {
     }, [newTitle, disposeSetTitleModal]);
 
     const getChats = useCallback(() => {
+        if (isLoadingChats.current) return;
+        isLoadingChats.current = true;
         chatService
             .getChats(latestChatId.current)
             .then(res => {
@@ -154,7 +160,8 @@ function Chats() {
                         );
                     }
                 }
-            });
+            })
+            .finally(() => isLoadingChats.current = false);
     }, [session]);
 
     useEffect(() => {
@@ -213,21 +220,27 @@ function Chats() {
                 </Box>
             </Modal>
 
-            <Stack direction="column" width="100%" maxWidth="700px" marginTop={5} gap={0.4}>
+            <Box margin={2}>
                 {chats.length === 0 || canCreateNewChat ? (
                     <Button
                         color="success"
                         variant="outlined"
+                        fullWidth
                         onClick={createNewChat}
                         isLoading={creatingNewChat}
                         startIcon={<Add />}
                         disabled={!canCreateNewChat}
                         sx={{
-                            margin: 2,
                             borderRadius: 10,
                         }}
                     >{session.uiText.newChat}</Button>
                 ) : null}
+
+                <Typography marginTop={4}>{session.uiText.chats}</Typography>
+                <Divider />
+            </Box>
+
+            <Stack direction="column" width="100%" maxWidth="700px" gap={0.4}>
 
                 {chats.length === 0 ? new Array(session.localStorage.data.chatCount).fill(null).map((_, index) => (
                     <Box key={index} marginInline={2}>
@@ -248,7 +261,15 @@ function Chats() {
                             }
                         }}
                     >
-                        <Button fullWidth variant="text" color="inherit" onClick={() => navigate(`/ui/chat/${chat.id}`)}>
+                        <Button
+                            fullWidth
+                            variant="text"
+                            color="inherit"
+                            onClick={() => {
+                                navigate(`/ui/chat/${chat.id}`);
+                                props.afterNavigate();
+                            }}
+                        >
                             <Box width="100%" textTransform="initial">{chat.caption || session.uiText.noTitle}</Box>
                         </Button>
                         <Button
@@ -269,7 +290,16 @@ function Chats() {
                     </Stack>
                 ))}
 
-                <Button onClick={getChats} disabled={loadedAllChats}>...</Button>
+                {!loadedAllChats ? (
+                    <Button
+                        variant="text"
+                        onClick={getChats}
+                        color="inherit"
+                        sx={{
+                            borderRadius: 0
+                        }}
+                    ><ExpandCircleDown /></Button>
+                ) : null}
             </Stack>
         </>
     );
@@ -493,6 +523,13 @@ function Header() {
                 open={menuIsOpen}
                 variant="temporary"
                 onClose={closeMenuRequestHandler}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            overflowY: "scroll"
+                        }
+                    }
+                }}
             >
                 <Box
                     width="75vw"
@@ -562,7 +599,7 @@ function Header() {
                         </Box>
                     </Box>
 
-                    <Chats />
+                    <Chats afterNavigate={closeMenuRequestHandler} />
                 </Box>
             </Drawer>
         </header>
