@@ -52,7 +52,7 @@ function DrawerItem(props?: {
     return (
         <Stack marginBlock={1} direction="row" flexWrap="wrap" justifyContent="space-between" alignItems="center">
             <Typography>{props?.title}</Typography>
-            <Box flexGrow={props?.title === null ? 1 : undefined}>{props?.children}</Box>
+            <Box flexGrow={props?.title === null ? 1 : undefined} maxWidth="100%">{props?.children}</Box>
         </Stack>
     );
 }
@@ -311,6 +311,14 @@ function ProfileInfo() {
     const [data, setData] = useState<UserEntity.UserInfoViewModel | undefined>(session.cacheStorage.profileInfo?.data);
     const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const fetchDataLock = useRef(false);
+    const [languageChangeLock, setLanguageChangeLock] = useState(false);
+    const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
+
+    const toggleTheme = useCallback(() => {
+        const newThemeName = session.themeManager.name === 'light' ? 'dark' : 'light';
+        session.themeManager.set(newThemeName);
+        setChangeThemeIcon(newThemeName === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
+    }, [session]);
 
     const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
         if (memoryAmountChangeLock) return;
@@ -330,6 +338,22 @@ function ProfileInfo() {
                 setMemoryAmountChangeLock(false);
             });
     }, [memoryAmountChangeLock, session]);
+
+    const handleLanguageChange = useCallback((event: SelectChangeEvent<string>) => {
+        const langCode = event.target.value as UIText.LangCode;
+        setLanguageChangeLock(true);
+        userService
+            .changeLanguage(langCode)
+            .then(res => {
+                if (res.result?.ok)
+                    session.languageChange(langCode);
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
+            })
+            .finally(() => {
+                setLanguageChangeLock(false);
+            });
+    }, [session]);
 
     useEffect(() => {
         if (fetchDataLock.current) return;
@@ -366,9 +390,20 @@ function ProfileInfo() {
                 </DrawerItem>
             </RoleHoc>
 
-            <DrawerItem title={<span dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"}>{fullname || <Skeleton width={80} />}</span>} />
+            <DrawerItem title={null}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Typography dir={stringHelper.isRtl(fullname) ? "rtl" : "ltr"} whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">{fullname || <Skeleton width={80} />}</Typography>
+                    <Box textAlign="center">
+                        <IconButton
+                            color="inherit"
+                            onClick={toggleTheme}
+                        >{changeThemeIcon}</IconButton>
+                    </Box>
+                </Stack>
+            </DrawerItem>
+
             <Divider variant="middle" flexItem />
-            {/* {data.dailyFreePoints ? ( */}
+
             <DrawerItem
                 title={
                     <Button size="small" type="button" variant="text" color="inherit" startIcon={<OfflineBolt sx={{ mb: '2px' }} />}>
@@ -418,29 +453,49 @@ function ProfileInfo() {
             <Divider variant="middle" flexItem />
 
             <DrawerItem title={null}>
-                <FormControl
-                    fullWidth
-                    margin="dense"
-                    component="div"
-                    size="small"
-                >
-                    <InputLabel size="small">{session.uiText.memory}</InputLabel>
-                    <Select
-                        disabled={memoryAmountChangeLock}
+                <Stack direction="row" gap={0.5} alignItems="center">
+                    <FormControl
+                        fullWidth
                         size="small"
-                        sx={{
-                            borderRadius: 50,
-                        }}
-                        onChange={handleMemoryAmountChange}
-                        value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
-                        label={session.uiText.memory}
+                        component="div"
                     >
-                        <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
-                        <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
-                        <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
-                        <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
-                    </Select>
-                </FormControl>
+                        <InputLabel size="small">{session.uiText.memory}</InputLabel>
+                        <Select
+                            disabled={memoryAmountChangeLock}
+                            size="small"
+                            sx={{
+                                borderRadius: 50,
+                            }}
+                            onChange={handleMemoryAmountChange}
+                            value={session.user?.saveMessages ? session.user?.memoryAmount : AIChatHistoryMemory.None}
+                            label={session.uiText.memory}
+                        >
+                            <MenuItem value={AIChatHistoryMemory.None}>{session.uiText.disabled}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Short}>{session.uiText.short}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Normal}>{session.uiText.normal}</MenuItem>
+                            <MenuItem value={AIChatHistoryMemory.Long}>{session.uiText.high}</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl
+                        fullWidth
+                        size="small"
+                        component="div"
+                    >
+                        <InputLabel size="small">🌐 {session.uiText.language}</InputLabel>
+                        <Select
+                            disabled={languageChangeLock}
+                            size="small"
+                            sx={{
+                                borderRadius: 50,
+                            }}
+                            onChange={handleLanguageChange}
+                            value={session.localStorage.data.language}
+                            label={`🌐 ${session.uiText.language}`}
+                        >
+                            {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                </Stack>
             </DrawerItem>
 
             <Divider variant="middle" flexItem />
@@ -452,33 +507,9 @@ function Header() {
     const session = useSession();
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [showExperimentalFeaturesSwitch, setShowExperimentalFeaturesSwitch] = useState(false);
-    const [languageChangeLock, setLanguageChangeLock] = useState(false);
-    const [changeThemeIcon, setChangeThemeIcon] = useState(session.themeManager.name === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
     const openMenuRequestHandler = () => setMenuIsOpen(true);
     const closeMenuRequestHandler = () => setMenuIsOpen(false);
     const [experimentalFeatures, setExperimentalFeatures] = useState(session.localStorage.data.experimentalFeatures);
-
-    const handleLanguageChange = useCallback((event: SelectChangeEvent<string>) => {
-        const langCode = event.target.value as UIText.LangCode;
-        setLanguageChangeLock(true);
-        userService
-            .changeLanguage(langCode)
-            .then(res => {
-                if (res.result?.ok)
-                    session.languageChange(langCode);
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            })
-            .finally(() => {
-                setLanguageChangeLock(false);
-            });
-    }, [session]);
-
-    const toggleTheme = useCallback(() => {
-        const newThemeName = session.themeManager.name === 'light' ? 'dark' : 'light';
-        session.themeManager.set(newThemeName);
-        setChangeThemeIcon(newThemeName === 'light' ? <LightMode key="light" /> : <DarkMode key="dark" />);
-    }, [session]);
 
     useEffect(() => {
         session.requestSideMenuOpen = () => setMenuIsOpen(true);
@@ -537,69 +568,41 @@ function Header() {
                     maxWidth="360px"
                 >
                     <ProfileInfo />
-                    <Box padding={2} paddingTop={0}>
-                        <DrawerItem title={null}>
-                            <FormControl
-                                component="div"
-                                size="small"
-                                fullWidth
-                            >
-                                <InputLabel size="small">🌐 {session.uiText.language}</InputLabel>
-                                <Select
-                                    fullWidth
-                                    disabled={languageChangeLock}
-                                    size="small"
-                                    sx={{
-                                        borderRadius: 50,
-                                        minWidth: "90px",
-                                    }}
-                                    onChange={handleLanguageChange}
-                                    value={session.localStorage.data.language}
-                                    label={`🌐 ${session.uiText.language}`}
-                                >
-                                    {getLanguageList().map(item => <MenuItem selected={session.localStorage.data.language === item.langCode} key={item.langCode} value={item.langCode}>{item.title}</MenuItem>)}
-                                </Select>
-                            </FormControl>
-                        </DrawerItem>
-                        <Box marginBlock={2} textAlign="center">
-                            <IconButton
-                                color="inherit"
-                                onClick={toggleTheme}
-                            >{changeThemeIcon}</IconButton>
-                        </Box>
-                        <Box marginBlock={8} textAlign="center">
-                            <Button
-                                fullWidth
-                                color="error"
-                                variant="text"
-                                onClick={() => session.signOut()}
-                            >{session.uiText.logout}</Button>
-                        </Box>
-                        <Box marginTop={5} textAlign="center">
-                            <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
-                                <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
-                            </Box>
-                            {showExperimentalFeaturesSwitch ? (
-                                <Box marginTop={2}>
-                                    <FormControlLabel
-                                        label={session.uiText.experimentalFeatures}
-                                        control={(
-                                            <Switch
-                                                checked={experimentalFeatures}
-                                                onClick={() => {
-                                                    session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
-                                                    session.localStorage.rewrite();
-                                                    setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                </Box>
-                            ) : null}
-                        </Box>
-                    </Box>
 
                     <Chats afterNavigate={closeMenuRequestHandler} />
+
+                    <Box marginTop={15} />
+
+                    <Box marginBlock={2} textAlign="center">
+                        <Button
+                            color="error"
+                            variant="outlined"
+                            onClick={() => session.signOut()}
+                        >{session.uiText.logout}</Button>
+                    </Box>
+
+                    <Box marginBlock={2} textAlign="center">
+                        <Box onClick={() => setShowExperimentalFeaturesSwitch(true)}>
+                            <Chip size="small" color="primary" label={`v${__APP_VERSION__}`} />
+                        </Box>
+                        {showExperimentalFeaturesSwitch ? (
+                            <Box marginTop={2}>
+                                <FormControlLabel
+                                    label={session.uiText.experimentalFeatures}
+                                    control={(
+                                        <Switch
+                                            checked={experimentalFeatures}
+                                            onClick={() => {
+                                                session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
+                                                session.localStorage.rewrite();
+                                                setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Box>
+                        ) : null}
+                    </Box>
                 </Box>
             </Drawer>
         </header>
