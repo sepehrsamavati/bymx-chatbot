@@ -6,6 +6,7 @@ import process from 'node:process';
 import { execSync } from 'node:child_process';
 
 const noBuild = process.argv.includes('--no-build');
+const noArchive = process.argv.includes('--no-archive');
 
 // List your projects in the order they should be built
 const projects = [
@@ -76,8 +77,9 @@ for (const project of projects) {
         // Build the project
         runCommand('yarn run build', projectPath);
 
-    // Create archive
-    createArchive(projectPath, project);
+    if (!noArchive)
+        // Create archive
+        createArchive(projectPath, project);
 }
 
 console.log('\nAll projects built and archived successfully!');
