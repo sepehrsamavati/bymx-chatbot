@@ -283,5 +283,6 @@
     "selectText": "Select text",
     "regenerate": "Regenerate",
     "fullscreenView": "Fullscreen view",
-    "logout": "Logout"
+    "logout": "Logout",
+    "settings": "Settings"
 }

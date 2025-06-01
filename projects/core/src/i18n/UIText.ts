@@ -295,6 +295,7 @@ const keys = [
     "regenerate",
     "fullscreenView",
     "logout",
+    "settings",
 ] as const;
 
 export type UITextKey = typeof keys[number];

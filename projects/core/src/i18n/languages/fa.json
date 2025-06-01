@@ -283,5 +283,6 @@
     "selectText": "انتخاب متن",
     "regenerate": "پردازش مجدد",
     "fullscreenView": "مشاهده تمام صفحه",
-    "logout": "خروج"
+    "logout": "خروج",
+    "settings": "تنظیمات"
 }
