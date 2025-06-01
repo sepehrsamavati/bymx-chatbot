@@ -104,7 +104,7 @@ export type IAIChatRepository = {
     updateById(update: UpdateAIChat): Promise<boolean | null>;
     getChat(filter: SearchAIChat): Promise<Omit<AIChat, 'user'> | null>;
     exists(userId: string): Promise<boolean | null>;
-    getChats(filter: SearchAIChat): Promise<CaptionOnly[] | null>;
+    getChats(filter: SearchAIChat, options?: { beforeId?: string; afterId?: string; count?: number; }): Promise<CaptionOnly[] | null>;
     count(filter: SearchAIChat): Promise<number | null>;
 }
 

@@ -120,11 +120,20 @@ export default class AIChatApplication {
         return chat;
     }
 
-    async getVisibleChats(userId: string) {
+    /**
+     * 
+     * @param userId 
+     * @param cursorChatId Get chats after this chat as cursor
+     * @returns 
+     */
+    async getVisibleChats(userId: string, cursorChatId?: string) {
         const chats = await this.#aiChatRepository.getChats({
             user: userId,
             isDeleted: false,
             isHidden: false,
+        }, {
+            count: 5,
+            afterId: cursorChatId,
         });
         return chats;
     }

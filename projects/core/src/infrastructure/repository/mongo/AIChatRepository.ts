@@ -107,8 +107,22 @@ export class AIChatRepository implements IAIChatRepository {
         };
     }
 
-    async getChats(filter: SearchAIChat): Promise<CaptionOnly[] | null> {
-        const res = await this.#databaseConnection.models.aiChat.find(this.#getFilter(filter))
+    async getChats(filter: SearchAIChat, options?: { beforeId?: string; afterId?: string; count?: number; }): Promise<CaptionOnly[] | null> {
+        const _filter = this.#getFilter(filter);
+
+        // reverse order because of date sort
+        if (options?.beforeId)
+            _filter._id = {
+                $gt: options.beforeId
+            };
+        else if (options?.afterId)
+            _filter._id = {
+                $lt: options.afterId
+            };
+
+        const res = await this.#databaseConnection.models.aiChat.find(_filter)
+            .sort({ insertDate: -1 })
+            .limit(options?.count || 5)
             .lean();
 
         if (!res)

@@ -26,7 +26,7 @@ const config = {
     alwaysConsoleLog: false,
     isDevelopment: process.env.NODE_ENV !== "production",
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
-    chatCountLimit: 5,
+    chatCountLimit: 100,
     storageBasePath: process.env.BYMX_STORAGE_BASE_PATH ?? "./data/cache",
     activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),

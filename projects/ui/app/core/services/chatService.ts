@@ -3,10 +3,11 @@ import type { Api, CaptionOnly, PromptViewModel } from "bymx-core/types";
 import type { OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 const chatService = Object.freeze({
-    getAll() {
+    getChats(cursorChatId?: string) {
         return HttpClient.send<OperationResultWithData<CaptionOnly[]>>({
-            path: "/api/v1/chat/all",
+            path: "/api/v1/chat",
             method: HttpClient.Methods.GET,
+            body: { cursorChatId }
         });
     },
     getMessages(dto: { chatId: string; lastMessageId?: string; }) {

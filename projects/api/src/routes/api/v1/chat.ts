@@ -1,5 +1,6 @@
 import type { RouteHandlerMethod } from "fastify";
 import type ChatID from "../../../dto/chat/ChatID.js";
+import type GetChats from "../../../dto/chat/GetChats.js";
 import SetChatTitle from "../../../dto/chat/SetChatTitle.js";
 import type ChatPrompt from "../../../dto/chat/ChatPrompt.js";
 import type SetChatModel from "../../../dto/chat/SetChatModel.js";
@@ -9,16 +10,22 @@ import ChatDeleteMessagesAfter from "../../../dto/chat/ChatDeleteMessagesAfter.j
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
 
-export const getAllChats: RouteHandlerMethod = async (request, reply) => {
+/** @deprecated Will not get all chats; Use `getChats` with pagination */
+export const getAllChats: RouteHandlerMethod = async (_, reply) => {
+    return reply.status(200).send(new OperationResultWithData<CaptionOnly[]>().failed("invalid"));
+};
+
+export const getChats: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<CaptionOnly[]>();
 
     const userId = request.locals.user?.id;
+    const referenceChatId = (request.locals.dto as GetChats).cursorChatId;
 
     if (!userId)
         result.failed("userNotFound");
     else {
-        const chats = await request.locals.applications.aiChatApplication.getVisibleChats(userId);
+        const chats = await request.locals.applications.aiChatApplication.getVisibleChats(userId, referenceChatId);
 
         if (chats)
             result.succeeded().setData(chats);

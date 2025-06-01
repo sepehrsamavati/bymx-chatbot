@@ -7,6 +7,7 @@ import ChatID from "../dto/chat/ChatID.js";
 import { UserType } from 'bymx-core/shared';
 import FastifyStatic from "@fastify/static";
 import fileHandler from '@fastify/multipart';
+import GetChats from '../dto/chat/GetChats.js';
 import type { FastifyInstance } from "fastify";
 import FalAiResult from "../dto/FalAiResult.js";
 import { httpServerUrls } from "bymx-core/server";
@@ -107,6 +108,7 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.addHook('onRequest', authGuard);
 
         chatController.get("/all", chat.getAllChats);
+        chatController.get("/", { preValidation: fastifyPayloadValidator(GetChats) }, chat.getChats);
         chatController.delete("/", { preValidation: fastifyPayloadValidator(ChatID) }, chat.deleteChat);
         chatController.get("/model", { preValidation: fastifyPayloadValidator(ChatID) }, chat.getChatSelectedModel);
         chatController.patch("/model", { preValidation: fastifyPayloadValidator(SetChatModel) }, chat.setChatModel);

@@ -28,11 +28,14 @@ type RequestConfig = {
 
 /** @todo Use search params */
 const createQueryString = (data: any) => {
-    return Object.keys(data).map(key => {
-        let val = data[key]
-        if (val !== null && typeof val === 'object') val = JSON.stringify(val)
-        return `${key}=${encodeURIComponent(`${val}`.replace(/\s/g, '_'))}`
-    }).join('&')
+    return Object.keys(data)
+        .filter(key => data[key] !== undefined)
+        .map(key => {
+            let val = data[key]
+            if (val !== null && typeof val === 'object') val = JSON.stringify(val)
+            return `${key}=${encodeURIComponent(`${val}`.replace(/\s/g, '_'))}`
+        })
+        .join('&');
 }
 
 export const errorResponseMessageFormatter = (dto: unknown) => {

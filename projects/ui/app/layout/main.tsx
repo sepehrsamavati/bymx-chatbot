@@ -1,23 +1,49 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
 import Stack from "@mui/material/Stack";
+import Button from "~/components/button";
+import Add from "@mui/icons-material/Add";
 import RoleHoc from "~/components/roleHoc";
+import Save from "@mui/icons-material/Save";
 import Menu from "@mui/icons-material/Menu";
+import Edit from "@mui/icons-material/Edit";
 import { useSession } from "~/core/Session";
+import Close from "@mui/icons-material/Close";
 import Container from '@mui/material/Container';
 import bymxLogo from "../assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
-import type { UserEntity } from "bymx-core/types";
 import { getLanguageList } from "~/core/i18n/i18n";
 import CssBaseline from '@mui/material/CssBaseline';
 import DarkMode from "@mui/icons-material/DarkMode";
+import chatService from "~/core/services/chatService";
 import LightMode from "@mui/icons-material/LightMode";
 import userService from "~/core/services/userService";
 import CreditCard from "@mui/icons-material/CreditCard";
 import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import bymxHeader from "../assets/images/baymax_header.png";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import type { CaptionOnly, UserEntity } from "bymx-core/types";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { AIChatHistoryMemory, stringHelper, UIText, UserType } from "bymx-core/shared";
-import { Box, Button, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Skeleton, Switch, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, ButtonGroup, Chip, Divider, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Modal, Select, Skeleton, Switch, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+
+const generateChatsTitle = (
+    chatIds: string[],
+    onSuccess: (chatId: string, title: string) => void,
+    onComplete: () => void,
+) => {
+    (async () => {
+        for (const chatId of chatIds) {
+            try {
+                const res = await chatService.generateTitle(chatId);
+                if (res.result?.data)
+                    onSuccess(chatId, res.result.data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        onComplete();
+    })();
+};
 
 function DrawerItem(props?: {
     title?: React.ReactNode;
@@ -28,6 +54,224 @@ function DrawerItem(props?: {
             <Typography>{props?.title}</Typography>
             <Box flexGrow={props?.title === null ? 1 : undefined}>{props?.children}</Box>
         </Stack>
+    );
+}
+
+function Chats() {
+    const navigate = useNavigate();
+    const session = useSession();
+    const initialized = useRef(false);
+    const isGeneratingChatTitle = useRef(false);
+    const latestChatId = useRef<string>(undefined);
+    const [loadedAllChats, setLoadedAllChats] = useState(false);
+    const [chats, setChats] = useState<CaptionOnly[]>([]);
+    const [titleModalOpen, setTitleModalOpen] = useState(false);
+    const [settingNewTitle, setSettingNewTitle] = useState(false);
+    const [creatingNewChat, setCreatingNewChat] = useState(false);
+    const [canCreateNewChat, setCanCreateNewChat] = useState(false);
+    const [newTitle, setNewTitle] = useState({ chatId: "", title: "", });
+
+    const createNewChat = useCallback(() => {
+        if (!canCreateNewChat || creatingNewChat) return;
+
+        setCreatingNewChat(true);
+
+        chatService
+            .createNewChat()
+            .then(res => {
+                if (res.result?.data) {
+                    navigate(`/ui/chat/${res.result.data}`);
+                }
+            })
+            .finally(() => {
+                setCreatingNewChat(false);
+            });
+
+    }, [canCreateNewChat, creatingNewChat]);
+
+    const disposeSetTitleModal = useCallback(() => {
+        setTitleModalOpen(false);
+        setNewTitle({ chatId: "", title: "", });
+    }, []);
+
+    const saveNewTitle = useCallback(() => {
+        if (!(newTitle.chatId || newTitle.title)) return;
+        setSettingNewTitle(true);
+        chatService
+            .setChatTitle(newTitle)
+            .then(res => {
+                if (res.result?.ok) {
+                    disposeSetTitleModal();
+                    setChats(current => {
+                        const targetChat = current.find(c => c.id === newTitle.chatId);
+
+                        if (targetChat)
+                            targetChat.caption = newTitle.title;
+
+                        return current;
+                    });
+                }
+            })
+            .finally(() => setSettingNewTitle(false));
+    }, [newTitle, disposeSetTitleModal]);
+
+    const getChats = useCallback(() => {
+        chatService
+            .getChats(latestChatId.current)
+            .then(res => {
+                if (res.result?.data) {
+                    const _newChats = res.result.data;
+
+                    setChats(_current => [..._current, ..._newChats]); //Array.from(new Set([..._current, ..._newChats])));
+
+                    if (_newChats.length)
+                        latestChatId.current = _newChats[_newChats.length - 1].id;
+                    else
+                        setLoadedAllChats(true);
+
+                    if (!latestChatId.current) { // only set chat count when it's first page (no cursor)
+                        session.localStorage.data.chatCount = _newChats.length;
+                        session.localStorage.rewrite();
+                    }
+
+                    if (!isGeneratingChatTitle.current) {
+                        isGeneratingChatTitle.current = true;
+                        generateChatsTitle(
+                            _newChats.filter(chat => chat.caption === "").map(chat => chat.id),
+                            (chatId, title) => {
+                                setChats(current => {
+                                    const chatIndex = current.findIndex(chat => chat.id === chatId);
+                                    if (chatIndex === -1) return current;
+
+                                    current[chatIndex].caption = title;
+
+                                    return [...current];
+                                });
+                            },
+                            () => {
+                                isGeneratingChatTitle.current = false;
+                            },
+                        );
+                    }
+                }
+            });
+    }, [session]);
+
+    useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
+        chatService
+            .canCreateNewChat()
+            .then(res => {
+                if (res.result)
+                    setCanCreateNewChat(res.result.ok);
+            });
+
+        getChats();
+    }, [session, getChats]);
+
+
+    return (
+        <>
+            <Modal
+                open={titleModalOpen}
+                onClose={disposeSetTitleModal}
+            >
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: "95%",
+                        maxWidth: 400,
+                        bgcolor: 'background.default',
+                        boxShadow: 24,
+                        p: 4,
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography variant="h6" component="h2">
+                        {session.uiText.changeTitle}
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={newTitle.title}
+                        onChange={e => e.target.value.length < 50 && setNewTitle(current => ({ ...current, title: e.target.value }))}
+                    />
+                    <Stack direction="row" flexWrap="wrap" gap={1} sx={{ marginTop: 2 }}>
+                        <Button
+                            startIcon={<Save />}
+                            onClick={saveNewTitle}
+                            color="success"
+                            loading={settingNewTitle}
+                            disabled={newTitle.title.length === 0}
+                        >{session.uiText.save}</Button>
+                        <Button endIcon={<Close />} onClick={disposeSetTitleModal} color="error">{session.uiText.close}</Button>
+                    </Stack>
+                </Box>
+            </Modal>
+
+            <Stack direction="column" width="100%" maxWidth="700px" marginTop={5} gap={0.4}>
+                {chats.length === 0 || canCreateNewChat ? (
+                    <Button
+                        color="success"
+                        variant="outlined"
+                        onClick={createNewChat}
+                        isLoading={creatingNewChat}
+                        startIcon={<Add />}
+                        disabled={!canCreateNewChat}
+                        sx={{
+                            margin: 2,
+                            borderRadius: 10,
+                        }}
+                    >{session.uiText.newChat}</Button>
+                ) : null}
+
+                {chats.length === 0 ? new Array(session.localStorage.data.chatCount).fill(null).map((_, index) => (
+                    <Box key={index} marginInline={2}>
+                        <Skeleton animation="wave" variant="rectangular" width="100%" sx={{ padding: 2.5, borderRadius: "10em" }} />
+                    </Box>
+                )) : null}
+
+                {chats.map(chat => (
+                    <Stack
+                        key={chat.id}
+                        direction="row"
+                        sx={{
+                            "> button": {
+                                borderRadius: 0,
+                            },
+                            "> button:first-child": {
+                                flexGrow: 1
+                            }
+                        }}
+                    >
+                        <Button fullWidth variant="text" color="inherit" onClick={() => navigate(`/ui/chat/${chat.id}`)}>
+                            <Box width="100%" textTransform="initial">{chat.caption || session.uiText.noTitle}</Box>
+                        </Button>
+                        <Button
+                            fullWidth={false}
+                            variant="text"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                setNewTitle({
+                                    chatId: chat.id,
+                                    title: chat.caption,
+                                });
+                                setTitleModalOpen(true);
+                            }}
+                        >
+                            <Edit />
+                        </Button>
+                    </Stack>
+                ))}
+
+                <Button onClick={getChats} disabled={loadedAllChats}>...</Button>
+            </Stack>
+        </>
     );
 }
 
@@ -317,6 +561,8 @@ function Header() {
                             ) : null}
                         </Box>
                     </Box>
+
+                    <Chats />
                 </Box>
             </Drawer>
         </header>
