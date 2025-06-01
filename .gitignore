@@ -134,3 +134,5 @@ dist
 
 # Publish helper script output
 /projects/*.tar.gz
+
+.VSCodeCounter/
