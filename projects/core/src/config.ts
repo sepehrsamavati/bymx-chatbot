@@ -15,16 +15,19 @@ dotenv.config({
     ]
 });
 
-console.debug(
-    `\n${bymx}`
-    + `\n v${projectVersion}`
-    + `\n\n${projectsVersions.map(info => `${`${info.project.toUpperCase()}:`.padEnd(15, ' ')} v${info.version}`).join('\n')}\n`
-);
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+if (isDevelopment)
+    console.debug(
+        `\n${bymx}`
+        + `\n v${projectVersion}`
+        + `\n\n${projectsVersions.map(info => `${`${info.project.toUpperCase()}:`.padEnd(15, ' ')} v${info.version}`).join('\n')}\n`
+    );
 
 const config = {
     version: projectVersion,
     alwaysConsoleLog: false,
-    isDevelopment: process.env.NODE_ENV !== "production",
+    isDevelopment: isDevelopment,
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
     chatCountLimit: 100,
     storageBasePath: process.env.BYMX_STORAGE_BASE_PATH ?? "./data/cache",
