@@ -118,6 +118,7 @@ export const submitPrompt: RouteHandlerMethod = async (request, reply) => {
     const chatCompletionResult = await request.locals.applications.aiApplication.multiModalChatCompletion({
         user,
         streamReader,
+        createDefaultChat: false,
         voiceResponse: false,
         attachment: {
             file: attachmentFile,

@@ -59,7 +59,7 @@ type MultiModalInput = {
 
     user: User;
 
-    /** Default: false */
+    /** Default: true */
     createDefaultChat?: boolean;
     model?: AIModel;
     history?: {
@@ -155,14 +155,14 @@ export default class AIApplication {
 
         let _chat = preprocessInput.history?.chat || user.telegram?.selectedChat;
 
-        if (shouldCreateDefaultChat && !_chat) {
-            const hasChats = await this.#aiChatRepository.exists(user.id);
+        if (shouldCreateDefaultChat !== false && !_chat) {
+            // const hasChats = await this.#aiChatRepository.exists(user.id);
 
-            if (hasChats === null)
-                return result.failed(); // error
+            // if (hasChats === null)
+            //     return result.failed(); // error
 
-            if (hasChats)
-                return result.failed("selectChatBeforeUse"); // select chat
+            // if (hasChats)
+            //     return result.failed("selectChatBeforeUse"); // select chat
 
             const openAIChat = {
                 title: "",
