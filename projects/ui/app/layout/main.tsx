@@ -270,7 +270,17 @@ function Chats(props: {
                                 props.afterNavigate();
                             }}
                         >
-                            <Box width="100%" textTransform="initial">{chat.caption || session.uiText.noTitle}</Box>
+                            <Box
+                                width="100%"
+                                textTransform="initial"
+                                overflow="hidden"
+                                sx={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    lineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                }}
+                            >{chat.caption || session.uiText.noTitle}</Box>
                         </Button>
                         <Button
                             fullWidth={false}
