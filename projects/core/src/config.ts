@@ -52,7 +52,7 @@ const config = {
         cookieKey: "Auth",
         accessTokenCookieKey: "access_token",
         refreshTokenCookieKey: "refresh_token",
-        sessionSecretHexKey: process.env.BYMX_API_SERVER_SESSION_COOKIE_SIGN_KEY || "",
+        sessionSecretHexKey: process.env.BYMX_API_SERVER_SESSION_COOKIE_SIGN_KEY,
         tokenSignSecret: process.env.BYMX_API_SERVER_COOKIE_SIGN_SECRET || "",
     },
     fileUploadLimit: {
