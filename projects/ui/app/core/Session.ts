@@ -8,9 +8,9 @@ import modelService from "./services/modelService";
 import SessionStorageHelper from "./helper/SessionStorage";
 import type { Direction, PaletteMode } from "@mui/material";
 import type { LocalStorage_v4 } from "../types/localStorage";
-import type { AiModelEntity, UserEntity } from "bymx-core/types";
 import { UpgradeableLocalStorageHelper } from "./helper/LocalStorage";
 import snackbarProvider, { closeSnackbar } from "./helper/snackbarProvider";
+import type { AiModelEntity, CaptionOnly, UserEntity } from "bymx-core/types";
 
 type CacheStorageItem<T> = {
     data: T;
@@ -156,6 +156,7 @@ export default class Session {
 
     readonly cacheStorage: {
         profileInfo?: CacheStorageItem<UserEntity.UserInfoViewModel>;
+        chats?: CacheStorageItem<{ list: CaptionOnly[]; latestChatId?: string; }>;
     } = {};
 
     public requestSideMenuOpen?: () => void;

@@ -64,10 +64,10 @@ function Chats(props: {
     const session = useSession();
     const initialized = useRef(false);
     const isGeneratingChatTitle = useRef(false);
-    const latestChatId = useRef<string>(undefined);
+    const latestChatId = useRef<string>(session.cacheStorage.chats?.data.latestChatId);
     const isLoadingChats = useRef(false);
     const [loadedAllChats, setLoadedAllChats] = useState(false);
-    const [chats, setChats] = useState<CaptionOnly[]>([]);
+    const [chats, setChats] = useState<CaptionOnly[]>(session.cacheStorage.chats?.data.list ?? []);
     const [titleModalOpen, setTitleModalOpen] = useState(false);
     const [settingNewTitle, setSettingNewTitle] = useState(false);
     const [creatingNewChat, setCreatingNewChat] = useState(false);
@@ -128,12 +128,24 @@ function Chats(props: {
                 if (res.result?.data) {
                     const _newChats = res.result.data;
 
-                    setChats(_current => [..._current, ..._newChats]); //Array.from(new Set([..._current, ..._newChats])));
-
                     if (_newChats.length)
                         latestChatId.current = _newChats[_newChats.length - 1].id;
                     else
                         setLoadedAllChats(true);
+
+                    setChats(_current => {
+                        const _chats = [..._current, ..._newChats];
+
+                        session.cacheStorage.chats = {
+                            data: {
+                                list: _chats,
+                                latestChatId: latestChatId.current,
+                            },
+                            date: Date.now(),
+                        };
+
+                        return _chats;
+                    }); //Array.from(new Set([..._current, ..._newChats])));
 
                     if (!latestChatId.current) { // only set chat count when it's first page (no cursor)
                         session.localStorage.data.chatCount = _newChats.length;
@@ -175,7 +187,10 @@ function Chats(props: {
                     setCanCreateNewChat(res.result.ok);
             });
 
-        getChats();
+        if (session.cacheStorage.chats)
+            setChats(session.cacheStorage.chats.data.list);
+        else
+            getChats();
     }, [session, getChats]);
 
 
@@ -324,7 +339,7 @@ function ProfileInfo() {
     useEffect(() => {
         if (fetchDataLock.current) return;
 
-        if (session.cacheStorage.profileInfo && Date.now() - session.cacheStorage.profileInfo.date < 30e3) {
+        if (session.cacheStorage.profileInfo && Date.now() - session.cacheStorage.profileInfo.date < 10e3) {
             setData(session.cacheStorage.profileInfo.data);
             return;
         }
