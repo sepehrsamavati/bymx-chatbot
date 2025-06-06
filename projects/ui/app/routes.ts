@@ -18,7 +18,8 @@ export default [
                 index("./routes/chats.tsx", { id: "ui-index-chats" }),
                 route("/chats", "./routes/chats.tsx"),
                 route("/imageGenerate", "./routes/imageGenerate.tsx"),
-                route("/chat/:chatId", "./routes/chat.tsx"),
+                route("/chat", "./routes/chat.tsx", { id: "new-chat" }),
+                route("/chat/:chatIdParam", "./routes/chat.tsx", { id: "chat" }),
                 route("/settings", "./routes/settings.tsx"),
 
                 ...prefix("admin", [

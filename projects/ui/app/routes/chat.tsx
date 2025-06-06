@@ -73,12 +73,13 @@ function ModelCostIndicatorIcon(props: { model: AiModelEntity.AIModelViewModel }
 //     4: "costly",
 // } as const)[model?.costRatio!] ?? "costly"
 
-export default function Chat() {
+function _Chat() {
     const session = useSession();
     const { chatIdParam } = useParams();
+    const isNewChat = useRef(!chatIdParam);
     const [chatId, setChatId] = useState(chatIdParam);
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
-    const [messages, setMessages] = useState<ChatMessage[]>();
+    const [messages, setMessages] = useState<ChatMessage[] | undefined>(isNewChat.current ? [] : undefined);
     const streamingMessageChunks = useRef<(string | undefined)[]>([]);
     const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; output: string; }>();
     const initialized = useRef(false);
@@ -88,7 +89,7 @@ export default function Chat() {
     const isLoadingMessages = useRef(false);
     const chatSectionRef = useRef<HTMLDivElement>(null);
     const [uploadingFile, setUploadingFile] = useState<SelectedAttachmentFile>();
-    const [modelChangeLock, setModelChangeLock] = useState(true);
+    const [modelChangeLock, setModelChangeLock] = useState(!isNewChat.current);
     const [selectedModel, setSelectedModel] = useState("");
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
@@ -176,7 +177,7 @@ export default function Chat() {
 
         let _chatId = chatId;
 
-        if (!_chatId) { // No chat is selected, is a new chat
+        if (!_chatId && isNewChat.current) { // No chat is selected, is a new chat
             const createdChatResponse = await chatService.createNewChat();
 
             if (!createdChatResponse.result?.data)
@@ -184,12 +185,15 @@ export default function Chat() {
 
             _chatId = createdChatResponse.result.data;
             setChatId(_chatId);
+            window.history.pushState({}, '', `/ui/chat/${_chatId}`);
 
             if (selectedModel) { // has selected model before creating chat, trying to sync client and server
                 if (!(await chatService.setChatModel({ chatId: _chatId, modelId: selectedModel })).result?.ok)
                     getChatModelAndSync(_chatId);
             }
         }
+        else // No chat is selected and not a new chat?!
+            return;
 
         const _inputText = text || inputText;
         const _attachmentFile = text ? undefined : uploadingFile;
@@ -428,6 +432,12 @@ export default function Chat() {
     }, [getMessages, getChatModelAndSync, chatId]);
 
     useEffect(() => {
+        if (isNewChat.current && !selectedModel) {
+            setSelectedModel(session.chatModels.at(0)?.id || "");
+        }
+    }, [selectedModel, session.chatModels]);
+
+    useEffect(() => {
         if (didFirstScrollToBottom.current || messages?.length === 0) return;
         didFirstScrollToBottom.current = true;
         scrollToBottom(undefined, true);
@@ -459,7 +469,7 @@ export default function Chat() {
             fullHeight
             topBar={(
                 <>
-                    {session.chatModels.length && selectedModel ? (
+                    {session.chatModels.length && (isNewChat.current ? true : selectedModel) ? (
                         <Select
                             disabled={modelChangeLock}
                             size="small"
@@ -733,4 +743,10 @@ export default function Chat() {
             </Card>
         </LayoutInner>
     );
+}
+
+/** Wrapper to re-mount on param change (route change) */
+export default function Chat() {
+    const { chatIdParam } = useParams();
+    return <_Chat key={chatIdParam} />
 }

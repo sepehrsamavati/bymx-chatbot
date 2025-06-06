@@ -77,21 +77,24 @@ function Chats(props: {
     const createNewChat = useCallback(() => {
         if (!canCreateNewChat || creatingNewChat) return;
 
-        setCreatingNewChat(true);
+        navigate("/ui/chat");
+        props.afterNavigate();
 
-        chatService
-            .createNewChat()
-            .then(res => {
-                if (res.result?.data) {
-                    navigate(`/ui/chat/${res.result.data}`);
-                    props.afterNavigate();
-                }
-            })
-            .finally(() => {
-                setCreatingNewChat(false);
-            });
+        // setCreatingNewChat(true);
 
-    }, [canCreateNewChat, creatingNewChat, props]);
+        // chatService
+        //     .createNewChat()
+        //     .then(res => {
+        //         if (res.result?.data) {
+        //             navigate(`/ui/chat/${res.result.data}`);
+        //             props.afterNavigate();
+        //         }
+        //     })
+        //     .finally(() => {
+        //         setCreatingNewChat(false);
+        //     });
+
+    }, [canCreateNewChat, creatingNewChat, navigate, props]);
 
     const disposeSetTitleModal = useCallback(() => {
         setTitleModalOpen(false);
