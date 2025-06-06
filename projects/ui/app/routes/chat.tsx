@@ -75,7 +75,8 @@ function ModelCostIndicatorIcon(props: { model: AiModelEntity.AIModelViewModel }
 
 export default function Chat() {
     const session = useSession();
-    const { chatId } = useParams();
+    const { chatIdParam } = useParams();
+    const [chatId, setChatId] = useState(chatIdParam);
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
     const [messages, setMessages] = useState<ChatMessage[]>();
     const streamingMessageChunks = useRef<(string | undefined)[]>([]);
@@ -333,7 +334,7 @@ export default function Chat() {
             xhr.open("PUT", "/api/v1/file/upload", true);
             xhr.send(formData);
         });
-    }, []);
+    }, [session]);
 
     const deleteUploadedFile = useCallback(() => {
         if (!uploadingFile?.id)
