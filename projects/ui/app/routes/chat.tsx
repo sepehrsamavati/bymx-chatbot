@@ -151,9 +151,45 @@ export default function Chat() {
             });
     }, [chatId, messages]);
 
-    const submitPrompt = useCallback((text?: string) => {
-        if (!chatId) return;
+    const getChatModelAndSync = useCallback((_chatId: string) => {
+        chatService
+            .getChatModelId(_chatId)
+            .then(res => {
+                if (res.result?.ok && res.result.data) {
+                    setSelectedModel(res.result.data);
+                    setModelChangeLock(false);
+                }
+                else
+                    session.snackbarProvider(res.result?.message, { variant: "error" });
+            });
+    }, [session]);
+
+    const submitPrompt = useCallback(async (text?: string) => {
         setWaitingForCompletion(true);
+
+        const _finally = () => {
+            responseReturned = true;
+            streamingMessageChunks.current = [];
+            setCurrentlyGeneratingMessage(undefined);
+            setWaitingForCompletion(false);
+        };
+
+        let _chatId = chatId;
+
+        if (!_chatId) { // No chat is selected, is a new chat
+            const createdChatResponse = await chatService.createNewChat();
+
+            if (!createdChatResponse.result?.data)
+                return _finally();
+
+            _chatId = createdChatResponse.result.data;
+            setChatId(_chatId);
+
+            if (selectedModel) { // has selected model before creating chat, trying to sync client and server
+                if (!(await chatService.setChatModel({ chatId: _chatId, modelId: selectedModel })).result?.ok)
+                    getChatModelAndSync(_chatId);
+            }
+        }
 
         const _inputText = text || inputText;
         const _attachmentFile = text ? undefined : uploadingFile;
@@ -165,7 +201,7 @@ export default function Chat() {
         setUploadingFile(undefined);
         let responseReturned = false;
         const dto = {
-            chatId,
+            chatId: _chatId,
             promptText: _inputText,
             attachmentFileId: _attachmentFile?.id,
             ...(
@@ -181,12 +217,6 @@ export default function Chat() {
         const rollback = () => {
             setInputText(_inputText);
             setUploadingFile(_attachmentFile);
-        };
-        const _finally = () => {
-            responseReturned = true;
-            streamingMessageChunks.current = [];
-            setCurrentlyGeneratingMessage(undefined);
-            setWaitingForCompletion(false);
         };
 
 
@@ -243,7 +273,7 @@ export default function Chat() {
                 }
             })
             .finally(_finally);
-    }, [chatId, inputText, uploadingFile, socket, selectedModel]);
+    }, [session, chatId, inputText, uploadingFile, socket, selectedModel, getChatModelAndSync]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
@@ -394,18 +424,8 @@ export default function Chat() {
         initialized.current = true;
 
         getMessages();
-
-        chatService
-            .getChatModelId(chatId)
-            .then(res => {
-                if (res.result?.ok && res.result.data) {
-                    setSelectedModel(res.result.data);
-                    setModelChangeLock(false);
-                }
-                else
-                    session.snackbarProvider(res.result?.message, { variant: "error" });
-            });
-    }, [getMessages, chatId]);
+        getChatModelAndSync(chatId);
+    }, [getMessages, getChatModelAndSync, chatId]);
 
     useEffect(() => {
         if (didFirstScrollToBottom.current || messages?.length === 0) return;
