@@ -32,7 +32,7 @@ export default function Chats() {
             <Box marginTop={10} />
 
             <Stack marginBlock={4} direction="column" alignItems="center" justifyContent="center">
-                <Button size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}</Button>
+                <Button size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}/{session.uiText.chats}</Button>
             </Stack>
 
             <Grid container paddingInline={8} marginBottom={4} justifyContent="center">

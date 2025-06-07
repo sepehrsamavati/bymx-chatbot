@@ -273,6 +273,7 @@ const keys = [
     "pointUsage",
     "generate",
     "randomTopics",
+    "recommendedTopics",
     "coding",
     "workout",
     "cooking",

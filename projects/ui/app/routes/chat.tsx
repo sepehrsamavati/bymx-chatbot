@@ -20,6 +20,8 @@ import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import Button from "~/components/button";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -290,8 +292,14 @@ function _Chat() {
     }, [getMessages]);
 
     const handleModelChange = useCallback((event: SelectChangeEvent<string>) => {
-        if (modelChangeLock || !chatId) return;
         const modelId = event.target.value;
+
+        if (isNewChat.current && !chatId) {
+            setSelectedModel(modelId);
+            return;
+        }
+
+        if (modelChangeLock || !chatId) return;
         setModelChangeLock(true);
         chatService
             .setChatModel({ chatId, modelId })
@@ -563,11 +571,21 @@ function _Chat() {
 
                 {messages?.length === 0 && !currentlyGeneratingMessage ? (
                     <Box width="100%" flexGrow={1} display="flex" alignItems="center" justifyContent="center">
-                        <Stack direction="row" flexWrap="wrap" gap={1} maxWidth="250px" justifyContent="center">
-                            <Chip variant="outlined" color="info" label={session.uiText.coding} icon={<DataObject />} onClick={() => setSelectedCategory(ReadyPromptCategory.Coding)} />
-                            <Chip variant="outlined" color="success" label={session.uiText.workout} icon={<FitnessCenter />} onClick={() => setSelectedCategory(ReadyPromptCategory.Workout)} />
-                            <Chip variant="outlined" color="error" label={session.uiText.cooking} icon={<Restaurant />} onClick={() => setSelectedCategory(ReadyPromptCategory.Cooking)} />
-                            <Chip variant="outlined" color="warning" label={session.uiText.summarizeText} icon={<MenuBook />} onClick={() => setSelectedCategory(ReadyPromptCategory.SummarizeText)} />
+                        <Stack gap={2}>
+                            <Box textAlign="center">
+                                <Button fullWidth={false} size="large" variant="outlined" color="inherit" sx={{ borderRadius: "10em" }} startIcon={<AccountCircle />} onClick={() => session.requestSideMenuOpen?.()}>{session.uiText.profile}/{session.uiText.chats}</Button>
+                            </Box>
+
+                            <Divider />
+
+                            <Typography textAlign="center">{session.uiText.recommendedTopics} 👇</Typography>
+
+                            <Stack direction="row" flexWrap="wrap" gap={1} maxWidth="250px" justifyContent="center">
+                                <Chip variant="outlined" color="info" label={session.uiText.coding} icon={<DataObject />} onClick={() => setSelectedCategory(ReadyPromptCategory.Coding)} />
+                                <Chip variant="outlined" color="success" label={session.uiText.workout} icon={<FitnessCenter />} onClick={() => setSelectedCategory(ReadyPromptCategory.Workout)} />
+                                <Chip variant="outlined" color="error" label={session.uiText.cooking} icon={<Restaurant />} onClick={() => setSelectedCategory(ReadyPromptCategory.Cooking)} />
+                                <Chip variant="outlined" color="warning" label={session.uiText.summarizeText} icon={<MenuBook />} onClick={() => setSelectedCategory(ReadyPromptCategory.SummarizeText)} />
+                            </Stack>
                         </Stack>
                     </Box>
                 ) : null}
