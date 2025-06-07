@@ -1,5 +1,3 @@
-import configError from "../../helpers/configError.js";
-
 const General = Object.freeze({
     Normal: 0,
     // AcceptEULA: 1,
@@ -44,10 +42,8 @@ const allModes: ReturnType<typeof getEnumValues> = [];
 const appendToModes = (_enum: UnifiedEnums, name: string) => {
     getEnumValues(_enum)
         .forEach(value => {
-            configError(
-                `Duplicated enum found: '${value}' in '${name}'`,
-                allModes.includes(value)
-            );
+            if(allModes.includes(value))
+                throw new Error(`Duplicated enum found: '${value}' in '${name}'`);
             allModes.push(value);
         });
 };
