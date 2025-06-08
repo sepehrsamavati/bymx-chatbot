@@ -34,9 +34,7 @@ export default class Session {
         const response = await userService.telegramAuth(window.Telegram.WebApp.initData);
 
         if (response.result?.data) {
-            console.log(this)
             this.user = response.result.data;
-            console.log(this)
             if (this.user.lang !== this.localStorage.data.language)
                 this.languageChange(this.user.lang, true);
             this.postLoginEvents();
