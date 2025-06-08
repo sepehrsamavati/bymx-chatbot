@@ -29,7 +29,7 @@ const config = {
     alwaysConsoleLog: false,
     isDevelopment: isDevelopment,
     mongoDbConnectionStringUri: process.env.BYMX_MONGO_URI ?? "",
-    chatCountLimit: 100,
+    dailyChatCountLimit: 3,
     storageBasePath: process.env.BYMX_STORAGE_BASE_PATH ?? "./data/cache",
     activeSubscriptionLimit: Number.parseInt(process.env.BYMX_ACTIVE_SUBSCRIPTION_LIMIT ?? "5"),
     dailyFreePoints: Number.parseInt(process.env.BYMX_DAILY_FREE_POINTS ?? "0"),

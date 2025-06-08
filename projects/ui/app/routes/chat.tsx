@@ -1,4 +1,5 @@
 import "../assets/css/chat.css";
+import Button from "~/components/button";
 import { useParams } from "react-router";
 import { useSession } from "~/core/Session";
 import Send from "@mui/icons-material/Send";
@@ -15,13 +16,12 @@ import FreeModelIcon from "@mui/icons-material/MoneyOff";
 import MessageBubble from "~/components/chat/messageBubble";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
-import Button from "~/components/button";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -170,6 +170,7 @@ function _Chat() {
     const submitPrompt = useCallback(async (text?: string) => {
         setWaitingForCompletion(true);
 
+        let responseReturned = false;
         const _finally = () => {
             responseReturned = true;
             streamingMessageChunks.current = [];
@@ -182,8 +183,10 @@ function _Chat() {
         if (!_chatId && isNewChat.current) { // No chat is selected, is a new chat
             const createdChatResponse = await chatService.createNewChat();
 
-            if (!createdChatResponse.result?.data)
+            if (!createdChatResponse.result?.data) {
+                session.snackbarProvider(createdChatResponse.result?.message, { variant: "error" });
                 return _finally();
+            }
 
             _chatId = createdChatResponse.result.data;
             setChatId(_chatId);
@@ -206,7 +209,6 @@ function _Chat() {
 
         setInputText("");
         setUploadingFile(undefined);
-        let responseReturned = false;
         const dto = {
             chatId: _chatId,
             promptText: _inputText,
@@ -752,7 +754,7 @@ function _Chat() {
                                 disableUnderline: true,
                                 endAdornment: (
                                     <IconButton type="submit" size="small" disabled={cantSubmit}>
-                                        {waitingForCompletion ? <CircularProgress size="1em" color="inherit" /> : <Send sx={{ rotate: document.documentElement.dir === "rtl" ? "180deg" : "0deg" }} />}
+                                        {waitingForCompletion ? <CircularProgress size="1.3em" color="inherit" /> : <Send sx={{ fontSize: "1.3em", rotate: document.documentElement.dir === "rtl" ? "180deg" : "0deg" }} />}
                                     </IconButton>
                                 )
                             },

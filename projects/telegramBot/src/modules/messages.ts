@@ -81,7 +81,7 @@ export const getChatListPanel = async (context: RequestContext) => {
                         ? { text: `${emojiIcon.ok} ${chat.caption || context.uiText.noTitle} `, callback_data: `manageChat_${chat.id}` }
                         : { text: chat.caption || context.uiText.noTitle, callback_data: `selectChat_${chat.id}` }
                 ]),
-                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${chats.length >= config.chatCountLimit ? '🚫' : emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
+                [{ text: `${emojiIcon.return} ${context.uiText.return}`, callback_data: "panel" }, { text: `${emojiIcon.plus} ${context.uiText.newChat}`, callback_data: "newChat" }],
             ]
         }
     };

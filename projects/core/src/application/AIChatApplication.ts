@@ -23,13 +23,15 @@ export default class AIChatApplication {
     }
 
     async create(chat: CreateAIChat) {
+        const result = new OperationResultWithData<string>();
+
+        if (chat.model.type !== AIModelType.Text)
+            return result.failed("invalidInput");
+
         const canCreateNewChat = await this.canCreateNewChat(chat.user.id);
 
         if (!canCreateNewChat.ok)
-            return null;
-
-        if (chat.model.type !== AIModelType.Text)
-            return null;
+            return result.failed("reachedDailyChatCountLimit");
 
         const createdChatId = await this.#aiChatRepository.create({
             insertDate: new Date(),
@@ -40,7 +42,11 @@ export default class AIChatApplication {
             user: chat.user,
             behavior: chat.behavior
         });
-        return createdChatId;
+
+        if (createdChatId)
+            result.succeeded().setData(createdChatId);
+
+        return result;
     }
 
     async deleteByUser(user: User, chatId: string) {
@@ -141,17 +147,23 @@ export default class AIChatApplication {
     async canCreateNewChat(userId: string) {
         const result = new OperationResult();
 
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
         const currentChatsCount = await this.#aiChatRepository.count({
             user: userId,
             isDeleted: false,
             isHidden: false,
+            insertDate: {
+                after: yesterday,
+            }
         });
 
         if (currentChatsCount === null)
             return result.failed("errorOccurred");
 
-        if (currentChatsCount >= config.chatCountLimit)
-            return result.failed("reachedChatCountLimit");
+        if (currentChatsCount >= config.dailyChatCountLimit)
+            return result.failed("reachedDailyChatCountLimit");
 
         return result.succeeded();
     }

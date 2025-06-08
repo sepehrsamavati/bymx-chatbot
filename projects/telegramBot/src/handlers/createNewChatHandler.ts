@@ -22,7 +22,7 @@ export const createNewChatHandler: IUpdateHandler = {
             if (!canCreateNewChat.ok) {
                 return {
                     call: {
-                        text: canCreateNewChat.message === "reachedChatCountLimit" ? stringHelper.formatter(context.uiText.reachedChatCountLimit, config.chatCountLimit) : canCreateNewChat.message
+                        text: canCreateNewChat.message === "reachedDailyChatCountLimit" ? stringHelper.formatter(context.uiText.reachedDailyChatCountLimit, config.dailyChatCountLimit) : canCreateNewChat.message
                     }
                 };
             }
@@ -50,7 +50,7 @@ export const createNewChatHandler: IUpdateHandler = {
             if (!model)
                 return null;
 
-            const chatId = await context.services.aiChatApplication.create({
+            const createChatResult = await context.services.aiChatApplication.create({
                 title: "",
                 isHidden: false,
                 model: model,
@@ -58,9 +58,9 @@ export const createNewChatHandler: IUpdateHandler = {
                 behavior: AIChatBehavior.None
             });
 
-            if (chatId) {
+            if (createChatResult.ok && createChatResult.data) {
 
-                await context.services.userApplication.setUserSelectedChatById(context.user, chatId);
+                await context.services.userApplication.setUserSelectedChatById(context.user, createChatResult.data);
 
                 await tgCall(
                     TelegramMethods.EditMessageText,
@@ -78,6 +78,12 @@ export const createNewChatHandler: IUpdateHandler = {
 
                 return { shouldContinue: false };
             }
+            else
+                return {
+                    call: {
+                        text: createChatResult.message
+                    }
+                };
         }
 
         return null;

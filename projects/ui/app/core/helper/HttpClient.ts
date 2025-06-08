@@ -40,9 +40,16 @@ const createQueryString = (data: any) => {
 
 export const errorResponseMessageFormatter = (dto: unknown) => {
     if (dto && typeof dto === "object" && 'message' in dto && HttpClient.session?.uiText[dto.message as I18nKey]) {
-        if (dto.message as I18nKey === "fileUploadLimitReached") {
-            dto.message = stringHelper.formatter(HttpClient.session.uiText.fileUploadLimitReached, [20, 4]);
+
+        switch (dto.message as I18nKey) {
+            case "fileUploadLimitReached":
+                dto.message = stringHelper.formatter(HttpClient.session.uiText.fileUploadLimitReached, [20, 4]);
+                break;
+            case "reachedDailyChatCountLimit":
+                dto.message = stringHelper.formatter(HttpClient.session.uiText.reachedDailyChatCountLimit, 15);
+                break;
         }
+
     }
 }
 

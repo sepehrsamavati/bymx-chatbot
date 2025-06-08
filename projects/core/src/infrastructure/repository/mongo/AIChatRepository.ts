@@ -37,6 +37,14 @@ export class AIChatRepository implements IAIChatRepository {
         if (filter.behavior !== undefined)
             _filter.behavior = filter.behavior;
 
+        if (filter.insertDate) {
+            if ('after' in filter.insertDate)
+                _filter.insertDate = { $gt: filter.insertDate.after };
+
+            if ('before' in filter.insertDate)
+                _filter.insertDate = { $lt: filter.insertDate.before };
+        }
+
         return _filter;
     }
 

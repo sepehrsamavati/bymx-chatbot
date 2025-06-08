@@ -204,7 +204,7 @@ export const canCreateNewChat: RouteHandlerMethod = async (request, reply) => {
 /** @description Returns created chat ID */
 export const createNewChat: RouteHandlerMethod = async (request, reply) => {
 
-    const result = new OperationResultWithData<string>();
+    let result = new OperationResultWithData<string>();
 
     const userId = request.locals.user?.id!;
 
@@ -213,24 +213,13 @@ export const createNewChat: RouteHandlerMethod = async (request, reply) => {
     if (!user)
         result.failed("itemNotFound");
     else {
-        const canCreateNewChat = (await request.locals.applications.aiChatApplication.canCreateNewChat(userId)).ok;
-
-        if (canCreateNewChat) {
-            const createChatId = await request.locals.applications.aiChatApplication.create({
-                isHidden: false,
-                behavior: AIChatBehavior.None,
-                model: await request.locals.applications.aiModelApplication.getDefaultModel(),
-                title: "",
-                user: user,
-            });
-
-            if (createChatId)
-                result.succeeded().setData(createChatId);
-            else
-                result.failed("errorOccurred");
-        }
-        else
-            result.failed("reachedChatCountLimit");
+        result = await request.locals.applications.aiChatApplication.create({
+            isHidden: false,
+            behavior: AIChatBehavior.None,
+            model: await request.locals.applications.aiModelApplication.getDefaultModel(),
+            title: "",
+            user: user,
+        });
     }
 
     return reply.status(200).send(result);

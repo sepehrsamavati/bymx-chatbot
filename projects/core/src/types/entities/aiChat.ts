@@ -15,5 +15,7 @@ export type AIChat = {
 export type AIChatDBModel = StoredEntity<AIChat>;
 
 export type CreateAIChat = Pick<AIChat, 'title' | 'isHidden' | 'user' | 'model' | 'behavior'>;
-export type SearchAIChat = Partial<FlattenToIDs<AIChatDBModel, 'user' | 'model'>>;
+export type SearchAIChat = Partial<FlattenToIDs<Omit<AIChatDBModel, 'insertDate'>, 'user' | 'model'>> & {
+    insertDate?: { after: Date } | { before: Date };
+};
 export type UpdateAIChat = Pick<AIChat, 'id'> & Pick<SearchAIChat, 'isDeleted' | 'isHidden' | 'title' | 'model' | 'behavior'>; 

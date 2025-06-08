@@ -48,7 +48,7 @@ const keys = [
     "help",
     "errorOccurred",
     "operationFailed",
-    "reachedChatCountLimit",
+    "reachedDailyChatCountLimit",
     "modelsAndCosts",
     "termsOfService",
     "modelUsageHelper",

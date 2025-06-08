@@ -39,7 +39,7 @@
     "errorOccurred": "An error occurred!",
     "operationSuccessful": "Operation completed successfully.",
     "operationFailed": "Operation failed!",
-    "reachedChatCountLimit": "You cannot create more than %s1 chats!",
+    "reachedDailyChatCountLimit": "You cannot create more than %s1 chats!",
     "modelsAndCosts": "Models and costs",
     "termsOfService": "Terms of service",
     "modelUsageHelper": "Message size and cost are calculated based on word count. Here, the approximate number of messages per 1000 points for each model is specified.\n\nEach message roughly includes 2 paragraphs of user input and 2 paragraphs of bot response (without memory usage).",
