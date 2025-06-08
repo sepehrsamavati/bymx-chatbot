@@ -200,7 +200,8 @@ function _Chat() {
                     getChatModelAndSync(_chatId);
             }
         }
-        else // No chat is selected and not a new chat?!
+
+        if (!_chatId) // No chat is selected and not a new chat?!
             return;
 
         const _inputText = text || inputText;
