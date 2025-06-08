@@ -35,10 +35,6 @@ export const setWsHandlers = (fastifyInstance: FastifyInstance, controller: Para
 
             const payload = fastifyInstance.jwt.verify(accessToken);
 
-            console.log("\n\n\n")
-            console.log(payload)
-            console.log("\n\n\n")
-
             if (!payload)
                 return socket.close();
 
