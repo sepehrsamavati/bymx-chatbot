@@ -31,6 +31,12 @@ const modelService = Object.freeze({
             method: HttpClient.Methods.POST,
         });
     },
+    getDefaultModelId() {
+        return HttpClient.send<OperationResultWithData<string>>({
+            path: "/api/v1/model/default",
+            method: HttpClient.Methods.GET,
+        });
+    },
 });
 
 export default modelService;

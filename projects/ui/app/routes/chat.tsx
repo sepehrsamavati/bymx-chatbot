@@ -22,6 +22,7 @@ import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
+import modelService from "~/core/services/modelService";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -79,6 +80,7 @@ function _Chat() {
     const session = useSession();
     const { chatIdParam } = useParams();
     const isNewChat = useRef(!chatIdParam);
+    const [dummyState, setDummyState] = useState(0);
     const [chatId, setChatId] = useState(chatIdParam);
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
     const [messages, setMessages] = useState<ChatMessage[] | undefined>(isNewChat.current ? [] : undefined);
@@ -435,18 +437,36 @@ function _Chat() {
     }, [chatId, session, messages]);
 
     useEffect(() => {
-        if (initialized.current || !chatId) return;
+        if (initialized.current) return;
         initialized.current = true;
+
+        const tempFixTimer = window.setInterval(() => {
+            if (!session.chatModels.length)
+                return;
+
+            window.clearInterval(tempFixTimer);
+
+            if (isNewChat.current && !selectedModel) {
+                let defaultModelId = session.chatModels.at(0)?.id || "";
+
+                modelService
+                    .getDefaultModelId()
+                    .then(res => {
+                        if (res.result?.data)
+                            defaultModelId = res.result.data;
+                    })
+                    .finally(() => setSelectedModel(defaultModelId));
+            }
+
+            session.refreshUI();
+            setDummyState(d => d + 1);
+        }, 500);
+
+        if (!chatId) return;
 
         getMessages();
         getChatModelAndSync(chatId);
     }, [getMessages, getChatModelAndSync, chatId]);
-
-    useEffect(() => {
-        if (isNewChat.current && !selectedModel) {
-            setSelectedModel(session.chatModels.at(0)?.id || "");
-        }
-    }, [selectedModel, session.chatModels]);
 
     useEffect(() => {
         if (didFirstScrollToBottom.current || messages?.length === 0) return;
@@ -478,6 +498,7 @@ function _Chat() {
         <LayoutInner
             fullWidth
             fullHeight
+            key={dummyState}
             topBar={(
                 <>
                     {session.chatModels.length && (isNewChat.current ? true : selectedModel) ? (

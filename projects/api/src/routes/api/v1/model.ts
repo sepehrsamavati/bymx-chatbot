@@ -45,3 +45,10 @@ export const refreshModels: RouteHandlerMethod = async (request, reply) => {
         await request.locals.applications.aiModelApplication.renewCache()
     );
 };
+
+export const getDefaultModelId: RouteHandlerMethod = async (request, reply) => {
+    const model = await request.locals.applications.aiModelApplication.getDefaultModel();
+    return reply.status(200).send(
+        new OperationResultWithData<string>().succeeded().setData(model.id)
+    );
+};
