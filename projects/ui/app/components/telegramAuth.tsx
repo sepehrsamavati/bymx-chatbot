@@ -26,7 +26,7 @@ export default function telegramAuth() {
                 session.tgWebAppAuth()
                     .then(res => {
                         if (res.result?.ok) {
-                            navigate("/ui/");
+                            navigate("/ui/chat");
                         }
                     });
             }

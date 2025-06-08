@@ -56,7 +56,7 @@ export default function Login() {
                 if (res.result?.data) {
                     session.user = res.result.data;
                     session.postLoginEvents();
-                    navigate("/ui/");
+                    navigate("/ui/chat");
                 }
                 else {
                     session.snackbarProvider(res.result?.message, { variant: "error" });
