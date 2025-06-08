@@ -188,6 +188,7 @@ function _Chat() {
             _chatId = createdChatResponse.result.data;
             setChatId(_chatId);
             window.history.pushState({}, '', `/ui/chat/${_chatId}`);
+            session.cacheStorage.chats?.data.list.unshift({ caption: "", id: _chatId });
 
             if (selectedModel) { // has selected model before creating chat, trying to sync client and server
                 if (!(await chatService.setChatModel({ chatId: _chatId, modelId: selectedModel })).result?.ok)

@@ -50,8 +50,14 @@ export default function ChatMoreActions(props: {
         chatService
             .delete(props?.chatId as string)
             .then(res => {
-                if (res.result?.ok)
+                if (res.result?.ok) {
                     navigate("/ui/chats");
+                    if (session.cacheStorage.chats) {
+                        const index = session.cacheStorage.chats.data.list.findIndex(c => c.id === props.chatId);
+                        if (index !== -1)
+                            session.cacheStorage.chats.data.list.splice(index, 1);
+                    }
+                }
                 else
                     session.snackbarProvider(res.result?.message, { variant: "error" });
             })

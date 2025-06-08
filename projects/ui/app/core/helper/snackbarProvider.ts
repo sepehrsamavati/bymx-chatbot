@@ -24,7 +24,7 @@ const snackbarProvider = (msg: SnackbarMessage, options?: { extendedOptions?: Ex
         }
     };
 
-    if (options?.extendedOptions?.uiText)
+    if (typeof msg === "string" && options?.extendedOptions?.uiText)
         msg = options.extendedOptions.uiText[msg as I18nKey] || msg;
 
     const { extendedOptions } = options ?? {};
@@ -41,7 +41,10 @@ const snackbarProvider = (msg: SnackbarMessage, options?: { extendedOptions?: Ex
         msg = React.createElement('div', {}, elements);
     }
 
-    return useSnackbarRef.enqueueSnackbar<VariantType>(msg || "❌", options ? { ...defaultOptions, ...options } : defaultOptions);
+    if (!msg || msg === "null" || msg === "undefined")
+        msg = "❌";
+
+    return useSnackbarRef.enqueueSnackbar<VariantType>(msg, options ? { ...defaultOptions, ...options } : defaultOptions);
 };
 
 export const closeSnackbar = (key: SnackbarKey) => {
