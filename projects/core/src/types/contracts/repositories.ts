@@ -111,7 +111,7 @@ export type IAIChatRepository = {
 export type IPromptRepository = {
     /** Returns ID on success */
     create(message: FlattenToIDs<PromptDBModel, 'usages'>): Promise<string | null>;
-    getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; } | null>;
+    getUsage(fromDate: Date, toDate: Date): Promise<{ count: number; point: number; cost: number; topUsers: { tgId: number; cost: number; count: number; point: number; }[] } | null>;
     getRecentHistory(chatId: string, count: number, cursorPromptId?: string): Promise<PromptBasicInfo[] | null>;
     /** Delete records with greater or equal ID (next messages, self included) */
     deleteAfter(chatId: string, promptId: string): Promise<boolean | null>;

@@ -194,6 +194,7 @@ export const getAdminPanel = async (context: RequestContext) => {
             , context.user.lang
         )
             + `\n${emojiIcon.list} ${context.uiText.newUsers}: ${statistics.recentlyJoinedUsers?.length ? "\n" + statistics.recentlyJoinedUsers.map(newUser => `${emojiIcon.user} /find_${newUser.telegram?.id} ${newUser.telegram?.firstName}`).join('\n') : '-'}`
+            + `\n\n${statistics.messageUsage.topUsers.map(user => `${emojiIcon.user} /find_${user.tgId} x${user.count} ${emojiIcon.point}${user.point} $${user.cost.toFixed(5)}`).join('\n')}`
         ,
         reply_markup: {
             inline_keyboard: [

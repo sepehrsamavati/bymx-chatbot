@@ -208,7 +208,8 @@ export default class UserApplication {
             todayJoinedUsersCount,
             messageUsage: {
                 ...usages,
-                cost: usages?.cost.toFixed(2)
+                cost: usages?.cost.toFixed(2),
+                topUsers: usages?.topUsers || [],
             }
         };
     }
