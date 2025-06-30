@@ -3,7 +3,6 @@ import { config, crypto } from "bymx-core/server";
 import type { RouteHandlerMethod } from "fastify";
 import { type CookieSerializeOptions } from "@fastify/cookie";
 import type TelegramAuth from "../../../dto/user/TelegramAuth.js";
-import sendMessageToUser from "bymx-tg-endpoint/sendMessageToUser";
 import TelegramOtpLogin from "../../../dto/user/TelegramOtpLogin.js";
 import TelegramOtpRequest from "../../../dto/user/TelegramOtpRequest.js";
 import { OperationResult, OperationResultWithData, stringHelper, UIText } from "bymx-core/shared";
@@ -134,7 +133,7 @@ export const sendTelegramOtp: RouteHandlerMethod = async (request, reply) => {
     if (!codeGenerateResult.data)
         return reply.status(200).send(result.succeeded(codeGenerateResult.message));
 
-    const sendResult = await sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, codeGenerateResult.data));
+    const sendResult = await request.locals.services.telegramApiClient.sendMessageToUser(user, stringHelper.formatter(UIText.default[user.lang].yourOtpForLogin, codeGenerateResult.data));
 
     if (sendResult?.ok)
         result.succeeded();

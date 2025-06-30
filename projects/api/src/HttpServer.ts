@@ -23,6 +23,7 @@ export default class HttpServer {
             req.locals = {
                 user: null,
                 dto: null,
+                services: coreServices.exposedServices,
                 applications: scope.applications,
             };
 

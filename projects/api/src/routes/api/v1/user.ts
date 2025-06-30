@@ -1,10 +1,8 @@
 import { UserEntity } from "bymx-core/types";
 import type { RouteHandlerMethod } from "fastify";
 import ChangeLanguage from "../../../dto/user/ChangeLanguage.js";
-import sendMessageToUser from "bymx-tg-endpoint/sendMessageToUser";
 import SetMemoryAmount from "../../../dto/user/SetMemoryAmount.js";
-import TelegramOtpRequest from "../../../dto/user/TelegramOtpRequest.js";
-import { OperationResult, OperationResultWithData, stringHelper, UIText } from "bymx-core/shared";
+import { OperationResult, OperationResultWithData } from "bymx-core/shared";
 
 export const changeLanguage: RouteHandlerMethod = async (request, reply) => {
 

@@ -24,6 +24,7 @@ import UserTempFileApplication from "./application/UserTempFileApplication.js";
 import UserRepository from "./infrastructure/repository/mongo/UserRepository.js";
 import MetadataStoreApplication from "./application/MetadataStoreApplication.js";
 import GenerationTaskApplication from "./application/GenerationTaskApplication.js";
+import { TelegramApiClient } from "./infrastructure/services/TelegramApiClient.js";
 import { PlanRepository } from "./infrastructure/repository/mongo/PlanRepository.js";
 import ExpirableCacheStorage from "./infrastructure/services/ExpirableCacheStorage.js";
 import UserSubscriptionApplication from "./application/UserSubscriptionApplication.js";
@@ -100,7 +101,11 @@ type Services = {
     calculateInviteLockCache: ServiceInterfaces.IActionLockCache<string>;
 };
 
-export type ServicesType = Constants & Connections & Repositories & Applications & Services;
+type ExposedServices = {
+    telegramApiClient: TelegramApiClient;
+}
+
+export type ServicesType = Constants & Connections & Repositories & Applications & Services & ExposedServices;
 
 export default class CoreServices {
 
@@ -115,6 +120,9 @@ export default class CoreServices {
 
     public readonly applications: Applications = this.container.cradle;
     public readonly repositories: Repositories = this.container.cradle;
+    public readonly exposedServices: ExposedServices = {
+        telegramApiClient: this.container.cradle.telegramApiClient,
+    } as const;
 
     #diReadyQueue = new Set<() => void>();
 
@@ -169,6 +177,7 @@ export default class CoreServices {
             // memoryCandidateCache: asClass(CacheStorage<string[]>, { lifetime: "SINGLETON" }),
             chatMemberCacheStorage: asClass(CacheStorage<Date>, { lifetime: "SINGLETON" }),
             selectedStaticPaymentIdCacheStorage: asClass(CacheStorage<string>, { lifetime: "SINGLETON" }),
+            telegramApiClient: asClass(TelegramApiClient, { lifetime: "SINGLETON" }),
 
             userRepository: asClass(errorCatcher(UserRepository), { lifetime: "SCOPED" }),
             userSubscriptionRepository: asClass(errorCatcher(UserSubscriptionRepository), { lifetime: "SCOPED" }),
@@ -205,7 +214,7 @@ export default class CoreServices {
 
         return {
             applications: scope.cradle as Applications,
-            dispose: scope.dispose
+            dispose: scope.dispose,
         } as const;
     }
 

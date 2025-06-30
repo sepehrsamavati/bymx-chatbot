@@ -8,6 +8,7 @@ declare module 'fastify' {
             /** May be null - Be sure to call jwt middleware */
             user: UserEntity.UserViewModel | null;
             dto: unknown;
+            services: CoreServices['exposedServices'];
             applications: CoreServices['applications'];
         };
     }
