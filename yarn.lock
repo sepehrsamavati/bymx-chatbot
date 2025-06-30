@@ -2016,41 +2016,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-router/express@npm:7.2.0":
-  version: 7.2.0
-  resolution: "@react-router/express@npm:7.2.0"
+"@react-router/express@npm:7.6.3":
+  version: 7.6.3
+  resolution: "@react-router/express@npm:7.6.3"
   dependencies:
-    "@react-router/node": "npm:7.2.0"
+    "@react-router/node": "npm:7.6.3"
   peerDependencies:
-    express: ^4.17.1
-    react-router: 7.2.0
+    express: ^4.17.1 || ^5
+    react-router: 7.6.3
     typescript: ^5.1.0
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/0b097b7a0bf89f85828a6d74e34cf60146e07b0364614bdc08e783452ba0023902593358d931161c4f0172756eac03548e856aa77eeed5081d38cabec9220d77
+  checksum: 10c0/c9d72efe2d0acb4fa65bc69a55acb60638987c9193a425460f0dd46646b90715f06f95c50bd911943ad5b28c72d20b44776947a223baba5f7301ca67372c9fb0
   languageName: node
   linkType: hard
 
-"@react-router/node@npm:7.2.0, @react-router/node@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "@react-router/node@npm:7.2.0"
-  dependencies:
-    "@mjackson/node-fetch-server": "npm:^0.2.0"
-    source-map-support: "npm:^0.5.21"
-    stream-slice: "npm:^0.1.2"
-    undici: "npm:^6.19.2"
-  peerDependencies:
-    react-router: 7.2.0
-    typescript: ^5.1.0
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10c0/f1b45cb355f2557b6fdf785089fc3fcdb6fd34737e88b0c5c77d4bba422c7d54cfcc2a75010a2496c44f8342796fdc82f2a20f14c2e10d6d4e68c556e2272409
-  languageName: node
-  linkType: hard
-
-"@react-router/node@npm:7.6.3":
+"@react-router/node@npm:7.6.3, @react-router/node@npm:^7.6.3":
   version: 7.6.3
   resolution: "@react-router/node@npm:7.6.3"
   dependencies:
@@ -2065,22 +2047,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-router/serve@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "@react-router/serve@npm:7.2.0"
+"@react-router/serve@npm:^7.6.3":
+  version: 7.6.3
+  resolution: "@react-router/serve@npm:7.6.3"
   dependencies:
-    "@react-router/express": "npm:7.2.0"
-    "@react-router/node": "npm:7.2.0"
+    "@react-router/express": "npm:7.6.3"
+    "@react-router/node": "npm:7.6.3"
     compression: "npm:^1.7.4"
     express: "npm:^4.19.2"
     get-port: "npm:5.1.1"
     morgan: "npm:^1.10.0"
     source-map-support: "npm:^0.5.21"
   peerDependencies:
-    react-router: 7.2.0
+    react-router: 7.6.3
   bin:
     react-router-serve: bin.js
-  checksum: 10c0/56809b846b0e9255e7e9102a7d55a0872351c8f9a87b1d1bd2bd98347545f25db235a80bf8e76fb12d43dc3afbeb9e932306862f148cf1177c1531f1d803d3da
+  checksum: 10c0/4d6ee1922a9af5885dab4a9d8cc2e8de3feb272a167b7750e1bd5541c22641aad093d6e17e6169d8daead6d318f89eff44b381a88fc664b249715ef905c375d7
   languageName: node
   linkType: hard
 
@@ -2327,12 +2309,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20":
-  version: 20.17.22
-  resolution: "@types/node@npm:20.17.22"
+"@types/node@npm:^24.0.7":
+  version: 24.0.7
+  resolution: "@types/node@npm:24.0.7"
   dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10c0/5a78f60144bd69eaf1bdce39c906d988b0dc0f4c13068af9a3c44b0df737a0f363680a97d073a45d962b061cd4b3a8cfab71eec491ca6845888b68ab7855a778
+    undici-types: "npm:~7.8.0"
+  checksum: 10c0/be3849816dafc54ec79e6be6dafcf60bdb6466beaf0081b941142d260e2b2864855210dfe5b4395c59b276468528695aefcf4f060ac95cc433b2968e80a311f9
   languageName: node
   linkType: hard
 
@@ -2849,9 +2831,9 @@ __metadata:
     "@mui/icons-material": "npm:^7.0.2"
     "@mui/material": "npm:^7.0.2"
     "@react-router/dev": "npm:^7.6.3"
-    "@react-router/node": "npm:^7.2.0"
-    "@react-router/serve": "npm:^7.2.0"
-    "@types/node": "npm:^20"
+    "@react-router/node": "npm:^7.6.3"
+    "@react-router/serve": "npm:^7.6.3"
+    "@types/node": "npm:^24.0.7"
     "@types/prismjs": "npm:^1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -7327,13 +7309,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-slice@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "stream-slice@npm:0.1.2"
-  checksum: 10c0/fe9ccd8adfff2e2754617d3fd4afe9aa677c69d51ccd94b34909ae669d5882ed4b2753893c4dbd4100495c0deda51adbaa7bfe340e6b340e52211b32faa0e835
-  languageName: node
-  linkType: hard
-
 "string-width-cjs@npm:string-width@^4.2.0, string-width@npm:^4.1.0":
   version: 4.2.3
   resolution: "string-width@npm:4.2.3"
@@ -7676,17 +7651,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10c0/078afa5990fba110f6824823ace86073b4638f1d5112ee26e790155f481f2a868cc3e0615505b6f4282bdf74a3d8caad715fd809e870c2bb0704e3ea6082f344
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~6.20.0":
   version: 6.20.0
   resolution: "undici-types@npm:6.20.0"
   checksum: 10c0/68e659a98898d6a836a9a59e6adf14a5d799707f5ea629433e025ac90d239f75e408e2e5ff086afc3cace26f8b26ee52155293564593fbb4a2f666af57fc59bf
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.8.0":
+  version: 7.8.0
+  resolution: "undici-types@npm:7.8.0"
+  checksum: 10c0/9d9d246d1dc32f318d46116efe3cfca5a72d4f16828febc1918d94e58f6ffcf39c158aa28bf5b4fc52f410446bc7858f35151367bd7a49f21746cab6497b709b
   languageName: node
   linkType: hard
 
@@ -7696,13 +7671,6 @@ __metadata:
   dependencies:
     "@fastify/busboy": "npm:^2.0.0"
   checksum: 10c0/08d0f2596553aa0a54ca6e8e9c7f45aef7d042c60918564e3a142d449eda165a80196f6ef19ea2ef2e6446959e293095d8e40af1236f0d67223b06afac5ecad7
-  languageName: node
-  linkType: hard
-
-"undici@npm:^6.19.2":
-  version: 6.21.1
-  resolution: "undici@npm:6.21.1"
-  checksum: 10c0/d604080e4f8db89b35a63b483b5f96a5f8b19ec9f716e934639345449405809d2997e1dd7212d67048f210e54534143384d712bd9075e4394f0788895ef9ca8e
   languageName: node
   linkType: hard
 
