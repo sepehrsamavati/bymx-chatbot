@@ -3,7 +3,6 @@ import emojiIcon from "../helpers/emojiIcon.js";
 import { UserTempFileEntity } from "bymx-core/types";
 import { stringHelper, UserMode } from "bymx-core/shared";
 import { getChatListPanel } from "../modules/messages.js";
-import tgCall, { downloadFile } from "../helpers/call.js";
 import { getDocumentInfo } from "../helpers/fileHelper.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
@@ -19,7 +18,7 @@ export const promptHandler: IUpdateHandler = {
         TelegramUpdateType.Photo,
     ],
     mode: UserMode.General.Normal,
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         if (update.message?.forward_origin)
             return { shouldContinue: true };
 
@@ -77,7 +76,7 @@ export const promptHandler: IUpdateHandler = {
 
                     const fileExtension = fileInfo.result.file_path.split('.').pop() as string;
 
-                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    const downloadResult = await context.apiClient.downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {
                         tempFile = {
                             extension: fileExtension,
@@ -220,7 +219,7 @@ export const promptHandler: IUpdateHandler = {
                         };
                     }
 
-                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    const downloadResult = await context.apiClient.downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {
                         tempFile = {
                             extension: fileExtension,
@@ -304,7 +303,7 @@ export const promptHandler: IUpdateHandler = {
                             };
                         }
 
-                        const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                        const downloadResult = await context.apiClient.downloadFile(fileInfo.result.file_path, fileExtension);
                         if (downloadResult.ok && downloadResult.data) {
                             tempFile = {
                                 extension: fileExtension,

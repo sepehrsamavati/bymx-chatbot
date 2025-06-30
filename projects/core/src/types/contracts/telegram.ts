@@ -1,10 +1,4 @@
-import type CoreServices from "../../Container";
-import type * as UIText from "../../i18n/UIText";
-import type * as UserEntity from "../entities/user";
-import type { UserModeType } from "../enums/userMode";
-import type { TelegramMethods } from "../enums/telegram/telegramMethods.js";
-import type { TelegramUpdateType } from "../enums/telegram/telegramUpdateHandler.js";
-import type PaymentServices from "../../infrastructure/services/staticPayment/Container";
+import type { TelegramMethods } from "../enums/telegramMethods.js";
 
 export type ChatID = number;
 
@@ -242,57 +236,3 @@ type TelegramResponseMap = {
 }
 
 export type TelegramResponse<Method extends TelegramMethods> = Method extends keyof TelegramResponseMap ? TelegramResponseMap[Method] : never;
-
-export type RequestContext = {
-    services: CoreServices['applications'] & PaymentServices['applications'];
-    user: UserEntity.User;
-    uiText: UIText.UITextLanguage;
-    getUit: (keyOrMessage: UIText.UITextOptionalKey) => string;
-    readonly chat?: Chat;
-    /** Bot Telegram ID */
-    readonly botId: number;
-    readonly botUsername: string;
-    readonly broadcastTrigger: () => void;
-    readonly callStack: IUpdateHandler[];
-}
-
-type TelegramCall = {
-    text: UIText.UITextOptionalKey;
-}
-
-type ResponseContextBase = {
-    /** Should call next handler or not */
-    shouldContinue?: boolean;
-}
-
-type ResponseContextActions = (
-    {
-        /** Call Telegram method */
-        call: TelegramCall;
-    }
-    // | {
-    //     /** Multiple Telegram methods (executed concurrently) */
-    //     concurrentCalls: TelegramCall[];
-    // } | {
-    //     /** Multiple ordered Telegram methods (executed in order) */
-    //     orderedCalls: (next: (call: TelegramCall | null) => Promise<TelegramResponse | null>) => Promise<unknown>;
-    // }
-);
-
-export type ResponseContext = (
-    {
-        /** No action */
-        call?: null;
-    }
-    | ResponseContextActions) & ResponseContextBase;
-
-type UpdateHandlerChatType = "all" | Chat['type'];
-
-export type IUpdateHandler = {
-    readonly name: string;
-    /** Default: `private` only */
-    readonly chatTypes?: Array<UpdateHandlerChatType>;
-    updateType: TelegramUpdateType | TelegramUpdateType[];
-    handler: (context: RequestContext, update: TelegramUpdateObject) => Promise<ResponseContext | null>;
-    mode?: UserModeType | UserModeType[];
-}

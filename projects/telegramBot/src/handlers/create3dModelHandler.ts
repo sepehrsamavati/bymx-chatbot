@@ -1,6 +1,5 @@
 import { fileHelper } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
-import tgCall, { downloadFile } from "../helpers/call.js";
 import { stringHelper, UserMode } from "bymx-core/shared";
 import type { UserTempFileEntity } from "bymx-core/types";
 import type { IUpdateHandler } from "../types/telegram.js";
@@ -16,7 +15,7 @@ export const create3dModelHandler: IUpdateHandler = {
         TelegramUpdateType.Document,
     ],
     mode: UserMode.UserPrompt.Create3dModel,
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         const photo = update.message?.photo?.at(-1);
         const document = update.message?.document;
 
@@ -61,7 +60,7 @@ export const create3dModelHandler: IUpdateHandler = {
                         };
                     }
 
-                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    const downloadResult = await context.apiClient.downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {
                         imageFile = {
                             extension: fileExtension,
@@ -148,7 +147,7 @@ export const create3dModelHandler: IUpdateHandler = {
                         };
                     }
 
-                    const downloadResult = await downloadFile(fileInfo.result.file_path, fileExtension);
+                    const downloadResult = await context.apiClient.downloadFile(fileInfo.result.file_path, fileExtension);
                     if (downloadResult.ok && downloadResult.data) {
                         tempFile = {
                             extension: fileExtension,

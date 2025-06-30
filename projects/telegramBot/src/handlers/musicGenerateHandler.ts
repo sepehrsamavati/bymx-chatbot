@@ -15,7 +15,7 @@ export const musicGenerateHandler: IUpdateHandler = {
         TelegramUpdateType.TextMessage,
     ],
     mode: UserMode.UserPrompt.MusicWithLyricsAndTemplateGeneration,
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         const message = update.message?.text;
         const audio = update.message?.audio;
 

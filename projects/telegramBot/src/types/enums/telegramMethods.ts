@@ -1,25 +1,4 @@
-export enum TelegramMethods {
-    GetMe = "getMe",
-    GetUpdates = "getUpdates",
-    SendText = "sendMessage",
-    SendMessage = "sendMessage",
-    SendAudio = "sendAudio",
-    SendDocument = "sendDocument",
-    SendVoice = "sendVoice",
-    SendPhoto = "sendPhoto",
-    DeleteMessage = "deleteMessage",
-    EditMessageText = "editMessageText",
-    EditText = "editMessageText",
-    AnswerCallbackQuery = "answerCallbackQuery",
-    AnswerInlineQuery = "answerInlineQuery",
-    EditMessageReplyMarkup = "editMessageReplyMarkup",
-    ForwardMessage = "forwardMessage",
-    CopyMessage = "copyMessage",
-    SendChatAction = "sendChatAction",
-    LeaveChat = "leaveChat",
-    SetWebhook = "setWebhook",
-    SetMessageReaction = "setMessageReaction",
-    GetFile = "getFile",
-    GetChat = "getChat",
-    GetChatMember = "getChatMember",
-}
+import { TelegramApiClient } from "bymx-core/server";
+
+/** @deprecated */
+export const TelegramMethods: typeof TelegramApiClient['Methods'] = TelegramApiClient.Methods;

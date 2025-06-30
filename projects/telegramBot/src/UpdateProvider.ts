@@ -1,10 +1,9 @@
-import tgCall from "./helpers/call.js";
 import emojiIcon from "./helpers/emojiIcon.js";
 import { TelegramUser } from "./types/telegram.js";
 import { UpdateHandler } from "./UpdateHandler.js";
 import { UserMode, UIText } from "bymx-core/shared";
 import BroadcastHandler from "./BroadcastHandler.js";
-import { TelegramMethods } from "./types/enums/telegramMethods.js";
+import { _injectTelegramClient } from "./helpers/call.js";
 import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
 import { ExitCode, errorLogger, exitHelper, logger, type IServices } from "bymx-core/server";
 import { init as initGenerationTaskEventListener } from "./modules/generationTaskEventListener.js";
@@ -13,6 +12,7 @@ export class UpdateProvider {
     #nextUpdateId = 0;
     #handler!: UpdateHandler;
     #services: IServices;
+    #apiClient;
     #broadcastHandler;
     #botInfo?: TelegramUser;
 
@@ -23,10 +23,13 @@ export class UpdateProvider {
 
     constructor(services: IServices) {
         this.#services = services;
+        this.#apiClient = services.core.exposedServices.telegramApiClient;
         this.#broadcastHandler = new BroadcastHandler(
             services.core.applications.userApplication,
             services.core.applications.telegramBroadcastApplication
         );
+
+        _injectTelegramClient(this.#apiClient);
 
         initPaymentMessageCleanupJob(async item => {
             try {
@@ -35,8 +38,8 @@ export class UpdateProvider {
                     await this.#services.payment.applications.paymentApplication.cancel(user.id);
                     if (user.telegram?.mode === UserMode.General.StaticPayment)
                         await this.#services.core.applications.userApplication.setUserMode(user.id, UserMode.General.Normal);
-                    tgCall(
-                        TelegramMethods.SendMessage,
+                    this.#apiClient.call(
+                        this.#apiClient.Methods.SendMessage,
                         {
                             chat_id: item.chatId,
                             text: `${emojiIcon.warning} ${UIText.default[user.lang]?.paymentCanceled}`,
@@ -52,7 +55,7 @@ export class UpdateProvider {
     }
 
     async #startBot() {
-        const botInfo = await tgCall(TelegramMethods.GetMe, null);
+        const botInfo = await this.#apiClient.call(this.#apiClient.Methods.GetMe, null);
 
         if (!botInfo?.ok) {
             console.log("Telegram connection issue!");
@@ -78,7 +81,7 @@ export class UpdateProvider {
     }
 
     async #getUpdates() {
-        const res = await tgCall(TelegramMethods.GetUpdates, {
+        const res = await this.#apiClient.call(this.#apiClient.Methods.GetUpdates, {
             offset: this.#nextUpdateId,
             limit: 100,
             timeout: 10

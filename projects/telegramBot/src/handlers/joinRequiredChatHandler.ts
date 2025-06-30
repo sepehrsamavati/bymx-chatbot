@@ -1,4 +1,3 @@
-import tgCall from "../helpers/call.js";
 import { accessHelper, UserType } from "bymx-core/shared";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
@@ -9,7 +8,7 @@ export const joinRequiredChatHandler: IUpdateHandler = {
     name: import.meta.filename,
     updateType: TelegramUpdateType.All,
 
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         if (!update.callback_query?.message)
             return null;
 

@@ -1,4 +1,3 @@
-import tgCall from "./helpers/call.js";
 import { planHandler } from "./handlers/planHandler.js";
 import { panelHandler } from "./handlers/panelHandler.js";
 import type BroadcastHandler from "./BroadcastHandler.js";
@@ -7,7 +6,6 @@ import { promptHandler } from "./handlers/promptHandler.js";
 import { errorLogger, type IServices } from "bymx-core/server";
 import { UIText, UserMode, UserStatus } from "bymx-core/shared";
 import { joinChatHandler } from "./handlers/joinChatHandler.js";
-import { TelegramMethods } from "./types/enums/telegramMethods.js";
 import { chatManageHandler } from "./handlers/chatManageHandler.js";
 import { adminPanelHandler } from "./handlers/adminPanelHandler.js";
 import { userCommandHandler } from "./handlers/userCommandHandler.js";
@@ -180,9 +178,11 @@ export class UpdateHandler {
         _handlers = _handlers.filter(h => h.chatTypes ? (h.chatTypes.includes("all") || (chat?.type && h.chatTypes.includes(chat.type))) : chat?.type === "private");
 
         let callStack: IUpdateHandler[] = [];
+        const apiClient = this.services.core.exposedServices.telegramApiClient;
 
         const requestContext: RequestContext = {
             user: user,
+            apiClient: apiClient,
             uiText: UIText.default[user.lang] || UIText.default.fa,
             callStack: callStack,
             chat,
@@ -200,7 +200,7 @@ export class UpdateHandler {
             let responseCtx: ResponseContext | null = null;
 
             try {
-                responseCtx = await handlerCtx.handler(requestContext, update);
+                responseCtx = await handlerCtx.handler(requestContext, update, { tgCall: apiClient.call });
             } catch (err) {
                 errorLogger(
                     `Unhandled exception in handler '${handlerCtx.name}'`
@@ -220,7 +220,7 @@ export class UpdateHandler {
                 continue; // skip current handler
 
             if (responseCtx.call) {
-                await tgCall(TelegramMethods.SendMessage, {
+                await apiClient.call(apiClient.Methods.SendMessage, {
                     chat_id: userId,
                     text: requestContext.getUit(responseCtx.call.text),
                     ...(update.message ? {

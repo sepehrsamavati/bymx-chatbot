@@ -15,7 +15,7 @@ export const imageUpscaleHandler: IUpdateHandler = {
         TelegramUpdateType.Document,
     ],
     mode: UserMode.UserPrompt.ImageUpscale,
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         const photo = update.message?.photo?.at(-1);
         const document = update.message?.document;
 

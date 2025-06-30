@@ -6,7 +6,7 @@ import { setTimeout } from "node:timers/promises";
 import type { User } from "../../types/entities/user.js";
 import { TelegramResponse } from "../../types/contracts/telegram.js";
 import { OperationResultWithData } from "../../common/dto/OperationResult.js";
-import { TelegramMethods } from "../../types/enums/telegram/telegramMethods.js";
+import { TelegramMethods } from "../../types/enums/telegramMethods.js";
 import { fileStorageHelper, generateFileSystemId } from "../../helpers/storageHelper";
 
 async function _tgCall<Method extends TelegramMethods>(botUrl: string, method: Method, params: any): Promise<TelegramResponse<Method> | null> {
@@ -37,6 +37,9 @@ async function _tgCall<Method extends TelegramMethods>(botUrl: string, method: M
 }
 
 export class TelegramApiClient {
+    readonly Methods = TelegramMethods;
+    static readonly Methods = TelegramMethods;
+
     #botUrl = "https://api.telegram.org/bot" + config.telegram.apiToken + "/";
     #botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegram.apiToken + "/";
 

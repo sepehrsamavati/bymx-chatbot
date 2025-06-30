@@ -1,12 +1,11 @@
 {
   "name": "bymx-tg-endpoint",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "",
   "main": "index.js",
   "type": "module",
   "exports": {
-    ".": "./dist/UpdateProvider.js",
-    "./sendMessageToUser": "./dist/export/sendMessageToUser.js"
+    ".": "./dist/UpdateProvider.js"
   },
   "types": "./dist/UpdateProvider.d.ts",
   "scripts": {

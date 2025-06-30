@@ -3,8 +3,8 @@ import { config } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { PaymentStatus, UserMode } from "bymx-core/shared";
-import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
+import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../modules/messages.js";
 
@@ -15,7 +15,7 @@ export const planHandler: IUpdateHandler = {
         UserMode.General.Normal,
         UserMode.General.StaticPayment,
     ],
-    async handler(context, update) {
+    async handler(context, update, { tgCall }) {
         if (update.message?.chat.type !== "private" && update.callback_query?.message?.chat.type !== "private")
             return null;
 

@@ -1,92 +1,17 @@
-import fs from "node:fs";
-import path from "node:path";
-import { Readable } from "node:stream";
-import { finished } from "node:stream/promises";
-import { setTimeout } from 'node:timers/promises';
-import { config, storageHelper } from "bymx-core/server";
-import { OperationResultWithData } from "bymx-core/shared";
-import type { TelegramResponse } from "../types/telegram.js";
-import type { TelegramMethods } from "../types/enums/telegramMethods.js";
+import { TelegramApiClient } from "bymx-core/server";
+import type { TelegramApiContract } from "bymx-core/types";
 
-const botUrl = "https://api.telegram.org/bot" + config.telegram.apiToken + "/";
-const botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegram.apiToken + "/";
+let tgClient: TelegramApiClient = null!;
 
-export const getFileUrl = (tgFilePath: string) => botUrlFileStorage + tgFilePath;
+/** This module is deprecated, this function is a temporary solution to prevent touching other files of the project (handlers and +160 references) */
+export const _injectTelegramClient = (_tgClient: TelegramApiClient) => tgClient = _tgClient;
 
-export const downloadFile = async (tgFilePath: string, extension?: string) => {
-    const result = new OperationResultWithData<string>();
-
-    const response = await fetch(getFileUrl(tgFilePath));
-
-    if (!(response.body && response.status === 200))
-        return result.failed();
-
-    const fileId = storageHelper.generateFileSystemId();
-
-    const storedFilePath = storageHelper.fileStorageHelper.userTemporary.getFilePath(fileId);
-
-    const body = Readable.from(response.body);
-    const downloadWriteStream = fs.createWriteStream(storedFilePath);
-
-    await finished(body.pipe(downloadWriteStream));
-
-    return result.succeeded().setData(fileId);
+/** @deprecated */
+export const downloadFile: TelegramApiClient['downloadFile'] = (tgFilePath: string, extension?: string) => {
+    return tgClient.downloadFile(tgFilePath, extension);
 };
 
-async function _tgCall<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
-    const isFormData = params instanceof FormData;
-    return new Promise((resolve) => {
-        fetch(botUrl + method, {
-            method: 'POST',
-            body: isFormData ? params as FormData : JSON.stringify(params),
-            headers: isFormData ? undefined : {
-                "Content-Type": "application/json"
-            }
-        })
-            .then(async (res) => {
-                const data = await res.json();
-                if (data && typeof data["ok"] === "boolean") {
-                    if (config.isDevelopment && !data.ok)
-                        console.error(data);
-                    resolve(data);
-                }
-                else
-                    resolve(null);
-            })
-            .catch(error => {
-                resolve(null);
-                console.error(error);
-            });
-    });
-}
-
-export default async function tgCall<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
-
-    for (let tries = 1; tries <= 3; tries++) {
-        const result = await _tgCall(method, params);
-        if (!result) {
-            await setTimeout(1e3);
-            continue;
-        } else if (result.ok)
-            return result;
-        else {
-
-            if (tries === 1) {
-                const hasMarkdown = params && typeof params === "object" && Object.hasOwn(params, 'parse_mode');
-                if (hasMarkdown && (result as any).description?.includes("can't parse entities")) {
-                    delete params.parse_mode;
-                    continue;
-                }
-            }
-
-            if (result.error_code === 400 || result.error_code === 403)
-                return result;
-            else {
-                await setTimeout(5e3);
-                continue;
-            }
-        }
-    }
-
-    return null;
+/** @deprecated */
+export default async function tgCall(method: Parameters<TelegramApiClient['call']>['0'], params: Parameters<TelegramApiClient['call']>['1']) {
+    return tgClient.call(method, params);
 }
