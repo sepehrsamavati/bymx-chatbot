@@ -5,9 +5,9 @@ import { finished } from "node:stream/promises";
 import { setTimeout } from "node:timers/promises";
 import type { User } from "../../types/entities/user.js";
 import { TelegramResponse } from "../../types/contracts/telegram.js";
-import { OperationResultWithData } from "../../common/dto/OperationResult.js";
 import { TelegramMethods } from "../../types/enums/telegramMethods.js";
-import { fileStorageHelper, generateFileSystemId } from "../../helpers/storageHelper";
+import { OperationResultWithData } from "../../common/dto/OperationResult.js";
+import { fileStorageHelper, generateFileSystemId } from "../../helpers/storageHelper.js";
 
 async function _tgCall<Method extends TelegramMethods>(botUrl: string, method: Method, params: any): Promise<TelegramResponse<Method> | null> {
     const isFormData = params instanceof FormData;
