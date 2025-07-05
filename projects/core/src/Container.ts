@@ -120,11 +120,16 @@ export default class CoreServices {
 
     public readonly applications: Applications = this.container.cradle;
     public readonly repositories: Repositories = this.container.cradle;
-    public readonly exposedServices: ExposedServices = {
-        telegramApiClient: this.container.cradle.telegramApiClient,
-    } as const;
+    /** Requires DI ready */
+    public exposedServices!: Readonly<ExposedServices>;
 
-    #diReadyQueue = new Set<() => void>();
+    #diReadyQueue = new Set<() => void>([
+        () => {
+            this.exposedServices = Object.freeze({
+                telegramApiClient: this.container.cradle.telegramApiClient,
+            });
+        }
+    ]);
 
     async diReady(): Promise<void> {
         if (this.databaseConnection.con) return;
