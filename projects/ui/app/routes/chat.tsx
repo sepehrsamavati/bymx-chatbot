@@ -122,7 +122,7 @@ function _Chat() {
         }
     }, []);
 
-    const getMessages = useCallback(() => {
+    const getMessages = useCallback(({ scrollToBottomOnSuccess }: { scrollToBottomOnSuccess?: boolean } = {}) => {
         if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
         isLoadingMessages.current = true;
         setWaitingForPreviousMessagesToLoad(true);
@@ -134,6 +134,10 @@ function _Chat() {
             })
             .then(res => {
                 if (res.result?.data) {
+
+                    if (scrollToBottomOnSuccess)
+                        setTimeout(() => scrollToBottom(undefined, true), 800)
+
                     setMessages(_current => {
                         _current ||= [];
                         const oldMessages = [..._current];
@@ -438,6 +442,18 @@ function _Chat() {
     }, [chatId, session, messages]);
 
     useEffect(() => {
+        if (chatSectionRef.current) {
+            // load more messages when screen height is not filled
+            if (reachedToFirstMessage.current !== true && messages?.length && chatSectionRef.current.scrollTop === 0) { // not reached to first message, messages loaded && scroll is at top
+                const scrollableHeight = chatSectionRef.current.scrollHeight;
+                const totalHeight = chatSectionRef.current.getBoundingClientRect().height;
+                const notScrollable = scrollableHeight <= totalHeight;
+                if (notScrollable) { // element is not scrollable so should load more messages
+                    getMessages({ scrollToBottomOnSuccess: true });
+                }
+            }
+        }
+
         if (initialized.current) return;
         initialized.current = true;
 
@@ -467,7 +483,7 @@ function _Chat() {
 
         getMessages();
         getChatModelAndSync(chatId);
-    }, [getMessages, getChatModelAndSync, chatId]);
+    }, [getMessages, getChatModelAndSync, chatId, messages]);
 
     useEffect(() => {
         if (didFirstScrollToBottom.current || messages?.length === 0) return;
