@@ -107,7 +107,6 @@ export const setRoutes = (fastifyInstance: FastifyInstance) => {
         chatController.addHook('onRequest', jwt);
         chatController.addHook('onRequest', authGuard);
 
-        chatController.get("/all", chat.getAllChats);
         chatController.get("/", { preValidation: fastifyPayloadValidator(GetChats) }, chat.getChats);
         chatController.delete("/", { preValidation: fastifyPayloadValidator(ChatID) }, chat.deleteChat);
         chatController.get("/model", { preValidation: fastifyPayloadValidator(ChatID) }, chat.getChatSelectedModel);

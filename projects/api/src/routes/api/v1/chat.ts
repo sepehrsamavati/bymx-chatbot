@@ -10,11 +10,6 @@ import ChatDeleteMessagesAfter from "../../../dto/chat/ChatDeleteMessagesAfter.j
 import { AIChatBehavior, OperationResult, OperationResultWithData } from "bymx-core/shared";
 import type { Api, CaptionOnly, PromptViewModel, UserTempFileEntity } from "bymx-core/types";
 
-/** @deprecated Will not get all chats; Use `getChats` with pagination */
-export const getAllChats: RouteHandlerMethod = async (_, reply) => {
-    return reply.status(200).send(new OperationResultWithData<CaptionOnly[]>().failed("invalid"));
-};
-
 export const getChats: RouteHandlerMethod = async (request, reply) => {
 
     const result = new OperationResultWithData<CaptionOnly[]>();
