@@ -110,7 +110,7 @@ export class UpdateHandler {
         const tgLangCode = UIText.langCodes.includes(fromTgUser?.language_code as UIText.LangCode) ? fromTgUser?.language_code as UIText.LangCode : null;
 
         // use root container (do not create scope)
-        const user = await this.services.core.applications.userApplication.upsert({
+        const user = await this.services.core.applications.userApplication.obtain({
             telegram: {
                 id: userId,
                 firstName: fromTgUser?.first_name ?? "",

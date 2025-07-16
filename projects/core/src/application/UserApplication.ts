@@ -31,7 +31,7 @@ export default class UserApplication {
         this.#transaction = container.databaseTransaction;
     }
 
-    async upsert(user: UpsertUserModel) {
+    async obtain(user: UpsertUserModel) {
         const _user = user.telegram ? await this.#userRepository.getAndUpdate({
             telegramFirstName: user.telegram?.firstName,
             telegramLastName: user.telegram?.lastName,
@@ -54,7 +54,7 @@ export default class UserApplication {
                 } : undefined,
                 status: UserStatus.EULA,
                 type: UserType.Normal,
-                memoryAmount: 3,
+                memoryAmount: AIChatHistoryMemory.Normal,
                 saveMessages: true,
                 voiceResponse: {
                     on: false,

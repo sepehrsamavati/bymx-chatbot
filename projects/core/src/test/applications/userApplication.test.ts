@@ -14,7 +14,7 @@ test('User application', async helpers => {
     const newUserMode = UserMode.General.EnterPhoneNumber;
 
     await helpers.test('Upsert', async () => {
-        const result = await services.applications.userApplication.upsert({
+        const result = await services.applications.userApplication.obtain({
             lang: sampleUser.createUserPayload.lang,
             telegram: sampleUser.createUserPayload.telegram ? {
                 id: sampleUser.createUserPayload.telegram.id,
@@ -33,7 +33,7 @@ test('User application', async helpers => {
     });
 
     await helpers.test('Upsert after set user tg mode (read changes)', async () => {
-        const result = await services.applications.userApplication.upsert({
+        const result = await services.applications.userApplication.obtain({
             lang: sampleUser.createUserPayload.lang,
             telegram: sampleUser.createUserPayload.telegram ? {
                 id: sampleUser.createUserPayload.telegram.id,
