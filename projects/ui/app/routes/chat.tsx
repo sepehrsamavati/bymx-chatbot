@@ -112,7 +112,8 @@ function _Chat() {
         if (shouldScroll) {
             const scrollFunction = () => {
                 element.scrollTo({
-                    top: element.scrollHeight - element.clientHeight
+                    top: element.scrollHeight - element.clientHeight,
+                    behavior: "smooth",
                 });
             };
             if (asyncCallback)
@@ -491,18 +492,18 @@ function _Chat() {
         scrollToBottom(undefined, true);
     }, [messages, scrollToBottom]);
 
-    useEffect(() => {
-        if (!chatSectionRef.current) return;
+    // useEffect(() => {
+    //     if (!chatSectionRef.current) return;
 
-        const observer = new MutationObserver(() => {
-            scrollToBottom(cb => setTimeout(cb, 300));
-        });
-        observer.observe(chatSectionRef.current, { childList: true });
+    //     const observer = new MutationObserver(() => {
+    //         scrollToBottom(cb => setTimeout(cb, 300));
+    //     });
+    //     observer.observe(chatSectionRef.current, { childList: true });
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [scrollToBottom]);
+    //     return () => {
+    //         observer.disconnect();
+    //     };
+    // }, [scrollToBottom]);
 
     useEffect(() => {
         if (session.themeManager.name === "light")
