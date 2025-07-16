@@ -52,6 +52,7 @@ export type UserDBModel = StoredEntity<User>;
 export type UserViewModel = {
     firstName: string;
     lastName?: string;
+    shouldAcceptEula?: boolean;
 } & Pick<User, 'id' | 'lang' | 'type' | 'memoryAmount' | 'saveMessages'>;
 
 export type CreateUserModel = Omit<UserDBModel, 'id'>;

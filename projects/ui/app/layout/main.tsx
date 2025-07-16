@@ -24,7 +24,7 @@ import bymxHeader from "../assets/images/baymax_header.png";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import ExpandCircleDown from "@mui/icons-material/ExpandCircleDown";
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { Box, Chip, Divider, Drawer, Modal, Skeleton, TextField, Typography } from "@mui/material";
+import { Box, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Drawer, Modal, Skeleton, TextField, Typography } from "@mui/material";
 
 const generateChatsTitle = (
     chatIds: string[],
@@ -538,6 +538,63 @@ function Header() {
                 </Box>
             </Drawer>
         </header>
+    );
+}
+
+
+
+function Eula() {
+    const session = useSession();
+    const [isLoading, setIsLoading] = useState(false);
+    const [hide, setHide] = useState(false);
+    const [shouldAccept, setShouldAccept] = useState(false);
+    const show = shouldAccept && !hide;
+
+    const submitAccept = useCallback(() => {
+        setIsLoading(true);
+        userService
+            .acceptEula()
+            .then(res => {
+                if (res.result?.ok)
+                    setHide(true);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
+
+    useEffect(() => {
+        if (hide) return;
+
+        const _timer = window.setInterval(() => {
+            setShouldAccept(Boolean(session.user?.shouldAcceptEula));
+        }, 500);
+
+        return () => {
+            window.clearInterval(_timer);
+        };
+    }, [session, hide]);
+
+    return (
+        <Dialog
+            open={show}
+            maxWidth="lg"
+            slotProps={{
+                backdrop: {
+                    sx: {
+                        backdropFilter: "blur(4px)"
+                    }
+                }
+            }}
+        >
+            <DialogTitle>{session.uiText.termsOfService}</DialogTitle>
+            <DialogContent>
+                <DialogContentText component="p" whiteSpace="pre-line" fontSize="0.9em">
+                    {session.uiText._termsOfService}
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button size="small" variant="contained" onClick={submitAccept} autoFocus isLoading={isLoading}>{session.uiText.acceptTos}</Button>
+            </DialogActions>
+        </Dialog>
     );
 }
 

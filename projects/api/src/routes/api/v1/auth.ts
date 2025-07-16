@@ -80,15 +80,7 @@ export const telegramAuth: RouteHandlerMethod = async function (request, reply) 
         if (!user.telegram?.phoneNumber)
             return reply.status(200).send(result.failed("sendPhoneNumberToContinue"));
 
-        const userInfo: UserEntity.UserViewModel = {
-            id: user.id,
-            type: user.type,
-            lang: user.lang,
-            firstName: user.telegram?.firstName ?? "",
-            lastName: user.telegram?.lastName ?? "",
-            memoryAmount: user.memoryAmount,
-            saveMessages: user.saveMessages,
-        };
+        const userInfo: UserEntity.UserViewModel = request.locals.applications.userApplication.toViewModel(user);
 
         result.succeeded().setData(userInfo);
 
@@ -158,15 +150,7 @@ export const telegramOtpAuth: RouteHandlerMethod = async function (request, repl
     const otpAuthResult = await request.locals.applications.telegramOtpApplication.useOtp(user.id, query.otp);
 
     if (otpAuthResult.ok) {
-        const userInfo: UserEntity.UserViewModel = {
-            id: user.id,
-            type: user.type,
-            lang: user.lang,
-            firstName: user.telegram?.firstName ?? "",
-            lastName: user.telegram?.lastName ?? "",
-            memoryAmount: user.memoryAmount,
-            saveMessages: user.saveMessages,
-        };
+        const userInfo: UserEntity.UserViewModel = request.locals.applications.userApplication.toViewModel(user);
 
         const accessToken = this.jwt.sign(
             userInfo,
@@ -220,15 +204,7 @@ export const refreshAccessToken: RouteHandlerMethod = async function (request, r
         return reply.status(200).send(result.failed());
 
     const newAccessToken = this.jwt.sign(
-        {
-            id: user.id,
-            firstName: user.telegram?.firstName || "",
-            lastName: user.telegram?.lastName || "",
-            lang: user.lang,
-            memoryAmount: user.memoryAmount,
-            saveMessages: user.saveMessages,
-            type: user.type,
-        } satisfies UserEntity.UserViewModel,
+        request.locals.applications.userApplication.toViewModel(user),
         { expiresIn: '15m' }
     );
 

@@ -10,6 +10,12 @@ const userService = Object.freeze({
             body: { initData },
         });
     },
+    acceptEula() {
+        return HttpClient.send<IOperationResult>({
+            path: "/api/v1/user/acceptEula",
+            method: HttpClient.Methods.PATCH,
+        });
+    },
     changeLanguage(langCode: string) {
         return HttpClient.send<IOperationResult>({
             path: "/api/v1/user/language",

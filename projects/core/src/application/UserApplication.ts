@@ -10,7 +10,7 @@ import { UserStatus } from "../types/enums/userStatus.js";
 import { aiVoices, AIVoice } from "../types/enums/aiVoice.js";
 import { UserMode, type UserModeType } from "../types/enums/userMode.js";
 import { AIChatHistoryMemory } from "../types/enums/aiChatHistoryMemory.js";
-import type { UpsertUserModel, User, UserInfoModel } from "../types/entities/user.js";
+import type { UpsertUserModel, User, UserInfoModel, UserViewModel } from "../types/entities/user.js";
 import { OperationResult, OperationResultWithData } from "../common/dto/OperationResult.js";
 import isPhoneNumberSupported from "../helpers/isPhoneNumberSupported.js";
 
@@ -31,12 +31,25 @@ export default class UserApplication {
         this.#transaction = container.databaseTransaction;
     }
 
+    toViewModel(user: User): UserViewModel {
+        return {
+            id: user.id,
+            type: user.type,
+            lang: user.lang,
+            firstName: user.telegram?.firstName ?? "",
+            lastName: user.telegram?.lastName ?? "",
+            memoryAmount: user.memoryAmount,
+            saveMessages: user.saveMessages,
+            shouldAcceptEula: user.status === UserStatus.EULA,
+        };
+    }
+
     async obtain(user: UpsertUserModel) {
         const _user = user.telegram ? await this.#userRepository.getAndUpdate({
             telegramFirstName: user.telegram?.firstName,
             telegramLastName: user.telegram?.lastName,
             telegramUsername: user.telegram?.username,
-        }, { telegram: { id: user.telegram.id } }) : undefined;
+        }, { telegram: { id: user.telegram.id }, status: { notEqual: [UserStatus.Banned] }, }) : undefined;
 
         if (_user) {
             return _user;
@@ -256,7 +269,7 @@ export default class UserApplication {
     }
 
     async getUserById(userId: string): Promise<User | null> {
-        return await this.#userRepository.getBy({ id: userId });
+        return await this.#userRepository.getBy({ id: userId, status: { notEqual: [UserStatus.Banned] }, });
     }
 
     async getUserByTgId(tgId: number): Promise<User | null> {
@@ -264,7 +277,7 @@ export default class UserApplication {
     }
 
     async getUserByPhoneNumber(telegramPhoneNumber: string): Promise<User | null> {
-        return await this.#userRepository.getBy({ telegram: { phoneNumber: telegramPhoneNumber } });
+        return await this.#userRepository.getBy({ telegram: { phoneNumber: telegramPhoneNumber }, status: { notEqual: [UserStatus.Banned] }, });
     }
 
     async useInvite(invitedUser: User) {
@@ -405,6 +418,22 @@ export default class UserApplication {
             user.lang = _language; // update memory
             result.succeeded("itemChangedSuccessfully");
         }
+
+        return result;
+    }
+
+    async acceptEula(userId: User['id']) {
+        let result = new OperationResult();
+
+        const user = await this.getUserById(userId);
+
+        if (!user)
+            return result.failed("userNotFound");
+
+        if (user.status !== UserStatus.EULA)
+            return result.failed("invalid");
+
+        result = await this.setUserStatus(user.id, UserStatus.OK);
 
         return result;
     }

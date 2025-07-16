@@ -34,17 +34,7 @@ export const getMe: RouteHandlerMethod = async (request, reply) => {
     if (!user)
         return reply.status(200).send(result.failed("noAccess"));
 
-    const userInfo: UserEntity.UserViewModel = {
-        id: user.id,
-        type: user.type,
-        lang: user.lang,
-        firstName: user.telegram?.firstName ?? "",
-        lastName: user.telegram?.lastName ?? "",
-        memoryAmount: user.memoryAmount,
-        saveMessages: user.saveMessages,
-    };
-
-    result.succeeded().setData(userInfo);
+    result.succeeded().setData(request.locals.applications.userApplication.toViewModel(user));
 
     return reply.status(200).send(result);
 
@@ -63,15 +53,7 @@ export const getInfo: RouteHandlerMethod = async (request, reply) => {
         result
             .succeeded()
             .setData({
-                user: {
-                    id: info.user.id,
-                    firstName: info.user.telegram?.firstName ?? "",
-                    lastName: info.user.telegram?.lastName ?? "",
-                    lang: info.user.lang,
-                    memoryAmount: info.user.memoryAmount,
-                    saveMessages: info.user.saveMessages,
-                    type: info.user.type,
-                },
+                user: request.locals.applications.userApplication.toViewModel(info.user),
                 activePurchasedPlans: info.activePurchasedPlans,
                 dailyFreePoints: info.dailyFreePoints,
                 paidSubscriptionsRemainingPoints: info.paidSubscriptionsRemainingPoints,
@@ -88,4 +70,17 @@ export const setMemoryAmount: RouteHandlerMethod = async (request, reply) => {
     const result = await request.locals.applications.userApplication.setMemoryAmount(userId, query.amount, true);
 
     return reply.status(200).send(result);
+};
+
+export const acceptEula: RouteHandlerMethod = async (request, reply) => {
+
+    let result = new OperationResult();
+
+    if (!request.locals.user)
+        return reply.status(200).send(result.failed("noAccess"));
+
+    result = await request.locals.applications.userApplication.acceptEula(request.locals.user.id);
+
+    return reply.status(200).send(result);
+
 };
