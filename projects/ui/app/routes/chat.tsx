@@ -12,6 +12,7 @@ import UploadFile from "@mui/icons-material/UploadFile";
 import { stringHelper, UIText } from "bymx-core/shared";
 import DataObject from "@mui/icons-material/DataObject";
 import Restaurant from "@mui/icons-material/Restaurant";
+import modelService from "~/core/services/modelService";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
 import MessageBubble from "~/components/chat/messageBubble";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
@@ -20,9 +21,8 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AiModelEntity, Api, PromptViewModel } from "bymx-core/types";
+import type { AiModelEntity, Api, IOperationResultWithData, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
-import modelService from "~/core/services/modelService";
 
 type ChatMessage = PromptViewModel & {
     attachmentFilename?: string;
@@ -354,13 +354,13 @@ function _Chat() {
             });
 
             xhr.addEventListener("loadend", () => {
-                const res = xhr.getResponseHeader("content-type")?.includes("application/json") ? JSON.parse(xhr.response) : null;
+                const res = xhr.getResponseHeader("content-type")?.includes("application/json") ? JSON.parse(xhr.response) as IOperationResultWithData<string> : null;
 
                 errorResponseMessageFormatter(res);
 
-                if (!(xhr.readyState === 4 && xhr.status === 200)) {
+                if (!(res && xhr.readyState === 4 && xhr.status === 200)) {
                     setUploadingFile(undefined);
-                    session.snackbarProvider(res.message || session.uiText.errorOccurred, { variant: "error", anchorOrigin: { horizontal: "center", vertical: "bottom", } });
+                    session.snackbarProvider(res?.message || session.uiText.errorOccurred, { variant: "error", anchorOrigin: { horizontal: "center", vertical: "bottom", } });
                     return resolve(false);
                 }
 
@@ -370,7 +370,7 @@ function _Chat() {
                             return (
                                 {
                                     ..._current,
-                                    id: res.data,
+                                    id: res.data!,
                                 }
                             );
 
