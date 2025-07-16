@@ -695,6 +695,10 @@ function _Chat() {
                 >
                     <Box
                         sx={{
+                            paddingBottom: 0.7,
+                            ' button' : {
+                                padding: 0,
+                            },
                             ' input': {
                                 display: "none",
                                 visibility: "hidden",
