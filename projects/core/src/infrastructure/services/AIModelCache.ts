@@ -13,6 +13,8 @@ export default class AIModelCache implements IAIModelCache {
     #lowCostModelModel: AIModel | null = null;
     #lowCostModelModelQueue = new Set<(model: AIModel | null) => void>();
 
+    #modelsLoaded = false;
+
     setAll(models: AIModel[]) {
         this.#models = models;
 
@@ -36,6 +38,8 @@ export default class AIModelCache implements IAIModelCache {
             this.#lowCostModelModelQueue.forEach(cb => cb(_lowCostModelModel));
             this.#lowCostModelModelQueue.clear();
         }
+
+        this.#modelsLoaded = true;
     }
 
     getModelByName(name: string) {
@@ -54,13 +58,13 @@ export default class AIModelCache implements IAIModelCache {
     }
 
     async getFreeModel(): Promise<AIModel | null> {
-        if (this.#freeModel) return this.#freeModel;
+        if (this.#modelsLoaded || this.#freeModel) return this.#freeModel;
         const promise = new Promise<AIModel | null>(resolve => this.#freeModelQueue.add(resolve));
         return promise;
     }
 
     async getLowCostModel(): Promise<AIModel | null> {
-        if (this.#lowCostModelModel) return this.#lowCostModelModel;
+        if (this.#modelsLoaded || this.#lowCostModelModel) return this.#lowCostModelModel;
         const promise = new Promise<AIModel | null>(resolve => this.#lowCostModelModelQueue.add(resolve));
         return promise;
     }

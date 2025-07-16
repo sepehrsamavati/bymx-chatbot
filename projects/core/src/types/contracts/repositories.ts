@@ -103,6 +103,7 @@ export type IAIChatRepository = {
     create(chat: Omit<AIChatDBModel, 'id'>): Promise<AIChatDBModel['id'] | null>;
     updateById(update: UpdateAIChat): Promise<boolean | null>;
     getChat(filter: SearchAIChat): Promise<Omit<AIChat, 'user'> | null>;
+    getChatWithUser(filter: SearchAIChat): Promise<AIChat | null>;
     exists(userId: string): Promise<boolean | null>;
     getChats(filter: SearchAIChat, options?: { beforeId?: string; afterId?: string; count?: number; }): Promise<CaptionOnly[] | null>;
     count(filter: SearchAIChat): Promise<number | null>;

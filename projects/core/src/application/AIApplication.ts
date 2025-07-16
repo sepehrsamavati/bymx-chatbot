@@ -1034,14 +1034,14 @@ export default class AIApplication {
         return result;
     }
 
-    async generateAndSetChatTitle(chatId: string, message?: string) {
+    async generateAndSetChatTitle(chatId: string, freeOnly = true) {
         const result = new OperationResultWithData<string>();
 
-        const freeModel = await this.#aiModelCache.getFreeModel();
-        if (!freeModel)
+        const model = await this.#aiModelCache.getFreeModel() || (freeOnly ? null : await this.#aiModelCache.getLowCostModel());
+        if (!model)
             return result.failed("modelNotAvailable");
 
-        const chat = await this.#aiChatRepository.getChat({
+        const chat = await this.#aiChatRepository.getChatWithUser({
             id: chatId,
             isDeleted: false,
             title: "",
@@ -1049,37 +1049,85 @@ export default class AIApplication {
         if (!chat)
             return result.failed("itemNotFound");
 
-        if (!message) {
-            const _historyMessages = await this.#promptRepository.getRecentHistory(chatId, 5);
-            if (_historyMessages)
-                message = _historyMessages.map(msg => `UserA: ${msg.input}\n\nUserB: ${msg.output}`).join("-----\n\n");
-            else
-                return result.failed("errorWhileFetchingData");
+        let message = "", fallback = "";
+
+        const _historyMessages = await this.#promptRepository.getRecentHistory(chatId, 5);
+        if (_historyMessages) {
+            message = _historyMessages.map(msg => `UserA: ${msg.input}\n\nUserB: ${msg.output}`).join("-----\n\n");
+            fallback = _historyMessages.map(msg => `${msg.input} / ${msg.output}`).slice(0, 35) + "...";
         }
+        else
+            return result.failed("errorWhileFetchingData");
 
         if (message.length < 10)
             return result.failed("invalidInput");
 
-        const generatedTitleResult = await (freeModel.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
-            messages: [],
-            model: freeModel,
-            tokenLimit: 30,
-            inputMessage: (
-                `The messages below is from a chat, suggest ONLY AND ONLY A SHORT TITLE for that chat in the message language;`
-                + ` If no title can be extracted ONLY return a dash '-':\n\n'((${message.slice(0, 1500)}))'`
-            ),
+        message = (
+            `The messages below is from a chat, suggest ONLY AND ONLY A SHORT TITLE for that chat in the message language;`
+            + ` If no title can be extracted ONLY return a dash '-':\n\n'((${message.slice(0, 1500)}))'`
+        );
+
+        const preprocessResult = await this.#multiModalPreprocess({
+            inputMessage: {
+                text: message,
+            },
+            user: chat.user,
+            model: model,
+            createDefaultChat: false,
+            history: {
+                chat: chat,
+                historyMessagesCount: 0,
+            }
         });
+
+        if (!preprocessResult.ok || !preprocessResult.data)
+            return result.failed(preprocessResult.message);
+
+        const startTime = performance.now();
+        const generatedTitleResult = await (model.provider === AIModelProvider.OpenAI ? this.#openAI : this.#openRouter).multiTextMessage({
+            messages: [],
+            model: model,
+            tokenLimit: 30,
+            inputMessage: message,
+        });
+        const responseTime = performance.now() - startTime;
 
         if (!generatedTitleResult?.output)
             return result.failed("errorOccurred");
 
+        if (model.pricePmu.input + model.pricePmu.output !== 0) {
+            const { cost, userPointCost: textGenerateUserPointCost } = modelCostCalculator({
+                model: model,
+                inputUnits: generatedTitleResult.inputTokens,
+                outputUnits: generatedTitleResult.outputTokens,
+            });
+
+            const savedUsageIds = await this.#userSubscriptionApplication.saveSubscriptionsUsage(textGenerateUserPointCost, preprocessResult.data.subscriptions);
+
+            await this.#promptRepository.create({
+                chat: chat,
+                cost: cost,
+                insertDate: new Date(),
+                isDeleted: true,
+                input: preprocessResult.data.userInputText,
+                output: generatedTitleResult.output,
+                points: textGenerateUserPointCost,
+                model: model.name,
+                saved: false,
+                usages: savedUsageIds ?? [],
+                promptUser: chat.user,
+                responseTime: responseTime,
+                fileId: preprocessResult.data.fileFsId,
+            });
+        }
+
         if (generatedTitleResult.output.includes('\n'))
             return result.failed("errorOccurred");
 
-        const output = generatedTitleResult.output.replace(/'|"/g, '');
+        let output = generatedTitleResult.output.replace(/'|"/g, '');
 
         if (output === '-')
-            return result.failed("errorOccurred");
+            output = fallback;
 
         const setTitleResult = await this.#aiChatRepository.updateById({
             id: chatId,

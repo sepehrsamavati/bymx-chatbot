@@ -115,6 +115,54 @@ export class AIChatRepository implements IAIChatRepository {
         };
     }
 
+    async getChatWithUser(filter: SearchAIChat): Promise<AIChat | null> {
+        const res = await this.#databaseConnection.models.aiChat.findOne(this.#getFilter(filter))
+            .populate<{
+                model: PopulatedProperty<AIModelDBModel>;
+                user: PopulatedProperty<UserDBModel>;
+            }>([
+                'model',
+                'user',
+            ])
+            .lean();
+
+        if (!res)
+            return null;
+
+        const model = res.model;
+        const user = res.user;
+
+        return {
+            id: res._id.toString(),
+            title: res.title,
+            isHidden: res.isHidden,
+            behavior: res.behavior,
+            user: {
+                id: user._id.toString(),
+                lang: user.lang,
+                lastActivity: user.lastActivity,
+                memoryAmount: user.memoryAmount,
+                saveMessages: user.saveMessages,
+                status: user.status,
+                type: user.type,
+                usage: user.usage,
+                voiceResponse: user.voiceResponse,
+                telegram: user.telegram,
+                memory: user.memory,
+            },
+            model: {
+                id: model._id.toString(),
+                isDeleted: model.isDeleted,
+                name: model.name,
+                pricePmu: model.pricePmu,
+                title: model.title,
+                type: model.type,
+                llmInfo: model.llmInfo,
+                provider: model.provider,
+            }
+        };
+    }
+
     async getChats(filter: SearchAIChat, options?: { beforeId?: string; afterId?: string; count?: number; }): Promise<CaptionOnly[] | null> {
         const _filter = this.#getFilter(filter);
 
