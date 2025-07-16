@@ -302,7 +302,7 @@ export const generateAndSetTitle: RouteHandlerMethod = async (request, reply) =>
     if (!chat)
         result.failed("itemNotFound");
     else
-        result = await request.locals.applications.aiApplication.generateAndSetChatTitle(chat.id);
+        result = await request.locals.applications.aiApplication.generateAndSetChatTitle(chat.id, false);
 
     return reply.status(200).send(result);
 
