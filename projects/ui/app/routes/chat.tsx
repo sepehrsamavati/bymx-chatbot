@@ -45,6 +45,7 @@ enum ReadyPromptCategory {
 }
 
 const autoScrollThreshold = 100;
+const acceptedFileExtensions = ".pdf,.txt,.js,.mjs,.ts,.jsx,.tsx,.css,.go,.json,.csproj,.cs,.cc,.java";
 
 const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UIText.UITextKey[] } = ({
     [ReadyPromptCategory.Coding]: ["_prompt_coding", "_prompt_codingPythonHttpServer"],
@@ -403,6 +404,13 @@ function _Chat() {
     const fileSelectHandler = useCallback((file: File) => {
         if (uploadingFile)
             return;
+
+        const ext = file.name.split('.').at(-1)?.toLowerCase() ?? "";
+        if (!acceptedFileExtensions.replace(/.,/g, ',').split(',').includes(ext)) {
+            session.snackbarProvider(session.uiText.fileNotSupported, { variant: "warning", anchorOrigin: { horizontal: "center", vertical: "bottom" } });
+            return;
+        }
+
         setUploadingFile({
             name: file.name,
             uploadedAmount: 0,
@@ -709,7 +717,7 @@ function _Chat() {
                                 <input
                                     id="prompt-attachment"
                                     type="file"
-                                    accept=".pdf,.txt,.js,.mjs,.ts,.jsx,.tsx,.css,.go,.json,.csproj,.cs,.cc,.java"
+                                    accept={acceptedFileExtensions}
                                     onChange={e => e.target.files && fileSelectHandler(e.target.files[0])}
                                 />
                             </label>
