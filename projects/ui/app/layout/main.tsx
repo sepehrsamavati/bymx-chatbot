@@ -447,6 +447,27 @@ function Header() {
         session.requestSideMenuOpen = () => setMenuIsOpen(true);
     }, [session]);
 
+    // Block back button when menu is open
+    useEffect(() => {
+        const handlePopState = (_event: PopStateEvent) => {
+            if (menuIsOpen) {
+                closeMenuRequestHandler();
+                // Push the same state back so the URL doesn't change
+                window.history.pushState(null, '', window.location.pathname);
+            }
+        };
+
+        if (menuIsOpen) {
+            // Push a dummy state so the back button becomes available
+            window.history.pushState({ menu: true }, '', window.location.pathname);
+            window.addEventListener('popstate', handlePopState);
+        }
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [menuIsOpen]);
+
     return (
         <header>
             <Stack direction="row" justifyContent="space-between">
@@ -541,8 +562,6 @@ function Header() {
     );
 }
 
-
-
 function Eula() {
     const session = useSession();
     const [isLoading, setIsLoading] = useState(false);
@@ -623,6 +642,7 @@ export default function MainLayout() {
             >
                 <Header />
                 <main>
+                    <Eula />
                     <Outlet />
                 </main>
                 {/* <Footer /> */}
