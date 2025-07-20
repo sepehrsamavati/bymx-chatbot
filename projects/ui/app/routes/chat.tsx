@@ -406,7 +406,7 @@ function _Chat() {
             return;
 
         const ext = file.name.split('.').at(-1)?.toLowerCase() ?? "";
-        if (!acceptedFileExtensions.replace(/.,/g, ',').split(',').includes(ext)) {
+        if (!acceptedFileExtensions.replace(/./g, ',').split(',').includes(ext)) {
             session.snackbarProvider(session.uiText.fileNotSupported, { variant: "warning", anchorOrigin: { horizontal: "center", vertical: "bottom" } });
             return;
         }
