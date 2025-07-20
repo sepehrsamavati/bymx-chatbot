@@ -405,8 +405,8 @@ function _Chat() {
         if (uploadingFile)
             return;
 
-        const ext = file.name.split('.').at(-1)?.toLowerCase() ?? "";
-        if (!acceptedFileExtensions.replace(/./g, ',').split(',').includes(ext)) {
+        const extensionIsSupported = acceptedFileExtensions.split(',').filter(_ext => _ext.length > 0).some(_ext => file.name.toLowerCase().endsWith(_ext));
+        if (!extensionIsSupported) {
             session.snackbarProvider(session.uiText.fileNotSupported, { variant: "warning", anchorOrigin: { horizontal: "center", vertical: "bottom" } });
             return;
         }
@@ -696,7 +696,7 @@ function _Chat() {
                     <Box
                         sx={{
                             paddingBottom: 0.7,
-                            ' button' : {
+                            ' button': {
                                 padding: 0,
                             },
                             ' input': {
