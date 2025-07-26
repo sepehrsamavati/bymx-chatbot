@@ -40,11 +40,11 @@ export class TelegramApiClient {
     readonly Methods = TelegramMethods;
     static readonly Methods = TelegramMethods;
 
-    #botUrl = "https://api.telegram.org/bot" + config.telegram.apiToken + "/";
-    #botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegram.apiToken + "/";
+    static #botUrl = "https://api.telegram.org/bot" + config.telegram.apiToken + "/";
+    static #botUrlFileStorage = "https://api.telegram.org/file/bot" + config.telegram.apiToken + "/";
 
     getFileUrl(tgFilePath: string) {
-        return this.#botUrlFileStorage + tgFilePath;
+        return TelegramApiClient.#botUrlFileStorage + tgFilePath;
     };
 
     async sendMessageToUser(user: User, text: string) {
@@ -84,7 +84,7 @@ export class TelegramApiClient {
     async call<Method extends TelegramMethods>(method: Method, params: any): Promise<TelegramResponse<Method> | null> {
 
         for (let tries = 1; tries <= 3; tries++) {
-            const result = await _tgCall(this.#botUrl, method, params);
+            const result = await _tgCall(TelegramApiClient.#botUrl, method, params);
             if (!result) {
                 await setTimeout(1e3);
                 continue;
