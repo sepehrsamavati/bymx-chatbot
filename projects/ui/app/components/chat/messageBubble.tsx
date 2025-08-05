@@ -20,7 +20,7 @@ import ContentCopy from "@mui/icons-material/ContentCopy";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
 import CloseFullscreen from "@mui/icons-material/CloseFullscreen";
 import { Dialog, DialogActions, DialogContent, IconButton, Stack } from "@mui/material";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const messageFadeInDuration = 1e3;
 
@@ -224,7 +224,7 @@ export default function MessageBubble(props?: {
     }, []);
 
     const copyToClipboardHandler = useCallback(() => {
-        copyToClipboard(props?.text ?? "")
+        copyToClipboard(divRef.current?.innerText || props?.text || "")
             .then(ok => {
                 if (!ok)
                     session.snackbarProvider(session.uiText.errorOccurred, {
