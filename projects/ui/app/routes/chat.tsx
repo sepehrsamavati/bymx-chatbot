@@ -44,7 +44,7 @@ enum ReadyPromptCategory {
     Coding = 1, Workout = 2, Cooking = 3, SummarizeText = 4,
 }
 
-const autoScrollThreshold = 100;
+const autoScrollThreshold = 200;
 const acceptedFileExtensions = ".pdf,.txt,.js,.mjs,.ts,.jsx,.tsx,.css,.go,.json,.csproj,.cs,.cc,.java";
 
 const readyPromptCategoryToPromptsListMap: { [key in ReadyPromptCategory]: UIText.UITextKey[] } = ({
@@ -524,37 +524,38 @@ function _Chat() {
         <LayoutInner
             fullWidth
             fullHeight
-            key={dummyState}
             topBar={(
                 <>
-                    {session.chatModels.length && (isNewChat.current ? true : selectedModel) ? (
-                        <Select
-                            disabled={modelChangeLock}
-                            size="small"
-                            sx={{
-                                borderRadius: 50,
-                                fontFamily: "monospace",
-                                fontSize: "0.8em",
-                                "> .MuiSelect-select": {
-                                    padding: 1,
-                                }
-                            }}
-                            value={selectedModel}
-                            onChange={handleModelChange}
-                            displayEmpty
-                        >
-                            {session.chatModels.map(model => (
-                                <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
-                                    <Stack direction="row" alignItems="center">
-                                        <Icon fontSize="small">
-                                            <ModelCostIndicatorIcon model={model} />
-                                        </Icon>
-                                        {model.title}
-                                    </Stack>
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    ) : null}
+                    <div key={dummyState}>
+                        {session.chatModels.length && (isNewChat.current ? true : selectedModel) ? (
+                            <Select
+                                disabled={modelChangeLock}
+                                size="small"
+                                sx={{
+                                    borderRadius: 50,
+                                    fontFamily: "monospace",
+                                    fontSize: "0.8em",
+                                    "> .MuiSelect-select": {
+                                        padding: 1,
+                                    }
+                                }}
+                                value={selectedModel}
+                                onChange={handleModelChange}
+                                displayEmpty
+                            >
+                                {session.chatModels.map(model => (
+                                    <MenuItem key={model.id} value={model.id} sx={{ fontFamily: "monospace", direction: "ltr", fontSize: "0.8em", padding: 1, minHeight: "unset" }}>
+                                        <Stack direction="row" alignItems="center">
+                                            <Icon fontSize="small">
+                                                <ModelCostIndicatorIcon model={model} />
+                                            </Icon>
+                                            {model.title}
+                                        </Stack>
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        ) : null}
+                    </div>
 
                     <Box>
                         {chatId ? (
