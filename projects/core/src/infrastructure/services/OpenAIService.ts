@@ -111,6 +111,8 @@ export default class OpenAIService implements IOpenAIService {
     async multiTextMessage(opts: IOpenAIRequest) {
         const { messages, inputMessage, model, userId, tokenLimit, imageUrl, languageCode } = opts;
         const isGpt = model.name.startsWith('gpt');
+        const isGpt5 = model.name.startsWith('gtp-5-');
+        const modelHasTopP = isGpt && !isGpt5;
         let systemMessages = opts.systemMessages ?? [];
 
         const _messages: IChatCompletionConfig['messages'] = [];
@@ -149,7 +151,7 @@ export default class OpenAIService implements IOpenAIService {
 
         const baseChatCompletionConfig: Partial<IChatCompletionConfig> = {};
 
-        if (isGpt)
+        if (modelHasTopP)
             baseChatCompletionConfig.top_p = 0.2;
 
         return await this.#chatCompletion({
