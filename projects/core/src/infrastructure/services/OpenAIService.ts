@@ -111,7 +111,7 @@ export default class OpenAIService implements IOpenAIService {
     async multiTextMessage(opts: IOpenAIRequest) {
         const { messages, inputMessage, model, userId, tokenLimit, imageUrl, languageCode } = opts;
         const isGpt = model.name.startsWith('gpt');
-        const isGpt5 = model.name.startsWith('gtp-5-');
+        const isGpt5 = model.name.startsWith('gpt-5-');
         const modelHasTopP = isGpt && !isGpt5;
         let systemMessages = opts.systemMessages ?? [];
 
