@@ -20,7 +20,7 @@ import CreditCard from "@mui/icons-material/CreditCard";
 import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import { stringHelper, UserType } from "bymx-core/shared";
-import bymxHeader from "../assets/images/baymax_header.png";
+import bymxHeader from "../assets/images/baymax_header.webp";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import ExpandCircleDown from "@mui/icons-material/ExpandCircleDown";
 import React, { useCallback, useState, useEffect, useRef } from "react";

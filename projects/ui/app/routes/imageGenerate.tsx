@@ -5,7 +5,7 @@ import { useSession } from "~/core/Session";
 import { stringHelper } from "bymx-core/shared";
 import { LayoutInner } from "~/layout/layoutInner";
 import AutoFixHigh from "@mui/icons-material/AutoFixHigh";
-import fluxSampleImage from "../assets/images/flux-sample.png";
+import fluxSampleImage from "../assets/images/flux-sample.webp";
 import generativeAiService from "~/core/services/generativeAiService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography, type SxProps, type Theme } from "@mui/material";

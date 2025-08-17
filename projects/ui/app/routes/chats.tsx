@@ -5,7 +5,7 @@ import { stringHelper } from "bymx-core/shared";
 import { LayoutInner } from "~/layout/layoutInner";
 import { useEffect, useRef, useState } from "react";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import fluxSampleImage from "../assets/images/flux-sample.png";
+import fluxSampleImage from "../assets/images/flux-sample.webp";
 import generativeAiService from "~/core/services/generativeAiService";
 import { Box, Card, CardActions, CardMedia, Chip, Grid, Stack } from "@mui/material";
 

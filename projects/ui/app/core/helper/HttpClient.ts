@@ -13,6 +13,8 @@ interface IOptions {
     jsonConvert?: boolean;
     formData?: boolean;
     ignoreEmptyStrings?: boolean;
+    doNotAutoRefreshToken?: boolean;
+    doNotAutoRetry?: boolean;
 }
 
 type RequestResult<T> = {
@@ -64,6 +66,9 @@ export default abstract class HttpClient {
         for (let tryNumber = 1; tryNumber <= 3; tryNumber++) {
             result = await this._send<ResponseType>(config);
             if (result.status === 401) {
+                if (options.doNotAutoRefreshToken)
+                    break;
+
                 const refreshTokenResult = await this._send<OperationResult>(
                     this.generateRequestConfig({
                         path: "/api/v1/auth/refresh",
@@ -83,7 +88,7 @@ export default abstract class HttpClient {
 
                 continue; // retry
             }
-            else if (![500, 504].includes(result.status))
+            else if (options.doNotAutoRetry || ![500, 504].includes(result.status))
                 break;
             else
                 await new Promise(r => setTimeout(r, 1e3));
@@ -98,7 +103,9 @@ export default abstract class HttpClient {
             method: HttpMethods.GET,
             jsonConvert: true,
             formData: false,
-            ignoreEmptyStrings: false
+            ignoreEmptyStrings: false,
+            doNotAutoRefreshToken: false,
+            doNotAutoRetry: false,
         } as const satisfies Partial<IOptions>;
 
         const fetchOptions: RequestInit = {
