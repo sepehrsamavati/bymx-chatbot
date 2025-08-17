@@ -1,6 +1,8 @@
 import type { Api } from "bymx-core/types";
+import { isBrowser, isDevelopment } from "../helper/environment";
 
 let socketConnectionId = "";
+let webSocketHost = window.location.host;
 let shouldConnect = false;
 let workingListeners = 0;
 let socket: WebSocket;
@@ -18,18 +20,17 @@ const handleConnection = function () {
         connect();
 };
 
-if ('window' in globalThis)
+if (isBrowser) {
     window.setInterval(handleConnection, 30e3);
+}
 
 const connect = () => {
-    if ('window' in globalThis) {
+    if (isBrowser && !isDevelopment) {
 
-        if (import.meta.env.DEV)
-            return;
+        if (!socket) // just bind one time
+            window.document.addEventListener("visibilitychange", handleConnection);
 
-        socket = new WebSocket(`${window.location.hostname === "localhost" ? "ws" : "wss"}://${window.location.host}/api/v1/ws`);
-
-        window.document.addEventListener("visibilitychange", handleConnection);
+        socket = new WebSocket(`${window.location.hostname === "localhost" ? "ws" : "wss"}://${webSocketHost}/api/v1/ws`);
 
         socket.addEventListener("message", (event: MessageEvent) => {
             const data = JSON.parse(event.data) as Api.WebSocket.HelloResponse;

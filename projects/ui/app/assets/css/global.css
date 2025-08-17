@@ -1,3 +1,6 @@
 :root {
     --background-color: initial;
+
+    --user-messages-alignment: "end";
+    --chat-bot-messages-alignment: "auto";
 }
