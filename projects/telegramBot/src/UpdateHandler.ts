@@ -30,11 +30,11 @@ import { voiceResponseManageHandler } from "./handlers/voiceResponseManageHandle
 import type { IUpdateHandler, RequestContext, ResponseContext, TelegramUpdateObject, TelegramUser } from "./types/telegram.js";
 
 const handlers: IUpdateHandler[] = [
+    adminCommandHandler,
     preEulaCommandHandler,
     changeLanguageHandler,
     termsOfServiceHandler,
     joinChatHandler,
-    adminCommandHandler,
     userCommandHandler,
     receiptManageHandler,
     planHandler,
