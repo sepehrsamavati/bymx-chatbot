@@ -297,6 +297,7 @@ const keys = [
     "fullscreenView",
     "logout",
     "settings",
+    "messageSupport",
 ] as const;
 
 export type UITextKey = typeof keys[number];

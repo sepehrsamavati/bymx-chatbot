@@ -125,7 +125,7 @@
     "pointsAmount": "Points amount",
     "subscriptionPeriod": "Subscription period",
     "days": "Days",
-    "staticPaymentHelpText": "Complete your payment via the link below and send the payment ID or receipt screenshot.",
+    "staticPaymentHelpText": "Complete your payment by contacting support/admin and after payment, send the payment ID or receipt screenshot.",
     "purchaseLink": "Purchase link",
     "price": "Price",
     "irt": "Iranian toman",
@@ -285,5 +285,6 @@
     "regenerate": "Regenerate",
     "fullscreenView": "Fullscreen view",
     "logout": "Logout",
-    "settings": "Settings"
+    "settings": "Settings",
+    "messageSupport": "Message support"
 }

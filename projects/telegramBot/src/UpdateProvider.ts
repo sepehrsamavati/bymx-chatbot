@@ -1,11 +1,8 @@
-import emojiIcon from "./helpers/emojiIcon.js";
 import { TelegramUser } from "./types/telegram.js";
 import { UpdateHandler } from "./UpdateHandler.js";
-import { UserMode, UIText } from "bymx-core/shared";
 import BroadcastHandler from "./BroadcastHandler.js";
 import { _injectTelegramClient } from "./helpers/call.js";
-import { initPaymentMessageCleanupJob } from "./modules/paymentMessageJob.js";
-import { ExitCode, errorLogger, exitHelper, logger, type IServices } from "bymx-core/server";
+import { ExitCode, exitHelper, logger, type IServices } from "bymx-core/server";
 import { init as initGenerationTaskEventListener } from "./modules/generationTaskEventListener.js";
 
 export class UpdateProvider {
@@ -30,26 +27,6 @@ export class UpdateProvider {
         );
 
         _injectTelegramClient(this.#apiClient);
-
-        initPaymentMessageCleanupJob(async item => {
-            try {
-                const user = await this.#services.core.applications.userApplication.getUserById(item.userId);
-                if (user) {
-                    await this.#services.payment.applications.paymentApplication.cancel(user.id);
-                    if (user.telegram?.mode === UserMode.General.StaticPayment)
-                        await this.#services.core.applications.userApplication.setUserMode(user.id, UserMode.General.Normal);
-                    this.#apiClient.call(
-                        this.#apiClient.Methods.SendMessage,
-                        {
-                            chat_id: item.chatId,
-                            text: `${emojiIcon.warning} ${UIText.default[user.lang]?.paymentCanceled}`,
-                        }
-                    );
-                }
-            } catch (err) {
-                errorLogger("Payment automatic cleanup get user failed", err);
-            }
-        });
 
         this.#startBot();
     }

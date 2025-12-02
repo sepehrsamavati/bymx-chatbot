@@ -4,7 +4,6 @@ import { UserMode } from "bymx-core/shared";
 import emojiIcon from "../helpers/emojiIcon.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 import { getPanel, getTextModelUsageListPanel, getPlanList, getVoiceResponsePanel, getAiToolsPanel, getModelListPanel, getUserSubscriptionsList } from "../modules/messages.js";
 
@@ -21,16 +20,13 @@ export const userCommandHandler: IUpdateHandler = {
 
         switch (command) {
             case "/cancel":
-                if (context.user.telegram?.mode === UserMode.General.StaticPayment) {
-                    await Promise.all([
-                        context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
-                        paymentMessageCache.delete(context.user.id),
-                    ]);
-                    await context.services.paymentApplication.cancel(context.user.id);
-                }
-
                 let canceled = false;
-                if (context.user.telegram?.mode !== UserMode.General.Normal)
+
+                if ((await context.services.paymentApplication.cancel(context.user.id)).ok) {
+                    canceled = true;
+                    await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
+                }
+                else if (context.user.telegram?.mode !== UserMode.General.Normal)
                     canceled = (await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal)).ok;
 
                 return {

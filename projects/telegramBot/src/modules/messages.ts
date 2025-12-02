@@ -531,7 +531,7 @@ export const getPlanBuyPanel = async (context: RequestContext, planId: string) =
         ),
         reply_markup: {
             inline_keyboard: [
-                [{ text: `${emojiIcon.link} ${context.uiText.purchaseLink}`, url: paymentLink.url }],
+                [{ text: `${emojiIcon.link} ${context.uiText.messageSupport}`, url: paymentLink.url }],
                 [{ text: `${emojiIcon.failed} ${context.uiText.cancel}`, callback_data: "cancelPayment" }]
             ]
         }

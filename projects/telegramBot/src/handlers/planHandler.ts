@@ -1,10 +1,8 @@
-import tgCall from "../helpers/call.js";
 import { config } from "bymx-core/server";
 import emojiIcon from "../helpers/emojiIcon.js";
 import type { IUpdateHandler } from "../types/telegram.js";
 import { PaymentStatus, UserMode } from "bymx-core/shared";
 import { TelegramMethods } from "../types/enums/telegramMethods.js";
-import { paymentMessageCache } from "../modules/paymentMessageJob.js";
 import { TelegramUpdateType } from "../types/enums/telegramUpdateHandler.js";
 import { getPlanBuyPanel, getPlanInfoPanel, getPlanList, getStaticPaymentReceiptInfoKeyboard } from "../modules/messages.js";
 
@@ -24,10 +22,7 @@ export const planHandler: IUpdateHandler = {
         if (context.user.telegram?.mode === UserMode.General.StaticPayment) {
 
             if (queryData === "cancelPayment") {
-                await Promise.all([
-                    context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
-                    paymentMessageCache.delete(context.user.id),
-                ]);
+                await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
                 const cancel = await context.services.paymentApplication.cancel(context.user.id);
                 return {
                     call: {
@@ -47,10 +42,7 @@ export const planHandler: IUpdateHandler = {
 
             const submitErrorMessage = `${context.uiText.staticPaymentSubmitErrored}\n\n${emojiIcon.contact} ${context.uiText.support}: /support`;
 
-            await Promise.all([
-                context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal),
-                paymentMessageCache.delete(context.user.id),
-            ]);
+            await context.services.userApplication.setUserMode(context.user.id, UserMode.General.Normal);
 
             const savePaymentResult = await context.services.paymentApplication.approveByUser(context.user.id);
             if (!(savePaymentResult.ok && savePaymentResult.data))
@@ -190,21 +182,13 @@ export const planHandler: IUpdateHandler = {
                         }
                     };
 
-                const res = await tgCall(
+                await tgCall(
                     TelegramMethods.SendMessage,
                     {
                         chat_id: update.callback_query?.message.chat.id,
                         ...planBuyPanel
                     }
                 );
-
-                if (res?.ok) {
-                    paymentMessageCache.set(context.user.id, {
-                        date: new Date(),
-                        chatId: res.result.chat.id,
-                        messageId: res.result.message_id,
-                    });
-                }
             }
 
             return { shouldContinue: false };
