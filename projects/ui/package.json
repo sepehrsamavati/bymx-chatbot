@@ -14,7 +14,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
-    "@react-router/node": "^7.6.3",
+    "@react-router/node": "^7.16.0",
     "@react-router/serve": "^7.6.3",
     "isbot": "^5.1.17",
     "libphonenumber-js": "^1.12.7",
@@ -23,7 +23,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
-    "react-router": "^7.6.3",
+    "react-router": "^7.16.0",
     "stylis": "^4.3.6",
     "stylis-plugin-rtl": "^2.1.1"
   },
@@ -36,7 +36,7 @@
     "@types/stylis": "^4",
     "react-router-devtools": "^1.1.0",
     "typescript": "^5.7.2",
-    "vite": "^7.1.7",
+    "vite": "^8.0.14",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }
