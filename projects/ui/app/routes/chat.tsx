@@ -21,7 +21,7 @@ import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import ChatMoreActions from "~/components/chat/chatMoreActions";
 import { errorResponseMessageFormatter } from "~/core/helper/HttpClient";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AiModelEntity, Api, IOperationResultWithData, PromptViewModel } from "bymx-core/types";
 import { Box, Card, Chip, CircularProgress, Divider, Icon, IconButton, MenuItem, Popover, Select, Stack, TextField, Typography, type SelectChangeEvent } from "@mui/material";
 
@@ -89,11 +89,15 @@ function _Chat() {
     const { output: streamingOutput, appendChunk, reset: resetStreamChunks } = useStreamChunks();
     const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; }>();
     const initialized = useRef(false);
-    const didFirstScrollToBottom = useRef(false);
+    const needsInitialScrollRef = useRef(!isNewChat.current);
+    const initialScrollDoneRef = useRef(isNewChat.current);
+    const pendingScrollRestoreRef = useRef<number | null>(null);
+    const pendingScrollToBottomRef = useRef(false);
+    const chatSectionRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const [inputText, setInputText] = useState("");
     const reachedToFirstMessage = useRef(false);
     const isLoadingMessages = useRef(false);
-    const chatSectionRef = useRef<HTMLDivElement>(null);
     const [uploadingFile, setUploadingFile] = useState<SelectedAttachmentFile>();
     const [modelChangeLock, setModelChangeLock] = useState(!isNewChat.current);
     const [selectedModel, setSelectedModel] = useState("");
@@ -106,25 +110,35 @@ function _Chat() {
     const formRef = useRef<HTMLFormElement>(null);
     const textInputRef = useRef<HTMLInputElement>(null);
 
+    const scrollToBottomInstant = useCallback(() => {
+        const container = chatSectionRef.current;
+        if (!container) return;
+
+        container.scrollTop = container.scrollHeight - container.clientHeight;
+        messagesEndRef.current?.scrollIntoView({ block: "end", behavior: "auto" });
+    }, []);
+
     const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false, instant = false) => {
         if (!chatSectionRef.current) return;
 
-        const element = chatSectionRef.current;
         const shouldScroll = force || autoScrollEnabled.current;
 
         if (shouldScroll) {
             const scrollFunction = () => {
-                element.scrollTo({
-                    top: element.scrollHeight - element.clientHeight,
-                    behavior: instant ? "auto" : "smooth",
-                });
+                if (instant)
+                    scrollToBottomInstant();
+                else
+                    chatSectionRef.current?.scrollTo({
+                        top: chatSectionRef.current.scrollHeight - chatSectionRef.current.clientHeight,
+                        behavior: "smooth",
+                    });
             };
             if (asyncCallback)
                 asyncCallback(scrollFunction);
             else
                 scrollFunction();
         }
-    }, []);
+    }, [scrollToBottomInstant]);
 
     const scheduleScrollToBottom = useCallback((instant = true) => {
         if (scrollRafRef.current)
@@ -135,11 +149,26 @@ function _Chat() {
         });
     }, [scrollToBottom]);
 
-    const getMessages = useCallback(({ scrollToBottomOnSuccess }: { scrollToBottomOnSuccess?: boolean } = {}) => {
+    const getMessages = useCallback(() => {
         if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
         isLoadingMessages.current = true;
         setWaitingForPreviousMessagesToLoad(true);
+
+        const container = chatSectionRef.current;
         const lastMessageId = messages?.at(0)?.id;
+        const loadingOlder = Boolean(lastMessageId);
+
+        if (loadingOlder && container && initialScrollDoneRef.current) {
+            const isPagination = container.scrollHeight > container.clientHeight;
+            if (isPagination)
+                pendingScrollRestoreRef.current = container.scrollHeight;
+            else
+                pendingScrollToBottomRef.current = true;
+        } else if (!loadingOlder) {
+            needsInitialScrollRef.current = true;
+            initialScrollDoneRef.current = false;
+        }
+
         chatService
             .getMessages({
                 chatId,
@@ -147,15 +176,11 @@ function _Chat() {
             })
             .then(res => {
                 if (res.result?.data) {
-
-                    if (scrollToBottomOnSuccess)
-                        setTimeout(() => scrollToBottom(undefined, true), 800)
-
                     setMessages(_current => {
                         _current ||= [];
                         const oldMessages = [..._current];
                         const messagesToAdd = [...(res.result?.data || [])]
-                            .filter(message => !oldMessages.some(m => m.id === message.id)); // prevent duplicate
+                            .filter(message => !oldMessages.some(m => m.id === message.id));
 
                         const newMessages = [...messagesToAdd, ...oldMessages];
 
@@ -171,7 +196,7 @@ function _Chat() {
                 isLoadingMessages.current = false;
                 setWaitingForPreviousMessagesToLoad(false);
             });
-    }, [chatId, messages]);
+    }, [chatId, messages, session]);
 
     const getChatModelAndSync = useCallback((_chatId: string) => {
         chatService
@@ -305,7 +330,7 @@ function _Chat() {
     }, [session, chatId, inputText, uploadingFile, socket, selectedModel, getChatModelAndSync, appendChunk, resetStreamChunks, scheduleScrollToBottom, scrollToBottom]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
-        if ((event.target as HTMLDivElement).scrollTop === 0)
+        if (initialScrollDoneRef.current && (event.target as HTMLDivElement).scrollTop === 0)
             getMessages();
 
         if (chatSectionRef.current)
@@ -462,18 +487,21 @@ function _Chat() {
     }, [chatId, session, messages]);
 
     useEffect(() => {
-        if (chatSectionRef.current) {
-            // load more messages when screen height is not filled
-            if (reachedToFirstMessage.current !== true && messages?.length && chatSectionRef.current.scrollTop === 0) { // not reached to first message, messages loaded && scroll is at top
-                const scrollableHeight = chatSectionRef.current.scrollHeight;
-                const totalHeight = chatSectionRef.current.getBoundingClientRect().height;
-                const notScrollable = scrollableHeight <= totalHeight;
-                if (notScrollable) { // element is not scrollable so should load more messages
-                    getMessages({ scrollToBottomOnSuccess: true });
-                }
-            }
-        }
+        if (!initialScrollDoneRef.current || !chatSectionRef.current)
+            return;
 
+        // load more messages when screen height is not filled
+        if (reachedToFirstMessage.current !== true && messages?.length) {
+            const container = chatSectionRef.current;
+            const scrollableHeight = container.scrollHeight;
+            const totalHeight = container.getBoundingClientRect().height;
+            const notScrollable = scrollableHeight <= totalHeight;
+            if (notScrollable)
+                getMessages();
+        }
+    }, [getMessages, messages]);
+
+    useEffect(() => {
         if (initialized.current) return;
         initialized.current = true;
 
@@ -503,26 +531,60 @@ function _Chat() {
 
         getMessages();
         getChatModelAndSync(chatId);
-    }, [getMessages, getChatModelAndSync, chatId, messages]);
+    }, [getChatModelAndSync, chatId]);
 
-    useEffect(() => {
-        if (didFirstScrollToBottom.current || messages?.length === 0) return;
-        didFirstScrollToBottom.current = true;
-        scrollToBottom(undefined, true);
-    }, [messages, scrollToBottom]);
+    useLayoutEffect(() => {
+        const container = chatSectionRef.current;
+        if (!container || !messages?.length || waitingForPreviousMessagesToLoad)
+            return;
 
-    // useEffect(() => {
-    //     if (!chatSectionRef.current) return;
+        if (pendingScrollRestoreRef.current !== null) {
+            const previousScrollHeight = pendingScrollRestoreRef.current;
+            pendingScrollRestoreRef.current = null;
+            container.scrollTop = container.scrollHeight - previousScrollHeight;
+            return;
+        }
 
-    //     const observer = new MutationObserver(() => {
-    //         scrollToBottom(cb => setTimeout(cb, 300));
-    //     });
-    //     observer.observe(chatSectionRef.current, { childList: true });
+        const shouldScrollToBottom =
+            needsInitialScrollRef.current
+            || pendingScrollToBottomRef.current;
 
-    //     return () => {
-    //         observer.disconnect();
-    //     };
-    // }, [scrollToBottom]);
+        if (!shouldScrollToBottom)
+            return;
+
+        pendingScrollToBottomRef.current = false;
+
+        const applyScroll = () => scrollToBottomInstant();
+
+        applyScroll();
+
+        let debounceTimer: number | undefined;
+        const resizeObserver = new ResizeObserver(() => {
+            applyScroll();
+            if (debounceTimer)
+                clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(() => {
+                needsInitialScrollRef.current = false;
+                initialScrollDoneRef.current = true;
+                resizeObserver.disconnect();
+            }, 120);
+        });
+        resizeObserver.observe(container);
+
+        const maxTimer = window.setTimeout(() => {
+            applyScroll();
+            needsInitialScrollRef.current = false;
+            initialScrollDoneRef.current = true;
+            resizeObserver.disconnect();
+        }, 800);
+
+        return () => {
+            if (debounceTimer)
+                clearTimeout(debounceTimer);
+            clearTimeout(maxTimer);
+            resizeObserver.disconnect();
+        };
+    }, [messages, waitingForPreviousMessagesToLoad, scrollToBottomInstant]);
 
     useEffect(() => {
         if (session.themeManager.name === "light")
@@ -585,6 +647,7 @@ function _Chat() {
 
             <Stack
                 flexGrow={1}
+                minHeight={0}
                 paddingBottom={1}
                 overflow="auto"
                 direction="column"
@@ -661,6 +724,7 @@ function _Chat() {
                         height: { xs: 0, sm: "200px", flexShrink: 0, }
                     }}
                 />
+                <div ref={messagesEndRef} aria-hidden style={{ height: 0, flexShrink: 0 }} />
             </Stack>
 
             <Card
