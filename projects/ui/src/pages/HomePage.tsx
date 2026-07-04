@@ -1,5 +1,5 @@
 // import type { Route } from "./+types/home";
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import { useNavigate } from "react-router";
 import Chat from "@mui/icons-material/Chat";
 import { useSession } from "~/core/Session";
@@ -42,7 +42,7 @@ function SquareButton(props?: {
   );
 }
 
-export default function Home() {
+export function HomePage() {
   const navigate = useNavigate();
   const session = useSession();
 

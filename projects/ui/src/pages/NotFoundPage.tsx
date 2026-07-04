@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
 import { useSession } from "~/core/Session";
 
-export default function NotFound() {
+export function NotFoundPage() {
     const session = useSession();
 
     return (

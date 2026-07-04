@@ -1,9 +1,9 @@
 import type { PlanEntity } from "bymx-core/types";
-import crownImage from "../../assets/images/crown.webp";
-import rocketImage from "../../assets/images/rocket.webp";
-import giftBoxImage from "../../assets/images/gift-box.webp";
-import businessImage from "../../assets/images/business.webp";
-import hourglassImage from "../../assets/images/hourglass.webp";
+import crownImage from "~/assets/images/crown.webp";
+import rocketImage from "~/assets/images/rocket.webp";
+import giftBoxImage from "~/assets/images/gift-box.webp";
+import businessImage from "~/assets/images/business.webp";
+import hourglassImage from "~/assets/images/hourglass.webp";
 
 enum PlanIds {
     DailyFree = "6874c6043d576117b27c9180",

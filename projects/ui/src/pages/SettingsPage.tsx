@@ -1,13 +1,13 @@
 import { useSession } from "~/core/Session";
 import { useCallback, useState } from "react";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 import { getLanguageList } from "~/core/i18n/i18n";
 import userService from "~/core/services/userService";
 import { streamEffects, type StreamEffect } from "~/components/chat/streamEffect";
 import { AIChatHistoryMemory, type UIText } from "bymx-core/shared";
 import { Box, Chip, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Stack, Switch, type SelectChangeEvent } from "@mui/material";
 
-export default function Settings() {
+export function SettingsPage() {
     const session = useSession();
     const [languageChangeLock, setLanguageChangeLock] = useState(false);
     const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);

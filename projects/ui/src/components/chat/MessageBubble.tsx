@@ -1,5 +1,5 @@
 import Button from "../button";
-import "../../assets/css/chat.css";
+import "~/assets/css/chat.css";
 import * as PrismJS from "prismjs";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";

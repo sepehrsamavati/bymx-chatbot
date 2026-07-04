@@ -4,11 +4,11 @@ import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
-import CenteredContent from "~/layout/centeredContent";
+import CenteredContent from "~/layout/CenteredContent";
 import { useLayoutEffect, useRef, useState } from "react";
 import LinearProgress from "@mui/material/LinearProgress";
 
-export default function telegramAuth() {
+export function TelegramAuthPage() {
     const initialized = useRef(false);
     const session = useSession();
     const navigate = useNavigate();

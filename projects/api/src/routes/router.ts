@@ -44,7 +44,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 export const setRoutes = (fastifyInstance: FastifyInstance) => {
 
     fastifyInstance.register(FastifyStatic, {
-        root: path.join(__dirname, '../../../ui/build/client'),
+        root: path.join(__dirname, '../../../ui/dist'),
         prefix: '/ui', // optional: default '/'
         decorateReply: true,
         // index: "index.html",

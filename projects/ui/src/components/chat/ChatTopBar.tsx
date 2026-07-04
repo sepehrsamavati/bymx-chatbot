@@ -5,8 +5,8 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import type { AiModelEntity } from "bymx-core/types";
 import type { SelectChangeEvent } from "@mui/material";
-import ChatMoreActions from "./chatMoreActions";
-import ModelCostIndicatorIcon from "./modelCostIndicatorIcon";
+import ChatMoreActions from "./ChatMoreActions";
+import ModelCostIndicatorIcon from "./ModelCostIndicatorIcon";
 
 type ChatTopBarProps = {
     modelsReadyKey: number;

@@ -1,11 +1,11 @@
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import { useSession } from "~/core/Session";
 import Check from "@mui/icons-material/Check";
 import type { AiModelEntity } from "bymx-core/types";
 import modelService from "~/core/services/modelService";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, Card, CardActions, CardContent, CardHeader, Chip, Grid, IconButton, Stack, Switch } from "@mui/material";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 
 type MuiColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 
@@ -15,7 +15,7 @@ const providerToMuiColor = (p: number): MuiColor => ({
     3: "warning",
 } as const)[p] ?? "default";
 
-export default function AdminPanelIndex() {
+export function AdminModelsPage() {
     const session = useSession();
     const initialized = useRef(false);
     const [refreshing, setRefreshing] = useState(false);
