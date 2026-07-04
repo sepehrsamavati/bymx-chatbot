@@ -75,7 +75,7 @@ for (const project of projects) {
 
     if (!noBuild)
         // Build the project
-        runCommand('yarn run build', projectPath);
+        runCommand('npm run build', projectPath);
 
     if (!noArchive)
         // Create archive

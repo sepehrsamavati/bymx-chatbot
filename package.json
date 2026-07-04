@@ -1,14 +1,22 @@
 {
   "name": "bymx-chatbot",
-  "packageManager": "yarn@4.4.1",
   "version": "1.0.0-preview.14",
+  "private": true,
   "main": "index.js",
   "license": "MIT",
   "workspaces": [
     "projects/core",
     "projects/telegramBot",
     "projects/api",
-    "projects/start",
     "projects/ui"
-  ]
+  ],
+  "scripts": {
+    "build": "npm run build -w bymx-core && npm run build -w bymx-tg-endpoint && npm run build -w bymx-api-server && npm run build -w bymx-ui",
+    "start": "node ./projects/start/index.mjs"
+  },
+  "dependencies": {
+    "bymx-api-server": "*",
+    "bymx-core": "*",
+    "bymx-tg-endpoint": "*"
+  }
 }

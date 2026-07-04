@@ -1,7 +1,6 @@
 {
   "name": "bymx-api-server",
   "version": "0.4.1",
-  "packageManager": "yarn@4.4.1",
   "type": "module",
   "exports": {
     ".": "./dist/HttpServer.js"
@@ -12,6 +11,7 @@
     "start": "tsx ./dist/app.js"
   },
   "dependencies": {
+    "bymx-core": "*",
     "@fastify/cookie": "^11.0.2",
     "@fastify/jwt": "^9.1.0",
     "@fastify/multipart": "^9.0.3",

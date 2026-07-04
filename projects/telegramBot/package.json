@@ -16,6 +16,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "bymx-core": "*"
+  },
   "devDependencies": {
     "@types/node": "^22.7.5",
     "tsx": "^4.19.2",

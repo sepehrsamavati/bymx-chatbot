@@ -7,7 +7,7 @@ AI Chat Bot & Tools
 <details>
   <summary>📚 Tech stack</summary>
 
-Yarn monorepo  
+npm workspaces monorepo  
 Node.js  
 └── ES module system  
 MongoDB  
@@ -48,8 +48,8 @@ Telegram bot:
 Core:
 - Current: `5.7.2`
 
-## Yarn
-Tested on `4.4.1`
+## npm
+Tested on `10.x` (bundled with Node.js 22)
 
 </details>
 
@@ -57,15 +57,10 @@ Tested on `4.4.1`
   <summary>ℹ Launch</summary>
 
   ## 1. Installing dependencies
-Run `yarn` in
-  - root package
-  - `core`
-  - `api`
-  - `telegramBot`
-  - `ui`
+Run `npm install` from the repository root (installs all workspace packages).
 
   ## 2. Build
-  - All projects: `yarn run build` (order: `core` -> `telegramBot` -> `api` -> `ui`)
+  - All projects: `npm run build` (order: `core` -> `telegramBot` -> `api` -> `ui`)
   - \* API is depended on Telegram bot project (sending OTP - should be fixed by core)
 
   ## 3. Configure
