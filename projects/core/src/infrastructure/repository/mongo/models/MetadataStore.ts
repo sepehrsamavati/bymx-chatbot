@@ -8,7 +8,9 @@ export const metadataStoreModelDefinition: MongooseModelDefinition<"metadataStor
     createModel: con => con.models[metadataStoreModelDefinition.model] || con.model(metadataStoreModelDefinition.model, schema)
 });
 
-const schema = new mongoose.Schema<MongoStored<MetadataStoreDbModel>>({
+type MetadataStoreMongoStored = MongoStored<MetadataStoreDbModel>;
+
+const schema = new mongoose.Schema<MetadataStoreMongoStored>({
     insertDate: {
         type: Date,
         required: true
@@ -26,13 +28,13 @@ const schema = new mongoose.Schema<MongoStored<MetadataStoreDbModel>>({
     key: {
         type: String,
         index: true,
-        required: function () { // required but allow empty string
+        required: function (this: MetadataStoreMongoStored): boolean { // required but allow empty string
             return typeof this.key === "string" ? false : true
         },
     },
     value: {
         type: String,
-        required: function () {
+        required: function (this: MetadataStoreMongoStored): boolean {
             return typeof this.key === "string" ? false : true
         },
     },
