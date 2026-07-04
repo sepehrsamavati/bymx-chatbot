@@ -14,7 +14,7 @@ export function LayoutInner(props?: {
 
     return (
         <Stack alignItems="center" direction="column" height={props?.fullHeight ? "100%" : "initial"}>
-            <Stack direction="column" width="100%" height={props?.fullHeight ? "100%" : "initial"} maxWidth={props?.fullWidth ? "100%" : "700px"} gap={1}>
+            <Stack direction="column" width="100%" height={props?.fullHeight ? "100%" : "initial"} maxWidth={props?.fullWidth ? "100%" : "700px"} gap={1} sx={props?.fullHeight ? { minHeight: 0 } : undefined}>
 
                 {props?.topBar ? (
                     <Box textAlign="center">

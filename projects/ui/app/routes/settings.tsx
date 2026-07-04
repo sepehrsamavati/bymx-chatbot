@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { LayoutInner } from "~/layout/layoutInner";
 import { getLanguageList } from "~/core/i18n/i18n";
 import userService from "~/core/services/userService";
+import { streamEffects, type StreamEffect } from "~/components/chat/streamEffect";
 import { AIChatHistoryMemory, type UIText } from "bymx-core/shared";
 import { Box, Chip, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Stack, Switch, type SelectChangeEvent } from "@mui/material";
 
@@ -12,6 +13,14 @@ export default function Settings() {
     const [memoryAmountChangeLock, setMemoryAmountChangeLock] = useState(false);
     const [showExperimentalFeaturesSwitch, setShowExperimentalFeaturesSwitch] = useState(false);
     const [experimentalFeatures, setExperimentalFeatures] = useState(session.localStorage.data.experimentalFeatures);
+    const [streamEffect, setStreamEffect] = useState<StreamEffect>(session.localStorage.data.streamEffect);
+
+    const streamEffectLabel = (effect: StreamEffect) => ({
+        none: session.uiText.streamEffectNone,
+        fade: session.uiText.streamEffectFade,
+        slide: session.uiText.streamEffectSlide,
+        type: session.uiText.streamEffectType,
+    }[effect]);
 
     const handleMemoryAmountChange = useCallback((event: SelectChangeEvent<AIChatHistoryMemory>) => {
         if (memoryAmountChangeLock) return;
@@ -106,19 +115,43 @@ export default function Settings() {
                         </Box>
                         {showExperimentalFeaturesSwitch ? (
                             <Box marginTop={2}>
-                                <FormControlLabel
-                                    label={session.uiText.experimentalFeatures}
-                                    control={(
-                                        <Switch
-                                            checked={experimentalFeatures}
-                                            onClick={() => {
-                                                session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
-                                                session.localStorage.rewrite();
-                                                setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
-                                            }}
-                                        />
-                                    )}
-                                />
+                                <Stack gap={2} alignItems="center">
+                                    <FormControlLabel
+                                        label={session.uiText.experimentalFeatures}
+                                        control={(
+                                            <Switch
+                                                checked={experimentalFeatures}
+                                                onClick={() => {
+                                                    session.localStorage.data.experimentalFeatures = !session.localStorage.data.experimentalFeatures;
+                                                    session.localStorage.rewrite();
+                                                    setExperimentalFeatures(session.localStorage.data.experimentalFeatures);
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    {experimentalFeatures ? (
+                                        <FormControl size="small" sx={{ minWidth: 220 }}>
+                                            <InputLabel size="small">{session.uiText.streamEffect}</InputLabel>
+                                            <Select
+                                                size="small"
+                                                label={session.uiText.streamEffect}
+                                                value={streamEffect}
+                                                onChange={(event: SelectChangeEvent<StreamEffect>) => {
+                                                    const nextEffect = event.target.value as StreamEffect;
+                                                    session.localStorage.data.streamEffect = nextEffect;
+                                                    session.localStorage.rewrite();
+                                                    setStreamEffect(nextEffect);
+                                                }}
+                                            >
+                                                {streamEffects.map(effect => (
+                                                    <MenuItem key={effect} value={effect}>
+                                                        {streamEffectLabel(effect)}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    ) : null}
+                                </Stack>
                             </Box>
                         ) : null}
                     </Box>

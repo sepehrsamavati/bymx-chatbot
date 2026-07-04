@@ -1,4 +1,5 @@
 import type { PaletteMode } from "@mui/material";
+import type { StreamEffect } from "~/components/chat/streamEffect";
 
 export type IUpgradeable = {
     _dataVersion: number;
@@ -20,4 +21,8 @@ export type LocalStorage_v3 = LocalStorage_v2 & {
 
 export type LocalStorage_v4 = LocalStorage_v3 & {
     experimentalFeatures: boolean;
+}
+
+export type LocalStorage_v5 = LocalStorage_v4 & {
+    streamEffect: StreamEffect;
 }

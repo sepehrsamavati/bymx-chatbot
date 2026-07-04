@@ -2,7 +2,6 @@ import Button from "../button";
 import "../../assets/css/chat.css";
 import * as PrismJS from "prismjs";
 import Box from "@mui/material/Box";
-import Grow from "@mui/material/Grow";
 import Chip from "@mui/material/Chip";
 import Markdown from "react-markdown";
 import Menu from "@mui/material/Menu";
@@ -18,14 +17,13 @@ import OpenInFull from "@mui/icons-material/OpenInFull";
 import AttachFile from "@mui/icons-material/AttachFile";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import loadLanguage from "~/core/helper/loadPrismLanguage";
+import { useStreamingText } from "./useStreamingText";
 import CloseFullscreen from "@mui/icons-material/CloseFullscreen";
+import { defaultStreamEffect, type StreamEffect } from "./streamEffect";
 import { Dialog, DialogActions, DialogContent, IconButton, Stack } from "@mui/material";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-const messageFadeInDuration = 1e3;
-
 const typographyProcess = (element: HTMLElement | null) => {
-    // Handle text direction
     element?.querySelectorAll('p, code')
         .forEach(childElement => {
             if (!('innerText' in childElement))
@@ -39,7 +37,6 @@ const typographyProcess = (element: HTMLElement | null) => {
                 _element.dir = "ltr";
         });
 
-    // Highlight all complete code blocks
     element?.querySelectorAll("code[class^=language-]")
         .forEach(codeElement => {
             const language = codeElement.className.split('-')[1];
@@ -182,18 +179,26 @@ export default function MessageBubble(props?: {
     pointUsage?: number;
     modelTitle?: string;
     onRegenerate?: () => void;
+    isStreaming?: boolean;
+    streamEffect?: StreamEffect;
 }) {
     const session = useSession();
     const divRef = useRef<HTMLDivElement>(null);
     const viewTextModalContentRef = useRef<HTMLDivElement>(null);
-    const [displayText, setDisplayText] = useState<string>("");
-    const [animatedParts, setAnimatedParts] = useState<string[]>([]);
     const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState<HTMLElement>();
     const [contextMenuOpen, setContextMenuOpen] = useState(false);
     const [viewTextModalOpen, setViewTextModalOpen] = useState(false);
-    const lastCompleteCodeBlockEnd = useRef<number>(0);
     const contextMenuTouchTimerRef = useRef(0);
     const contextMenuTouchTargetRef = useRef<EventTarget>(null);
+
+    const text = props?.text ?? "";
+    const resolvedEffect = props?.streamEffect
+        ?? (session.localStorage.data.experimentalFeatures ? session.localStorage.data.streamEffect : defaultStreamEffect);
+
+    const { displayText, contentRef, isTyping, activeEffect } = useStreamingText(text, {
+        isStreaming: props?.isStreaming,
+        effect: resolvedEffect,
+    });
 
     const date = useMemo(() => {
         if (!props?.date) return null;
@@ -201,7 +206,7 @@ export default function MessageBubble(props?: {
         if (now.toLocaleDateString() !== props.date.toLocaleDateString())
             return <i>{props.date.toLocaleString()}</i>;
         return <i>{props.date.toLocaleTimeString()}</i>;
-    }, [props]);
+    }, [props?.date]);
 
     const openContextMenu = useCallback((e: Pick<Event, 'target' | 'preventDefault'>) => {
         const el = e.target instanceof HTMLElement ? e.target : null;
@@ -218,13 +223,12 @@ export default function MessageBubble(props?: {
     }, [openContextMenu]);
 
     const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = useCallback(() => {
-        if (contextMenuTouchTimerRef.current) {
+        if (contextMenuTouchTimerRef.current)
             clearTimeout(contextMenuTouchTimerRef.current);
-        }
     }, []);
 
     const copyToClipboardHandler = useCallback(() => {
-        copyToClipboard(divRef.current?.innerText || props?.text || "")
+        copyToClipboard(divRef.current?.innerText || text)
             .then(ok => {
                 if (!ok)
                     session.snackbarProvider(session.uiText.errorOccurred, {
@@ -236,71 +240,11 @@ export default function MessageBubble(props?: {
                         }
                     });
             });
-    }, [props, session]);
+    }, [text, session]);
 
     useLayoutEffect(() => {
         typographyProcess(divRef.current);
     }, [displayText]);
-
-    useLayoutEffect(() => {
-        const text = props?.text || "";
-
-        if (!session.localStorage.data.experimentalFeatures) {
-            setDisplayText(text);
-            return;
-        }
-
-        if (props?.text === undefined) return;
-
-        // If text hasn't changed, just ensure rendering is correct
-        if (props.text === displayText) {
-            typographyProcess(divRef.current);
-            return;
-        }
-
-        // Check if we're in the middle of a code block
-        const lastBacktickPos = text.lastIndexOf('```');
-        const isInCodeBlock = (text.match(/```/g) || []).length % 2 === 1;
-
-        if (isInCodeBlock) {
-            // We're inside a code block - update the entire text to maintain syntax
-            setDisplayText(text);
-            setAnimatedParts([]);
-
-            // Track where the last complete code block ends
-            if (lastBacktickPos > lastCompleteCodeBlockEnd.current) {
-                lastCompleteCodeBlockEnd.current = lastBacktickPos;
-            }
-            return;
-        }
-
-        // Not in a code block - we can animate new parts
-        const newParts: string[] = [];
-        const oldLines = displayText.split('\n');
-        const newLines = text.split('\n');
-
-        // Only animate lines after the last complete code block
-        const startLine = text.substring(0, lastCompleteCodeBlockEnd.current).split('\n').length;
-
-        for (let i = startLine; i < newLines.length; i++) {
-            if (i >= oldLines.length || newLines[i] !== oldLines[i]) {
-                newParts.push(newLines[i] + (i < newLines.length - 1 ? '\n' : ''));
-            }
-        }
-
-        if (newParts.length > 0) {
-            setAnimatedParts(newParts);
-            const timer = setTimeout(() => {
-                setDisplayText(text);
-                setAnimatedParts([]);
-            }, messageFadeInDuration);
-            return () => clearTimeout(timer);
-        }
-
-        // Default case - just update the text
-        setDisplayText(text);
-        lastCompleteCodeBlockEnd.current = 0; // Reset if we're out of all code blocks
-    }, [session, props?.text, displayText]);
 
     return (
         <Box
@@ -324,7 +268,7 @@ export default function MessageBubble(props?: {
                     ref={viewTextModalContentRef}
                     className="message-bubble"
                 >
-                    <Markdown>{props?.text}</Markdown>
+                    <Markdown>{text}</Markdown>
                 </DialogContent>
                 <DialogActions>
                     {props?.modelTitle ? <Chip label={props.modelTitle} /> : null}
@@ -340,15 +284,14 @@ export default function MessageBubble(props?: {
                 onTouchEnd={handleTouchEnd}
                 onTouchMove={handleTouchEnd}
             >
-                <Markdown>{displayText}</Markdown>
-
-                {animatedParts.map((part, index) => (
-                    <Grow key={index} in timeout={{ enter: 500, appear: 500, exit: 0, }}>
-                        <div>
-                            <Markdown>{part}</Markdown>
-                        </div>
-                    </Grow>
-                ))}
+                <div
+                    ref={contentRef}
+                    className="message-bubble-content"
+                    data-stream-effect={props?.isStreaming ? activeEffect : undefined}
+                >
+                    <Markdown>{displayText}</Markdown>
+                    {isTyping ? <span className="stream-type-cursor" aria-hidden>▊</span> : null}
+                </div>
 
                 {props?.attachmentFilename && (
                     <Chip
