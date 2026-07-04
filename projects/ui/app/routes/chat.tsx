@@ -15,6 +15,7 @@ import Restaurant from "@mui/icons-material/Restaurant";
 import modelService from "~/core/services/modelService";
 import FreeModelIcon from "@mui/icons-material/MoneyOff";
 import MessageBubble from "~/components/chat/messageBubble";
+import { useStreamChunks } from "~/components/chat/useStreamChunks";
 import FitnessCenter from "@mui/icons-material/FitnessCenter";
 import CostlyModelIcon from "@mui/icons-material/AttachMoney";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -85,8 +86,8 @@ function _Chat() {
     const [chatId, setChatId] = useState(chatIdParam);
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
     const [messages, setMessages] = useState<ChatMessage[] | undefined>(isNewChat.current ? [] : undefined);
-    const streamingMessageChunks = useRef<(string | undefined)[]>([]);
-    const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; output: string; }>();
+    const { output: streamingOutput, appendChunk, reset: resetStreamChunks } = useStreamChunks();
+    const [currentlyGeneratingMessage, setCurrentlyGeneratingMessage] = useState<{ input: string; }>();
     const initialized = useRef(false);
     const didFirstScrollToBottom = useRef(false);
     const [inputText, setInputText] = useState("");
@@ -99,12 +100,13 @@ function _Chat() {
     const [waitingForPreviousMessagesToLoad, setWaitingForPreviousMessagesToLoad] = useState(false);
     const [waitingForCompletion, setWaitingForCompletion] = useState(false);
     const autoScrollEnabled = useRef(true);
+    const scrollRafRef = useRef<number | undefined>(undefined);
     const socket = useMemo(() => socketManager(), []);
     const cantSubmit = inputText.trim().length === 0 || waitingForCompletion;
     const formRef = useRef<HTMLFormElement>(null);
     const textInputRef = useRef<HTMLInputElement>(null);
 
-    const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false) => {
+    const scrollToBottom = useCallback((asyncCallback?: (callback: Function) => void, force = false, instant = false) => {
         if (!chatSectionRef.current) return;
 
         const element = chatSectionRef.current;
@@ -114,7 +116,7 @@ function _Chat() {
             const scrollFunction = () => {
                 element.scrollTo({
                     top: element.scrollHeight - element.clientHeight,
-                    behavior: "smooth",
+                    behavior: instant ? "auto" : "smooth",
                 });
             };
             if (asyncCallback)
@@ -123,6 +125,15 @@ function _Chat() {
                 scrollFunction();
         }
     }, []);
+
+    const scheduleScrollToBottom = useCallback((instant = true) => {
+        if (scrollRafRef.current)
+            cancelAnimationFrame(scrollRafRef.current);
+
+        scrollRafRef.current = requestAnimationFrame(() => {
+            scrollToBottom(undefined, false, instant);
+        });
+    }, [scrollToBottom]);
 
     const getMessages = useCallback(({ scrollToBottomOnSuccess }: { scrollToBottomOnSuccess?: boolean } = {}) => {
         if (!chatId || isLoadingMessages.current || reachedToFirstMessage.current) return;
@@ -181,7 +192,7 @@ function _Chat() {
         let responseReturned = false;
         const _finally = () => {
             responseReturned = true;
-            streamingMessageChunks.current = [];
+            resetStreamChunks();
             setCurrentlyGeneratingMessage(undefined);
             setWaitingForCompletion(false);
         };
@@ -231,7 +242,8 @@ function _Chat() {
         } satisfies Api.ChatDto.ILlmPromptRequest;
 
         scrollToBottom(cb => setTimeout(() => cb(), 10), true);
-        setCurrentlyGeneratingMessage({ input: _inputText, output: "", });
+        resetStreamChunks();
+        setCurrentlyGeneratingMessage({ input: _inputText });
         const rollback = () => {
             setInputText(_inputText);
             setUploadingFile(_attachmentFile);
@@ -248,16 +260,15 @@ function _Chat() {
                         return { closeListener: true };
 
                     if (result.finished && result.isComplete) {
-                        streamingMessageChunks.current = [];
+                        resetStreamChunks();
                         setCurrentlyGeneratingMessage(undefined);
                         return { closeListener: true };
                     } else {
                         if (!result) {
                             rollback();
                         } else if (result?.outputChunk) {
-                            scrollToBottom(cb => setTimeout(() => cb(), 10));
-                            streamingMessageChunks.current[result.outputChunk.index] = result.outputChunk.value;
-                            setCurrentlyGeneratingMessage(_current => ({ input: _inputText, output: streamingMessageChunks.current.filter(v => typeof v === "string").join('') }));
+                            appendChunk(result.outputChunk.index, result.outputChunk.value);
+                            scheduleScrollToBottom();
                         }
                     }
 
@@ -291,7 +302,7 @@ function _Chat() {
                 }
             })
             .finally(_finally);
-    }, [session, chatId, inputText, uploadingFile, socket, selectedModel, getChatModelAndSync]);
+    }, [session, chatId, inputText, uploadingFile, socket, selectedModel, getChatModelAndSync, appendChunk, resetStreamChunks, scheduleScrollToBottom, scrollToBottom]);
 
     const scrollHandler: React.UIEventHandler<HTMLDivElement> = useCallback(event => {
         if ((event.target as HTMLDivElement).scrollTop === 0)
@@ -614,7 +625,7 @@ function _Chat() {
                         </Box>
                         <Box marginInline={1} marginBottom={2}>
                             <Box sx={{ backgroundColor: "transparent", display: "inline-block", overflow: "unset", maxWidth: "100%" }}>
-                                <MessageBubble text={currentlyGeneratingMessage.output} />
+                                <MessageBubble isStreaming text={streamingOutput} />
                             </Box>
                         </Box>
                     </Box>
