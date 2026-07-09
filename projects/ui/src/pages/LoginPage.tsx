@@ -1,11 +1,11 @@
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import colors from "~/core/config/colors";
 import { UIText } from "bymx-core/shared";
 import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
 import { getLanguageList } from "~/core/i18n/i18n";
 import userService from "~/core/services/userService";
-import CenteredContent from "~/layout/centeredContent";
+import CenteredContent from "~/layout/CenteredContent";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +16,7 @@ enum FormState {
     EnterOTP,
 }
 
-export default function Login() {
+export function LoginPage() {
     const session = useSession();
     const navigate = useNavigate();
     const [formState, setFormState] = useState(FormState.EnterPhoneNumber);

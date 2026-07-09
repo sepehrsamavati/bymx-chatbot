@@ -3,7 +3,7 @@ import { useSession } from "~/core/Session";
 import { Outlet, useNavigate } from "react-router";
 import userService from "~/core/services/userService";
 
-export default function AuthGuard() {
+export function AuthGuard() {
     const session = useSession();
     const navigate = useNavigate();
     const fetchUserInfoLock = useRef(false);

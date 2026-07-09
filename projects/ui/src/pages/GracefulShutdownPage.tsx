@@ -1,11 +1,11 @@
 import { Chip, Stack } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import gracefulShutdownService from "~/core/services/gracefulShutdownService";
 import { useSession } from "~/core/Session";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 
-export default function GracefulShutdown() {
+export function GracefulShutdownPage() {
     const session = useSession();
     const [gettingInfo, setGettingInfo] = useState(false);
     const [isSettingShouldShutdown, setIsSettingShouldShutdown] = useState(false);

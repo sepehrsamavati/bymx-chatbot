@@ -25,7 +25,7 @@ const schema = new mongoose.Schema<AIChatMongoStored>({
     },
     title: {
         type: String,
-        required: function () { // required but allow empty string
+        required: function (this: AIChatMongoStored): boolean { // required but allow empty string
             return typeof this.title === "string" ? false : true
         }
     },

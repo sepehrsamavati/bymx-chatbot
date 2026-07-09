@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import CircularProgress from "@mui/material/CircularProgress";
-import MessageBubble from "./messageBubble";
+import MessageBubble from "./MessageBubble";
 import type { ChatMessage } from "./types";
 
 type ChatMessageListProps = {

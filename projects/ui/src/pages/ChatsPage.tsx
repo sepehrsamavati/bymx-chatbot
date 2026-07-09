@@ -1,15 +1,15 @@
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
 import { stringHelper } from "bymx-core/shared";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 import { useEffect, useRef, useState } from "react";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import fluxSampleImage from "../assets/images/flux-sample.webp";
+import fluxSampleImage from "~/assets/images/flux-sample.webp";
 import generativeAiService from "~/core/services/generativeAiService";
 import { Box, Card, CardActions, CardMedia, Chip, Grid, Stack } from "@mui/material";
 
-export default function Chats() {
+export function ChatsPage() {
     const navigate = useNavigate();
     const session = useSession();
     const initialized = useRef(false);

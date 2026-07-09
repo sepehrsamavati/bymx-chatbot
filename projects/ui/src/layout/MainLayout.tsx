@@ -1,14 +1,14 @@
 import Stack from "@mui/material/Stack";
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import Add from "@mui/icons-material/Add";
-import RoleHoc from "~/components/roleHoc";
+import RoleHoc from "~/components/RoleHoc";
 import Save from "@mui/icons-material/Save";
 import Menu from "@mui/icons-material/Menu";
 import Edit from "@mui/icons-material/Edit";
 import { useSession } from "~/core/Session";
 import Close from "@mui/icons-material/Close";
 import Container from '@mui/material/Container';
-import bymxLogo from "../assets/images/bymx.jpg";
+import bymxLogo from "~/assets/images/bymx.jpg";
 import IconButton from "@mui/material/IconButton";
 import CssBaseline from '@mui/material/CssBaseline';
 import Settings from "@mui/icons-material/Settings";
@@ -20,7 +20,7 @@ import CreditCard from "@mui/icons-material/CreditCard";
 import { Link, Outlet, useNavigate } from "react-router";
 import OfflineBolt from "@mui/icons-material/OfflineBolt";
 import { stringHelper, UserType } from "bymx-core/shared";
-import bymxHeader from "../assets/images/baymax_header.webp";
+import bymxHeader from "~/assets/images/baymax_header.webp";
 import type { CaptionOnly, UserEntity } from "bymx-core/types";
 import ExpandCircleDown from "@mui/icons-material/ExpandCircleDown";
 import React, { useCallback, useState, useEffect, useRef } from "react";
@@ -617,7 +617,7 @@ function Eula() {
     );
 }
 
-export default function MainLayout() {
+export function MainLayout() {
     return (
         <>
             <CssBaseline />

@@ -440,7 +440,8 @@ export const promptHandler: IUpdateHandler = {
                     ]
                 }));
                 form.append('duration', result.audio.duration.toString());
-                form.append('voice', new Blob([result.audio.data]));
+                const audioBytes = Uint8Array.from(result.audio.data);
+                form.append('voice', new Blob([audioBytes]));
 
                 if (result.plainText && result.plainText.length < 1024) {
                     form.append("caption", convertToTelegramMarkdown(result.plainText!));

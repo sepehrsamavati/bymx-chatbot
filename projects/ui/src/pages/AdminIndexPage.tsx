@@ -1,10 +1,10 @@
 import Stack from "@mui/material/Stack";
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 
-export default function AdminPanelIndex() {
+export function AdminIndexPage() {
     const session = useSession();
     const navigate = useNavigate();
     return (

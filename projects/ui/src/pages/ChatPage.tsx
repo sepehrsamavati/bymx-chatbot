@@ -1,15 +1,15 @@
-import "../assets/css/chat.css";
+import "~/assets/css/chat.css";
 import { useParams } from "react-router";
 import { useState } from "react";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 import { useChat } from "~/components/chat/hooks/useChat";
-import ChatTopBar from "~/components/chat/chatTopBar";
-import ChatMessageList from "~/components/chat/chatMessageList";
-import ChatEmptyState from "~/components/chat/chatEmptyState";
-import ChatInputForm from "~/components/chat/chatInputForm";
+import ChatTopBar from "~/components/chat/ChatTopBar";
+import ChatMessageList from "~/components/chat/ChatMessageList";
+import ChatEmptyState from "~/components/chat/ChatEmptyState";
+import ChatInputForm from "~/components/chat/ChatInputForm";
 import { ReadyPromptCategory } from "~/components/chat/types";
 
-function ChatPage() {
+function ChatPageContent() {
     const [selectedCategory, setSelectedCategory] = useState<ReadyPromptCategory>();
     const chat = useChat(useParams().chatIdParam);
 
@@ -71,7 +71,7 @@ function ChatPage() {
 }
 
 /** Wrapper to re-mount on param change (route change) */
-export default function Chat() {
+export function ChatPage() {
     const { chatIdParam } = useParams();
-    return <ChatPage key={chatIdParam} />;
+    return <ChatPageContent key={chatIdParam} />;
 }

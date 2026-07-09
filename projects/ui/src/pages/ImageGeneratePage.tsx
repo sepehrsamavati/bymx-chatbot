@@ -1,11 +1,11 @@
-import Button from "~/components/button";
+import Button from "~/components/Button";
 import colors from "~/core/config/colors";
 import { useNavigate } from "react-router";
 import { useSession } from "~/core/Session";
 import { stringHelper } from "bymx-core/shared";
-import { LayoutInner } from "~/layout/layoutInner";
+import { LayoutInner } from "~/layout/LayoutInner";
 import AutoFixHigh from "@mui/icons-material/AutoFixHigh";
-import fluxSampleImage from "../assets/images/flux-sample.webp";
+import fluxSampleImage from "~/assets/images/flux-sample.webp";
 import generativeAiService from "~/core/services/generativeAiService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Card, CardActions, CardMedia, Chip, ImageList, ImageListItem, Stack, TextField, Typography, type SxProps, type Theme } from "@mui/material";
@@ -24,7 +24,7 @@ function ImageCard(props: GeneratedImage & { sx?: SxProps<Theme> }) {
     );
 }
 
-export default function ImageGenerate() {
+export function ImageGeneratePage() {
     const session = useSession();
     const navigate = useNavigate();
     const initialized = useRef(false);
