@@ -1,6 +1,9 @@
+> [!WARNING]
+> **This project is deprecated, unmaintained, and archived.**
+> This was developed as an experimental personal project and contains several architectural anti-patterns and technical debt. However, the codebase demonstrates a clean, modular structure leveraging Object-Oriented Programming (OOP), Dependency Injection (DI), and an npm workspace monorepo separating the `SDK`, `Telegram bot`, `API`, and `UI` layers. While the structural foundation has good potential for exploration or reference, the software is provided strictly **"as-is"** without any guarantees, security patches, or updates. Anyone choosing to fork, clone, or deploy this code assumes full and sole responsibility for identifying, mitigating, and managing any existing or future security vulnerabilities.
+
 # Baymax AI
 AI Chat Bot & Tools
-
 
 ---
 
